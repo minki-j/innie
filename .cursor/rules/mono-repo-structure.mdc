@@ -1,0 +1,18 @@
+---
+alwaysApply: true
+---
+
+This is a mono repo that contains the following directories:
+- application
+    A nextJS application
+- lab
+    A Python scripts related to training models
+- orchestrator
+    A python pipelines that process data for the application
+- shared
+
+
+Important Rules:
+- When importing packages, start the path relative to the each sub directories. 
+    Bad: from lab/trains/rlvr_youtube_reviews/dataset.py import YouTubeReviewEnvGroupBuilder
+    Good: from trains/rlvr_youtube_reviews/dataset.py import YouTubeReviewEnvGroupBuilder

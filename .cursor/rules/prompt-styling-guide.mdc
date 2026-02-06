@@ -1,0 +1,53 @@
+---
+alwaysApply: false
+---
+# Prompt Formatting Standards
+
+Prompts are frequently reviewed and edited by human engineers. To keep them readable, diff-friendly, and token-efficient, all prompts must follow these formatting rules.
+
+## Required Format
+
+1. Always use triple-quoted strings with real line breaks.
+2. Start and end the prompt with a line break.
+3. Call .strip() to remove the leading and trailing line breaks.
+4. Do not indent any prompt lines. The prompt content must start at column 0.
+5. Do not use implicit string concatenation (parentheses with multiple strings).
+6. Do not insert line breaks just to satisfy code line length limits. Only break lines at logical paragraph boundaries.
+
+## Example
+
+✅ Good:
+```python
+good_example = """
+Prompt starts from a new line without indentation using triple quotes.
+
+It doesn't break lines even though this line exceeds ideal code length. It only breaks line when the logical paragraph ends like here.
+
+The prompt ends with a line break and then calls strip().
+""".strip()
+```
+
+❌ Bad: Indented prompt (wastes tokens and harms readability)
+```python
+bad_example_1 = """
+    This prompt is indented.
+    This adds unnecessary tokens and should never be done.
+""".strip()
+```
+
+❌ Bad: Implicit string concatenation
+```python
+bad_example_2 = (
+    "This prompt is split across strings "
+    "which makes it harder to edit and review."
+)
+```
+
+❌ Bad: Line breaks inserted only to satisfy code width
+```python
+bad_example_3 = """
+This paragraph is broken into multiple lines even though it is a single logical paragraph. This is
+done only to keep code lines short, which is incorrect because the prompt is sent to the LLM
+exactly as written and these artificial breaks degrade clarity and quality.
+""".strip()
+```

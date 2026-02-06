@@ -1,0 +1,294 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth (NextAuth Prisma Adapter) ───────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts     Account[]
+  sessions     Session[]
+  reviews      Review[]
+  topics       Topic[]
+  trainingRuns TrainingRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Video Data ───────────────────────────────────────────────
+
+model Video {
+  id              String   @id // YouTube video_id
+  title           String
+  description     String   @db.Text
+  channelTitle    String
+  channelId       String
+  publishedAt     DateTime
+  viewCount       BigInt   @default(0)
+  likeCount       BigInt   @default(0)
+  commentCount    BigInt   @default(0)
+  durationSeconds Int
+  definition      String   @default("hd")
+  caption         String   @default("false")
+  tags            String[]
+
+  thumbnailDefault String?
+  thumbnailMedium  String?
+  thumbnailHigh    String?
+  transcript       String?  @db.Text
+  summary          String?  @db.Text
+
+  reviews          Review[]
+  topics           Topic[]
+  channel          Channel?          @relation(fields: [channelId], references: [id])
+  criterionResults CriterionResult[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([channelId])
+  @@index([publishedAt])
+}
+
+model Channel {
+  id              String  @id // YouTube channel_id
+  title           String
+  description     String? @db.Text
+  customUrl       String?
+  thumbnailUrl    String?
+  subscriberCount BigInt  @default(0)
+  videoCount      BigInt  @default(0)
+
+  videos Video[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── App-Specific Data ────────────────────────────────────────
+
+model Review {
+  id      String  @id @default(cuid())
+  userId  String
+  videoId String
+  topicId String?
+  rating  Int // 1-5
+  content String? @db.Text
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  topic Topic? @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, videoId, topicId]) // One review per user per video per topic
+  @@index([videoId])
+  @@index([topicId])
+}
+
+// ─── Topics ──────────────────────────────────────────────────
+
+model Topic {
+  id          String  @id @default(cuid())
+  name        String
+  description String? @db.Text
+  userId      String
+  active      Boolean @default(true)
+
+  pipelineIntervalHours Int       @default(6)
+  lastPipelineRunAt     DateTime?
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  criteria      Criterion[]
+  goldStandards GoldStandard[]
+  keywords      TopicKeyword[]
+  creators      TopicCreator[]
+  videos        Video[]
+  reviews       Review[]
+  trainingRuns  TrainingRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Criterion {
+  id        String  @id @default(cuid())
+  topicId   String
+  condition String  @db.Text
+  include   Boolean @default(true) // true = Include, false = Exclude
+  level     String  @default("MUST_HAVE") // "MUST_HAVE" or "NICE_TO_HAVE"
+  order     Int     @default(0)
+
+  topic            Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  criterionResults CriterionResult[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([topicId])
+}
+
+model GoldStandard {
+  id         String  @id @default(cuid())
+  topicId    String
+  videoUrl   String
+  title      String? // cached title for display
+  isPositive Boolean @default(true) // true = positive, false = negative
+  note       String? @db.Text
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([topicId])
+}
+
+model TopicKeyword {
+  id      String @id @default(cuid())
+  topicId String
+  keyword String
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([topicId])
+}
+
+model TopicCreator {
+  id               String  @id @default(cuid())
+  topicId          String
+  channelId        String?
+  channelUrl       String?
+  channelName      String?
+  scrapeMonthsBack Int     @default(1) // 1-12
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([topicId])
+}
+
+// ─── Criterion Results (Pipeline Output) ─────────────────────
+
+enum CriterionResultValue {
+  PASS
+  FAIL
+  CANNOT_TELL
+}
+
+model CriterionResult {
+  id          String               @id @default(cuid())
+  videoId     String
+  criterionId String
+  result      CriterionResultValue
+  explanation String?              @db.Text
+  modelUsed   String? // e.g. "gpt-4o", "claude-sonnet-4-20250514"
+
+  video     Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  criterion Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([videoId, criterionId])
+  @@index([videoId])
+  @@index([criterionId])
+}
+
+// ─── Training (Lab Server) ───────────────────────────────────
+
+enum TrainingStatus {
+  PENDING
+  TRAINING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum TrainingMethod {
+  SFT
+  RLVR
+}
+
+model TrainingRun {
+  id             String         @id @default(cuid())
+  userId         String
+  topicId        String
+  status         TrainingStatus @default(PENDING)
+  method         TrainingMethod
+  modelName      String         @unique // e.g. "innie-<topicId>-sft-v3"
+  version        Int // auto-incremented per (userId, topicId, method)
+  checkpointPath String? // Tinker checkpoint URI after completion
+  baseModel      String         @default("meta-llama/Llama-3.1-8B-Instruct")
+  config         Json? // training hyperparameters
+  metrics        Json? // final training metrics
+  datasetSize    Int? // number of training examples used
+  webhookUrl     String?
+  error          String?        @db.Text
+  isActive       Boolean        @default(false) // is this the model to use for inference?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@index([userId, topicId])
+  @@index([topicId, method, isActive])
+}
