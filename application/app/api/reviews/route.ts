@@ -77,13 +77,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(null);
     }
 
-    // Parse the content JSON and map rating back to string
+    // Parse the content JSON and map rating back to string.
+    // Supports both JSON format (from UI) and plain text (from synthetic scripts).
     let parsedContent: { likeAspects?: string[]; feedback?: string; includeInTestSet?: boolean } = {};
     if (review.content) {
       try {
         parsedContent = JSON.parse(review.content);
       } catch {
-        // content is not valid JSON, ignore
+        // Not valid JSON — treat the raw string as feedback text
+        parsedContent = { feedback: review.content };
       }
     }
 

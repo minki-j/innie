@@ -258,43 +258,41 @@ export function TrainingSection({ topicId }: TrainingSectionProps) {
       </div>
 
       {/* Method selector + cost estimate */}
-      {info.feedbackCount > 0 && (
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">
-            Training method
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            {(['SFT', 'RLVR'] as const).map((method) => {
-              const tokens = info.estimatedTokens[method.toLowerCase() as 'sft' | 'rlvr'];
-              const isSelected = selectedMethod === method;
-              return (
-                <button
-                  key={method}
-                  onClick={() => setSelectedMethod(method)}
-                  disabled={isTrainingActive}
-                  className={`text-left rounded-lg border-2 p-3 transition-colors ${
-                    isSelected
-                      ? 'border-gray-900 bg-gray-50'
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                  } ${isTrainingActive ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-900">
-                      {METHOD_INFO[method].label}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {formatTokens(tokens)} tokens
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {METHOD_INFO[method].description}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-gray-700">
+          Training method
+        </label>
+        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
+          {(['SFT', 'RLVR'] as const).map((method) => {
+            const tokens = info.estimatedTokens[method.toLowerCase() as 'sft' | 'rlvr'];
+            const isSelected = selectedMethod === method;
+            return (
+              <button
+                key={method}
+                onClick={() => setSelectedMethod(method)}
+                disabled={isTrainingActive}
+                className={`text-left rounded-lg border-2 p-3 transition-colors ${
+                  isSelected
+                    ? 'border-gray-900 bg-gray-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                } ${isTrainingActive ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900">
+                    {METHOD_INFO[method].label}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatTokens(tokens)} tokens
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {METHOD_INFO[method].description}
+                </p>
+              </button>
+            );
+          })}
         </div>
-      )}
+      </div>
 
       {/* Latest training run */}
       {info.latestRun && (

@@ -16,7 +16,7 @@ export function SignInButton() {
     );
   }
 
-  if (session) {
+  if (session?.user) {
     return (
       <button
         onClick={() => signOut()}

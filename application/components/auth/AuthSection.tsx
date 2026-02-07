@@ -16,7 +16,7 @@ export function AuthSection() {
     );
   }
 
-  if (session) {
+  if (session?.user) {
     return (
       <>
         <Link

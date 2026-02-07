@@ -87,16 +87,23 @@ export async function GET(
     for (const review of reviews) {
       if (!review.video.transcript) continue;
 
-      let content: { feedback?: string } = {};
+      // Extract feedback text from the content field.
+      // Supports two formats:
+      //   1. JSON with a "feedback" key (from the application UI)
+      //   2. Plain text (from synthetic review scripts or legacy data)
+      let feedbackText: string | undefined;
+
       if (review.content) {
         try {
-          content = JSON.parse(review.content);
+          const parsed = JSON.parse(review.content);
+          feedbackText = parsed.feedback;
         } catch {
-          continue;
+          // Not valid JSON — treat the raw string as the feedback itself
+          feedbackText = review.content;
         }
       }
 
-      if (!content.feedback) continue;
+      if (!feedbackText) continue;
 
       feedbackCount++;
 
@@ -105,7 +112,7 @@ export async function GET(
         0,
         RLVR_DEFAULTS.transcriptMaxChars,
       );
-      const text = `${transcript} ${review.video.title || ""} ${content.feedback}`;
+      const text = `${transcript} ${review.video.title || ""} ${feedbackText}`;
       totalWords += countWords(text);
     }
 

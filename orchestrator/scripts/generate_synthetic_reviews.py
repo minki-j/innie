@@ -12,8 +12,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import logging
+import json
 import sys
+import traceback
 from datetime import datetime, timezone
 
 import psycopg2.extras
@@ -24,12 +25,6 @@ from pydantic import BaseModel, Field
 from config import DATABASE_URL, TRANSCRIPT_MAX_CHARS
 from tasks.db import _generate_cuid, get_connection
 from tasks.evaluate import _get_llm
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(message)s",
-)
-logger = logging.getLogger(__name__)
 
 # ── Default values ────────────────────────────────────────────
 
@@ -265,20 +260,20 @@ def main() -> None:
     # Resolve the user who owns the topic
     user_id = get_topic_user_id(topic_id)
     if not user_id:
-        logger.error("Topic %s not found — aborting.", topic_id)
+        print(f"Topic {topic_id} not found — aborting.")
         sys.exit(1)
 
-    logger.info("Topic:   %s", topic_id)
-    logger.info("User:    %s", user_id)
-    logger.info("Model:   %s", model_name or "(default)")
-    logger.info("Dry run: %s", dry_run)
+    print(f"Topic:   {topic_id}")
+    print(f"User:    {user_id}")
+    print(f"Model:   {model_name or '(default)'}")
+    print(f"Dry run: {dry_run}")
 
     # Fetch all videos in the topic
     videos = fetch_topic_videos(topic_id)
-    logger.info("Found %d videos in topic.", len(videos))
+    print(f"Found {len(videos)} videos in topic.")
 
     if not videos:
-        logger.warning("No videos found — nothing to do.")
+        print("No videos found — nothing to do.")
         return
 
     # Optionally skip videos that already have reviews
@@ -288,9 +283,9 @@ def main() -> None:
         videos = [v for v in videos if v["id"] not in existing]
         skipped = before - len(videos)
         if skipped:
-            logger.info("Skipping %d videos that already have reviews.", skipped)
+            print(f"Skipping {skipped} videos that already have reviews.")
 
-    logger.info("Generating reviews for %d videos...\n", len(videos))
+    print(f"Generating reviews for {len(videos)} videos...\n")
 
     success = 0
     failed = 0
@@ -298,30 +293,32 @@ def main() -> None:
     for i, video in enumerate(videos, 1):
         vid_id = video["id"]
         title = video.get("title", "(untitled)")
-        logger.info("[%d/%d] %s  —  %s", i, len(videos), vid_id, title)
+        print(f"[{i}/{len(videos)}] {vid_id}  —  {title}")
 
         try:
             review = generate_review(video, persona, model_name)
-            logger.info("  ⭐ %d/5  |  %s", review.rating, review.content[:120])
+            print(f"  ⭐ {review.rating}/5  |  {review.content[:120]}")
 
             if not dry_run:
-                rid = save_review(vid_id, topic_id, user_id, review.rating, review.content)
-                logger.info("  → saved review %s", rid)
+                # Store content as JSON matching the application's expected format
+                content_json = json.dumps({
+                    "likeAspects": [],
+                    "feedback": review.content,
+                    "includeInTestSet": False,
+                })
+                rid = save_review(vid_id, topic_id, user_id, review.rating, content_json)
+                print(f"  → saved review {rid}")
             else:
-                logger.info("  → dry-run, not saved")
+                print("  → dry-run, not saved")
 
             success += 1
 
         except Exception:
-            logger.exception("  ✗ failed to generate review for %s", vid_id)
+            print(f"  ✗ failed to generate review for {vid_id}")
+            traceback.print_exc()
             failed += 1
 
-    logger.info(
-        "\nDone. %d succeeded, %d failed out of %d videos.",
-        success,
-        failed,
-        len(videos),
-    )
+    print(f"\nDone. {success} succeeded, {failed} failed out of {len(videos)} videos.")
 
 
 if __name__ == "__main__":
