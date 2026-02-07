@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import math
 import os
 import time
 from contextlib import contextmanager
@@ -80,17 +81,38 @@ def get_training_data(user_id: str, topic_id: str) -> list[TrainingDatapoint]:
             )
             rows = cur.fetchall()
 
+    logger.info(
+        "get_training_data SQL returned %d rows for user_id=%s topic_id=%s",
+        len(rows),
+        user_id,
+        topic_id,
+    )
+    if rows:
+        sample = rows[0]
+        content_preview = (sample["content"] or "")[:100]
+        logger.info(
+            "  First row: videoId=%s, content_type=%s, content_preview=%r",
+            sample["videoId"],
+            type(sample["content"]).__name__,
+            content_preview,
+        )
+
     datapoints: list[TrainingDatapoint] = []
     for row in rows:
-        # Parse the JSON content field
+        # Parse the content field.
+        # Supports two formats:
+        #   1. JSON with a "feedback" key (from the application UI)
+        #   2. Plain text (from synthetic review scripts or legacy data)
         content: dict[str, Any] = {}
+        feedback = ""
         if row["content"]:
             try:
                 content = json.loads(row["content"])
+                feedback = content.get("feedback", "")
             except (json.JSONDecodeError, TypeError):
-                content = {}
+                # Not valid JSON — treat the raw string as the feedback itself
+                feedback = row["content"]
 
-        feedback = content.get("feedback", "")
         if not feedback:
             continue  # skip reviews without feedback text
 
@@ -222,7 +244,12 @@ def update_training_run_status(
 
             if metrics is not None:
                 updates.append("metrics = %s")
-                params.append(json.dumps(metrics))
+                # Replace NaN/Inf with None — these are not valid JSON
+                sanitized = {
+                    k: (None if isinstance(v, float) and (math.isnan(v) or math.isinf(v)) else v)
+                    for k, v in metrics.items()
+                }
+                params.append(json.dumps(sanitized))
 
             if error is not None:
                 updates.append("error = %s")

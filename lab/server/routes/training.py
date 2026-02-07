@@ -42,8 +42,20 @@ async def start_training(
     Start a new training run for a user's topic.
     Called by the Application when a user triggers training from the UI.
     """
+    logger.info(
+        "Training request received: user_id=%s topic_id=%s method=%s",
+        request.user_id,
+        request.topic_id,
+        request.method.value,
+    )
+
     # Validate user + topic exist
     if not user_and_topic_exist(request.user_id, request.topic_id):
+        logger.warning(
+            "Topic not found: topic_id=%s user_id=%s",
+            request.topic_id,
+            request.user_id,
+        )
         raise HTTPException(
             status_code=404,
             detail=f"Topic {request.topic_id} not found for user {request.user_id}",
@@ -51,6 +63,12 @@ async def start_training(
 
     # Check minimum reviews
     datapoints = get_training_data(request.user_id, request.topic_id)
+    logger.info(
+        "Training data lookup: user_id=%s topic_id=%s found=%d datapoints",
+        request.user_id,
+        request.topic_id,
+        len(datapoints),
+    )
     if len(datapoints) < MIN_REVIEWS_FOR_TRAINING:
         raise HTTPException(
             status_code=400,

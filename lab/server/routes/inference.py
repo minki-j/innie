@@ -132,9 +132,19 @@ IMPORTANT:
     user_content = "\n\n".join(user_content_parts)
 
     service_client = tinker.ServiceClient()
-    sampling_client = service_client.create_sampling_client(
+
+    # TODO(temporary): hard-coded sampler weights path for now, ignoring the
+    # checkpoint_path coming from the DB. Replace with dynamic resolution once
+    # the sampler-reuse logic is validated end-to-end.
+    sampler_path = "tinker://b128220d-3f23-5435-94ad-b510caba84df:train:0/sampler_weights/sampler"
+    logger.info(
+        "Using hard-coded sampler weights path %s (ignoring DB path %s)",
+        sampler_path,
+        checkpoint_path,
+    )
+    sampling_client = await service_client.create_sampling_client_async(
         base_model="meta-llama/Llama-3.1-8B-Instruct",
-        model_path=checkpoint_path,
+        model_path=sampler_path,
     )
 
     tokenizer = sampling_client.get_tokenizer()
@@ -159,14 +169,18 @@ IMPORTANT:
         prompt_text = f"System:\n{SYSTEM_PROMPT}\n\nUser:\n{user_content}\n"
         prompt_tokens = tokenizer.encode(prompt_text)
 
+    # tokenizer.encode() may return a BatchEncoding instead of list[int]
+    if hasattr(prompt_tokens, "input_ids"):
+        prompt_tokens = prompt_tokens.input_ids
+
     prompt = tinker.types.ModelInput.from_ints(prompt_tokens)
     params = tinker.types.SamplingParams(max_tokens=512, temperature=0.7)
 
-    resp = await sampling_client.sample_async(prompt, params, n=1)
+    resp = await sampling_client.sample_async(prompt, 1, params)
     if not resp.sequences:
         raise RuntimeError("No sequences returned from sampling")
 
-    completion_tokens = resp.sequences[0].token_ids
+    completion_tokens = resp.sequences[0].tokens
     review_text = tokenizer.decode(completion_tokens, skip_special_tokens=True)
 
     return review_text.strip()

@@ -277,6 +277,7 @@ export function VideoReviewPanel({ videoId, topics }: VideoReviewPanelProps) {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const baseTextRef = useRef('');
+  const feedbackRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Helpers to get/set current topic review state
   const currentTopicId = selectedTopicId;
@@ -336,6 +337,16 @@ export function VideoReviewPanel({ videoId, topics }: VideoReviewPanelProps) {
     });
     updateCurrentReview({ submitted: false });
   };
+
+  // Auto-resize feedback textarea when content changes
+  const currentFeedback = currentReview?.feedback ?? '';
+  useEffect(() => {
+    const el = feedbackRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  }, [currentFeedback]);
 
   // Clean up speech recognition on unmount
   useEffect(() => {
@@ -892,11 +903,14 @@ export function VideoReviewPanel({ videoId, topics }: VideoReviewPanelProps) {
                 )}
                 <div className="relative">
                   <textarea
+                    ref={feedbackRef}
                     id={`feedback-${videoId}-${currentTopicId}`}
                     value={feedback}
                     onChange={(e) => {
                       updateCurrentReview({ feedback: e.target.value, submitted: false });
                       baseTextRef.current = e.target.value;
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
                     }}
                     placeholder={
                       rating === 'like'
@@ -908,7 +922,7 @@ export function VideoReviewPanel({ videoId, topics }: VideoReviewPanelProps) {
                     rows={3}
                     className={cn(
                       'w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900',
-                      'placeholder:text-gray-400 resize-none',
+                      'placeholder:text-gray-400 resize-none overflow-hidden',
                       'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
                       'transition-colors duration-150',
                       isTranscribing && 'border-red-300 focus:ring-red-400 focus:border-red-400'
