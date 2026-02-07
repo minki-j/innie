@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { CriterionResultValue } from "@/lib/generated/prisma";
+import { CriterionResultValue } from "@/lib/generated/prisma/client";
 
 interface RouteParams {
   params: Promise<{ videoId: string }>;
