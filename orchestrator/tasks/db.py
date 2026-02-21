@@ -66,8 +66,8 @@ def _enrich_gold_standards(
 ) -> list[GoldStandardWithContext]:
     """
     Enrich gold standard records with review content and video descriptions.
-    This provides richer context for AGI search prompts without using
-    full transcripts (which are too long).
+    This provides richer context for search prompts and few-shot examples
+    without using full transcripts (which are too long).
     """
     if not raw_gold_standards:
         return []

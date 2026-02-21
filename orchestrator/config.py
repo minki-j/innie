@@ -43,12 +43,6 @@ GOOGLE_API_KEY: str = os.environ.get("GOOGLE_API_KEY", "")
 
 DEFAULT_LLM_MODEL: str = os.environ.get("DEFAULT_LLM_MODEL", "gpt-4o")
 
-# ── AGI, Inc. ─────────────────────────────────────────────────
-
-AGI_API_KEY: str = os.environ.get("AGI_INC_API_KEY", "")
-AGI_AGENT_MODEL: str = os.environ.get("AGI_AGENT_MODEL", "agi-0-fast")
-MAX_VIDEOS_PER_AGI_SEARCH: int = int(os.environ["MAX_VIDEOS_PER_AGI_SEARCH"])
-
 # ── YouTube Scraping ─────────────────────────────────────────
 
 MAX_VIDEOS_PER_KEYWORD: int = int(os.environ["MAX_VIDEOS_PER_KEYWORD"])

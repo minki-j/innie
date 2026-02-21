@@ -30,7 +30,7 @@ export function UserMenu() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-full hover:bg-gray-100 p-1 transition-colors"
+        className="flex items-center gap-2 rounded-full hover:bg-gray-100 p-1 transition-colors cursor-pointer"
         aria-label="User menu"
       >
         {session.user.image ? (

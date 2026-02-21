@@ -133,19 +133,41 @@ IMPORTANT:
 
     service_client = tinker.ServiceClient()
 
-    # TODO(temporary): hard-coded sampler weights path for now, ignoring the
-    # checkpoint_path coming from the DB. Replace with dynamic resolution once
-    # the sampler-reuse logic is validated end-to-end.
-    sampler_path = "tinker://b128220d-3f23-5435-94ad-b510caba84df:train:0/sampler_weights/sampler"
-    logger.info(
-        "Using hard-coded sampler weights path %s (ignoring DB path %s)",
-        sampler_path,
-        checkpoint_path,
-    )
-    sampling_client = await service_client.create_sampling_client_async(
-        base_model="meta-llama/Llama-3.1-8B-Instruct",
-        model_path=sampler_path,
-    )
+    # Training checkpoints use /weights/ paths; sampling requires /sampler_weights/.
+    # Materialize sampler weights once and reuse them on subsequent calls.
+    if "/sampler_weights/" not in checkpoint_path:
+        # Derive a deterministic sampler name from the checkpoint path so we
+        # can reuse previously-materialized weights instead of re-creating them.
+        checkpoint_basename = checkpoint_path.rsplit("/", 1)[-1]
+        sampler_name = f"sampler__{checkpoint_basename}"
+        sampler_name = sampler_name.replace("/", "_").replace(":", "-")
+        sampler_name = "".join(
+            ch for ch in sampler_name if ch.isalnum() or ch in {"_", "-", "."}
+        )
+
+        run_prefix = checkpoint_path.split("/weights/")[0]
+        expected_sampler_path = f"{run_prefix}/sampler_weights/{sampler_name}"
+
+        try:
+            sampling_client = await service_client.create_sampling_client_async(
+                base_model="meta-llama/Llama-3.1-8B-Instruct",
+                model_path=expected_sampler_path,
+            )
+            logger.info("Reusing existing sampler weights at %s", expected_sampler_path)
+        except Exception:
+            logger.info("Materializing sampler weights for %s", checkpoint_path)
+            tc = await service_client.create_training_client_from_state_async(
+                checkpoint_path
+            )
+            sampling_client = await tc.save_weights_and_get_sampling_client_async(
+                name=sampler_name
+            )
+            logger.info("Sampler weights materialized as %s", sampler_name)
+    else:
+        sampling_client = await service_client.create_sampling_client_async(
+            base_model="meta-llama/Llama-3.1-8B-Instruct",
+            model_path=checkpoint_path,
+        )
 
     tokenizer = sampling_client.get_tokenizer()
 

@@ -5,14 +5,18 @@ build: null
 push: null
 
 pull:
+  - prefect.deployments.steps.git_clone:
+      id: clone
+      repository: https://github.com/minki-j/innie.git
+      branch: main
   - prefect.deployments.steps.set_working_directory:
-      directory: ./
+      directory: "{{ clone.directory }}/orchestrator"
 
 deployments:
   - name: video-pipeline
     entrypoint: flows/video_pipeline.py:video_pipeline
     work_pool:
-      name: main
-    schedules:
-      - cron: "0 * * * *"  # every hour; topics self-regulate via pipelineIntervalHours
-        timezone: "UTC"
+      name: main # prefect managed work pool; prefect hosts and runs the worker; no extra workers needed to poll queues and spawn jobs
+    # schedules:
+    #   - cron: "0 * * * *"  # every hour; topics self-regulate via pipelineIntervalHours
+    #     timezone: "UTC"

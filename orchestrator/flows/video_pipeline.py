@@ -28,7 +28,6 @@ from tasks.db import (
     video_exists,
 )
 from tasks.evaluate import evaluate_criterion, generate_summary
-from tasks.agi_search import search_videos_with_agi
 from tasks.youtube import (
     fetch_creator_videos,
     fetch_transcript,
@@ -45,8 +44,7 @@ logging.basicConfig(level=logging.INFO)
 @flow(name="discover_videos_fast")
 def discover_videos_fast(topic: Topic) -> list[str]:
     """
-    Fast video discovery using keyword search and creator fetch (yt-dlp).
-    Does NOT include AGI search (which is slow and runs separately).
+    Video discovery using keyword search and creator fetch (yt-dlp).
     Returns a deduplicated list of video IDs.
     """
     logger = get_run_logger()
@@ -183,20 +181,17 @@ def _process_topic(topic: Topic, model_name: str | None, logger: Any) -> None:
             topic.name,
         )
 
-    # ── Phase 1: Fire AGI search in background, run fast searches,
-    #             and process fast results immediately ──────────
-    agi_future = search_videos_with_agi.submit(topic)
-
+    # Discover and process new videos
     fast_ids = discover_videos_fast(topic)
-    fast_new = [vid for vid in fast_ids if vid not in existing_video_ids]
+    new_ids = [vid for vid in fast_ids if vid not in existing_video_ids]
 
-    if fast_new:
+    if new_ids:
         logger.info(
-            "Processing %d videos from fast search for topic '%s'",
-            len(fast_new),
+            "Processing %d new videos for topic '%s'",
+            len(new_ids),
             topic.name,
         )
-    for video_id in fast_new:
+    for video_id in new_ids:
         try:
             process_video_for_topic(
                 video_id=video_id,
@@ -210,38 +205,6 @@ def _process_topic(topic: Topic, model_name: str | None, logger: Any) -> None:
                 video_id,
                 topic.name,
             )
-
-    # ── Phase 2: Collect AGI results and process any new ones ──
-    try:
-        agi_ids = agi_future.result()
-        already_seen = existing_video_ids | set(fast_new)
-        agi_new = [vid for vid in agi_ids if vid not in already_seen]
-
-        if agi_new:
-            logger.info(
-                "Processing %d additional videos from AGI search for topic '%s'",
-                len(agi_new),
-                topic.name,
-            )
-        for video_id in agi_new:
-            try:
-                process_video_for_topic(
-                    video_id=video_id,
-                    topic=topic,
-                    model_name=model_name,
-                    few_shot_examples=few_shot_examples,
-                )
-            except Exception:
-                logger.exception(
-                    "Failed to process video %s for topic '%s'",
-                    video_id,
-                    topic.name,
-                )
-    except Exception:
-        logger.warning(
-            "AGI search failed for topic '%s', continuing without AGI results",
-            topic.name,
-        )
 
     # Update lastPipelineRunAt after successfully processing the topic
     update_topic_last_run(topic.id)
