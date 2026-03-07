@@ -242,6 +242,7 @@ export type CriterionWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Criterion"> | Date | string
   topic?: Prisma.XOR<Prisma.TopicScalarRelationFilter, Prisma.TopicWhereInput>
   criterionResults?: Prisma.CriterionResultListRelationFilter
+  criterionFilters?: Prisma.CriterionFilterListRelationFilter
 }
 
 export type CriterionOrderByWithRelationInput = {
@@ -255,6 +256,7 @@ export type CriterionOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   topic?: Prisma.TopicOrderByWithRelationInput
   criterionResults?: Prisma.CriterionResultOrderByRelationAggregateInput
+  criterionFilters?: Prisma.CriterionFilterOrderByRelationAggregateInput
 }
 
 export type CriterionWhereUniqueInput = Prisma.AtLeast<{
@@ -271,6 +273,7 @@ export type CriterionWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Criterion"> | Date | string
   topic?: Prisma.XOR<Prisma.TopicScalarRelationFilter, Prisma.TopicWhereInput>
   criterionResults?: Prisma.CriterionResultListRelationFilter
+  criterionFilters?: Prisma.CriterionFilterListRelationFilter
 }, "id">
 
 export type CriterionOrderByWithAggregationInput = {
@@ -313,6 +316,7 @@ export type CriterionCreateInput = {
   updatedAt?: Date | string
   topic: Prisma.TopicCreateNestedOneWithoutCriteriaInput
   criterionResults?: Prisma.CriterionResultCreateNestedManyWithoutCriterionInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutCriterionInput
 }
 
 export type CriterionUncheckedCreateInput = {
@@ -325,6 +329,7 @@ export type CriterionUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   criterionResults?: Prisma.CriterionResultUncheckedCreateNestedManyWithoutCriterionInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutCriterionInput
 }
 
 export type CriterionUpdateInput = {
@@ -337,6 +342,7 @@ export type CriterionUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topic?: Prisma.TopicUpdateOneRequiredWithoutCriteriaNestedInput
   criterionResults?: Prisma.CriterionResultUpdateManyWithoutCriterionNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutCriterionNestedInput
 }
 
 export type CriterionUncheckedUpdateInput = {
@@ -349,6 +355,7 @@ export type CriterionUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criterionResults?: Prisma.CriterionResultUncheckedUpdateManyWithoutCriterionNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutCriterionNestedInput
 }
 
 export type CriterionCreateManyInput = {
@@ -481,6 +488,20 @@ export type CriterionUncheckedUpdateManyWithoutTopicNestedInput = {
   deleteMany?: Prisma.CriterionScalarWhereInput | Prisma.CriterionScalarWhereInput[]
 }
 
+export type CriterionCreateNestedOneWithoutCriterionFiltersInput = {
+  create?: Prisma.XOR<Prisma.CriterionCreateWithoutCriterionFiltersInput, Prisma.CriterionUncheckedCreateWithoutCriterionFiltersInput>
+  connectOrCreate?: Prisma.CriterionCreateOrConnectWithoutCriterionFiltersInput
+  connect?: Prisma.CriterionWhereUniqueInput
+}
+
+export type CriterionUpdateOneRequiredWithoutCriterionFiltersNestedInput = {
+  create?: Prisma.XOR<Prisma.CriterionCreateWithoutCriterionFiltersInput, Prisma.CriterionUncheckedCreateWithoutCriterionFiltersInput>
+  connectOrCreate?: Prisma.CriterionCreateOrConnectWithoutCriterionFiltersInput
+  upsert?: Prisma.CriterionUpsertWithoutCriterionFiltersInput
+  connect?: Prisma.CriterionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CriterionUpdateToOneWithWhereWithoutCriterionFiltersInput, Prisma.CriterionUpdateWithoutCriterionFiltersInput>, Prisma.CriterionUncheckedUpdateWithoutCriterionFiltersInput>
+}
+
 export type CriterionCreateNestedOneWithoutCriterionResultsInput = {
   create?: Prisma.XOR<Prisma.CriterionCreateWithoutCriterionResultsInput, Prisma.CriterionUncheckedCreateWithoutCriterionResultsInput>
   connectOrCreate?: Prisma.CriterionCreateOrConnectWithoutCriterionResultsInput
@@ -504,6 +525,7 @@ export type CriterionCreateWithoutTopicInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   criterionResults?: Prisma.CriterionResultCreateNestedManyWithoutCriterionInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutCriterionInput
 }
 
 export type CriterionUncheckedCreateWithoutTopicInput = {
@@ -515,6 +537,7 @@ export type CriterionUncheckedCreateWithoutTopicInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   criterionResults?: Prisma.CriterionResultUncheckedCreateNestedManyWithoutCriterionInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutCriterionInput
 }
 
 export type CriterionCreateOrConnectWithoutTopicInput = {
@@ -557,6 +580,70 @@ export type CriterionScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Criterion"> | Date | string
 }
 
+export type CriterionCreateWithoutCriterionFiltersInput = {
+  id?: string
+  condition: string
+  include?: boolean
+  level?: string
+  order?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  topic: Prisma.TopicCreateNestedOneWithoutCriteriaInput
+  criterionResults?: Prisma.CriterionResultCreateNestedManyWithoutCriterionInput
+}
+
+export type CriterionUncheckedCreateWithoutCriterionFiltersInput = {
+  id?: string
+  topicId: string
+  condition: string
+  include?: boolean
+  level?: string
+  order?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  criterionResults?: Prisma.CriterionResultUncheckedCreateNestedManyWithoutCriterionInput
+}
+
+export type CriterionCreateOrConnectWithoutCriterionFiltersInput = {
+  where: Prisma.CriterionWhereUniqueInput
+  create: Prisma.XOR<Prisma.CriterionCreateWithoutCriterionFiltersInput, Prisma.CriterionUncheckedCreateWithoutCriterionFiltersInput>
+}
+
+export type CriterionUpsertWithoutCriterionFiltersInput = {
+  update: Prisma.XOR<Prisma.CriterionUpdateWithoutCriterionFiltersInput, Prisma.CriterionUncheckedUpdateWithoutCriterionFiltersInput>
+  create: Prisma.XOR<Prisma.CriterionCreateWithoutCriterionFiltersInput, Prisma.CriterionUncheckedCreateWithoutCriterionFiltersInput>
+  where?: Prisma.CriterionWhereInput
+}
+
+export type CriterionUpdateToOneWithWhereWithoutCriterionFiltersInput = {
+  where?: Prisma.CriterionWhereInput
+  data: Prisma.XOR<Prisma.CriterionUpdateWithoutCriterionFiltersInput, Prisma.CriterionUncheckedUpdateWithoutCriterionFiltersInput>
+}
+
+export type CriterionUpdateWithoutCriterionFiltersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  condition?: Prisma.StringFieldUpdateOperationsInput | string
+  include?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  level?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  topic?: Prisma.TopicUpdateOneRequiredWithoutCriteriaNestedInput
+  criterionResults?: Prisma.CriterionResultUpdateManyWithoutCriterionNestedInput
+}
+
+export type CriterionUncheckedUpdateWithoutCriterionFiltersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  topicId?: Prisma.StringFieldUpdateOperationsInput | string
+  condition?: Prisma.StringFieldUpdateOperationsInput | string
+  include?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  level?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  criterionResults?: Prisma.CriterionResultUncheckedUpdateManyWithoutCriterionNestedInput
+}
+
 export type CriterionCreateWithoutCriterionResultsInput = {
   id?: string
   condition: string
@@ -566,6 +653,7 @@ export type CriterionCreateWithoutCriterionResultsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   topic: Prisma.TopicCreateNestedOneWithoutCriteriaInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutCriterionInput
 }
 
 export type CriterionUncheckedCreateWithoutCriterionResultsInput = {
@@ -577,6 +665,7 @@ export type CriterionUncheckedCreateWithoutCriterionResultsInput = {
   order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutCriterionInput
 }
 
 export type CriterionCreateOrConnectWithoutCriterionResultsInput = {
@@ -604,6 +693,7 @@ export type CriterionUpdateWithoutCriterionResultsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topic?: Prisma.TopicUpdateOneRequiredWithoutCriteriaNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutCriterionNestedInput
 }
 
 export type CriterionUncheckedUpdateWithoutCriterionResultsInput = {
@@ -615,6 +705,7 @@ export type CriterionUncheckedUpdateWithoutCriterionResultsInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutCriterionNestedInput
 }
 
 export type CriterionCreateManyTopicInput = {
@@ -636,6 +727,7 @@ export type CriterionUpdateWithoutTopicInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criterionResults?: Prisma.CriterionResultUpdateManyWithoutCriterionNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutCriterionNestedInput
 }
 
 export type CriterionUncheckedUpdateWithoutTopicInput = {
@@ -647,6 +739,7 @@ export type CriterionUncheckedUpdateWithoutTopicInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   criterionResults?: Prisma.CriterionResultUncheckedUpdateManyWithoutCriterionNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutCriterionNestedInput
 }
 
 export type CriterionUncheckedUpdateManyWithoutTopicInput = {
@@ -666,10 +759,12 @@ export type CriterionUncheckedUpdateManyWithoutTopicInput = {
 
 export type CriterionCountOutputType = {
   criterionResults: number
+  criterionFilters: number
 }
 
 export type CriterionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   criterionResults?: boolean | CriterionCountOutputTypeCountCriterionResultsArgs
+  criterionFilters?: boolean | CriterionCountOutputTypeCountCriterionFiltersArgs
 }
 
 /**
@@ -689,6 +784,13 @@ export type CriterionCountOutputTypeCountCriterionResultsArgs<ExtArgs extends ru
   where?: Prisma.CriterionResultWhereInput
 }
 
+/**
+ * CriterionCountOutputType without action
+ */
+export type CriterionCountOutputTypeCountCriterionFiltersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CriterionFilterWhereInput
+}
+
 
 export type CriterionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -701,6 +803,7 @@ export type CriterionSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   updatedAt?: boolean
   topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
   criterionResults?: boolean | Prisma.Criterion$criterionResultsArgs<ExtArgs>
+  criterionFilters?: boolean | Prisma.Criterion$criterionFiltersArgs<ExtArgs>
   _count?: boolean | Prisma.CriterionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["criterion"]>
 
@@ -743,6 +846,7 @@ export type CriterionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type CriterionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
   criterionResults?: boolean | Prisma.Criterion$criterionResultsArgs<ExtArgs>
+  criterionFilters?: boolean | Prisma.Criterion$criterionFiltersArgs<ExtArgs>
   _count?: boolean | Prisma.CriterionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CriterionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -757,6 +861,7 @@ export type $CriterionPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   objects: {
     topic: Prisma.$TopicPayload<ExtArgs>
     criterionResults: Prisma.$CriterionResultPayload<ExtArgs>[]
+    criterionFilters: Prisma.$CriterionFilterPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1163,6 +1268,7 @@ export interface Prisma__CriterionClient<T, Null = never, ExtArgs extends runtim
   readonly [Symbol.toStringTag]: "PrismaPromise"
   topic<T extends Prisma.TopicDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TopicDefaultArgs<ExtArgs>>): Prisma.Prisma__TopicClient<runtime.Types.Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   criterionResults<T extends Prisma.Criterion$criterionResultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Criterion$criterionResultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CriterionResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  criterionFilters<T extends Prisma.Criterion$criterionFiltersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Criterion$criterionFiltersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CriterionFilterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1617,6 +1723,30 @@ export type Criterion$criterionResultsArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.CriterionResultScalarFieldEnum | Prisma.CriterionResultScalarFieldEnum[]
+}
+
+/**
+ * Criterion.criterionFilters
+ */
+export type Criterion$criterionFiltersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CriterionFilter
+   */
+  select?: Prisma.CriterionFilterSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CriterionFilter
+   */
+  omit?: Prisma.CriterionFilterOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CriterionFilterInclude<ExtArgs> | null
+  where?: Prisma.CriterionFilterWhereInput
+  orderBy?: Prisma.CriterionFilterOrderByWithRelationInput | Prisma.CriterionFilterOrderByWithRelationInput[]
+  cursor?: Prisma.CriterionFilterWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CriterionFilterScalarFieldEnum | Prisma.CriterionFilterScalarFieldEnum[]
 }
 
 /**

@@ -4,7 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 // ─── Auth (NextAuth Prisma Adapter) ───────────────────────────
@@ -146,19 +148,25 @@ model Topic {
   pipelineIntervalHours Int       @default(6)
   lastPipelineRunAt     DateTime?
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  criteria      Criterion[]
-  goldStandards GoldStandard[]
-  keywords      TopicKeyword[]
-  creators      TopicCreator[]
-  videos        Video[]
-  reviews       Review[]
-  trainingRuns  TrainingRun[]
+  parentId String?
+  parent   Topic?  @relation("TopicChildren", fields: [parentId], references: [id])
+  children Topic[] @relation("TopicChildren")
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  criteria         Criterion[]
+  criterionFilters CriterionFilter[]
+  goldStandards    GoldStandard[]
+  keywords         TopicKeyword[]
+  creators         TopicCreator[]
+  videos           Video[]
+  reviews          Review[]
+  trainingRuns     TrainingRun[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([parentId])
 }
 
 model Criterion {
@@ -171,10 +179,26 @@ model Criterion {
 
   topic            Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
   criterionResults CriterionResult[]
+  criterionFilters CriterionFilter[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([topicId])
+}
+
+model CriterionFilter {
+  id             String               @id @default(cuid())
+  topicId        String
+  criterionId    String
+  requiredResult CriterionResultValue
+
+  topic     Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  criterion Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([topicId, criterionId])
   @@index([topicId])
 }
 

@@ -94,7 +94,7 @@ export function TopicOverviewEditor({
           onBlur={handleBlur}
           onKeyDown={handleNameKeyDown}
           placeholder="Topic name"
-          className="text-3xl font-extrabold tracking-tight text-gray-900 bg-gray-50 border-0 outline-none w-full py-1 placeholder:text-gray-300 focus:ring-0 focus:bg-gray-100 rounded-lg transition-colors pl-2"
+          className="text-3xl font-extrabold tracking-tight text-gray-900 bg-transparent border-0 outline-none w-full py-1 placeholder:text-gray-300 focus:ring-0 rounded-lg transition-colors hover:bg-gray-50 focus:bg-gray-50 cursor-pointer focus:cursor-text px-2"
         />
         {isSaving && (
           <span className="text-xs text-gray-400 flex-shrink-0">Saving...</span>
@@ -110,7 +110,7 @@ export function TopicOverviewEditor({
         onBlur={handleBlur}
         placeholder="Describe what kind of content this topic should cover..."
         rows={1}
-        className="text-base text-gray-400 bg-gray-50 border-0 outline-none w-full py-1.5 placeholder:text-gray-300 focus:ring-0 focus:bg-gray-100 rounded-lg transition-colors resize-none overflow-hidden pl-2 leading-relaxed"
+        className="text-base text-gray-400 bg-transparent border-0 outline-none w-full py-1.5 placeholder:text-gray-300 focus:ring-0 rounded-lg transition-colors resize-none overflow-hidden leading-relaxed hover:bg-gray-50 focus:bg-gray-50 cursor-pointer focus:cursor-text px-2"
       />
     </div>
   );

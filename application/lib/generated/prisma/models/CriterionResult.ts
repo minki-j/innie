@@ -475,10 +475,6 @@ export type CriterionResultUncheckedUpdateManyWithoutCriterionNestedInput = {
   deleteMany?: Prisma.CriterionResultScalarWhereInput | Prisma.CriterionResultScalarWhereInput[]
 }
 
-export type EnumCriterionResultValueFieldUpdateOperationsInput = {
-  set?: $Enums.CriterionResultValue
-}
-
 export type CriterionResultCreateWithoutVideoInput = {
   id?: string
   result: $Enums.CriterionResultValue

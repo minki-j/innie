@@ -1,41 +1,70 @@
-import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { TopicListClient } from '@/components/topic/TopicListClient';
+'use client';
 
-export const metadata = {
-  title: 'Topics - Settings',
-};
+import { useEffect, useState } from 'react';
+import { TopicFlowCanvas, type TopicSummary } from '@/components/topic/TopicFlowCanvas';
+import { TopicDetailPanel } from '@/components/topic/TopicDetailPanel';
 
-export default async function TopicsSettingsPage() {
-  const session = await auth();
+export default function TopicsPage() {
+  const [topics, setTopics] = useState<TopicSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  if (!session?.user?.id) {
-    redirect('/signin');
+  useEffect(() => {
+    fetch('/api/topics')
+      .then((r) => r.json())
+      .then((data: TopicSummary[]) => {
+        setTopics(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const panelOpen = selectedId !== null;
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center text-sm text-gray-400">
+        Loading topics…
+      </div>
+    );
   }
 
-  const topics = await prisma.topic.findMany({
-    where: { userId: session.user.id },
-    include: {
-      _count: {
-        select: { videos: true, criteria: true, keywords: true, creators: true },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Topics</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage the topics you want to track. Each topic can have criteria, gold standards, keywords, and YouTube creators.
-          </p>
-        </div>
+    <div className="flex h-full overflow-hidden">
+      {/* Canvas area */}
+      <div
+        className="flex-1 relative"
+        style={{ height: 'calc(100vh - 64px)' }}
+      >
+        {topics.length === 0 && !loading ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-gray-400">
+            <svg className="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <p className="text-lg font-medium text-gray-500">No topics yet</p>
+            <p className="text-sm">Click &quot;New Root Topic&quot; in the canvas to get started.</p>
+          </div>
+        ) : null}
+        <TopicFlowCanvas
+          initialTopics={topics}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
       </div>
 
-      <TopicListClient initialTopics={topics} />
+      {/* Right detail panel */}
+      {panelOpen && selectedId && (
+        <div
+          className="w-[480px] shrink-0 border-l border-gray-200 overflow-hidden"
+          style={{ height: 'calc(100vh - 64px)' }}
+        >
+          <TopicDetailPanel
+            key={selectedId}
+            topicId={selectedId}
+            onClose={() => setSelectedId(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }

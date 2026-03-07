@@ -23,10 +23,18 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       where: { id: topicId, userId: session.user.id },
       include: {
         criteria: { orderBy: { order: "asc" } },
+        criterionFilters: {
+          include: { criterion: { select: { id: true, condition: true, topicId: true } } },
+          orderBy: { createdAt: "asc" },
+        },
         goldStandards: { orderBy: { createdAt: "desc" } },
         keywords: { orderBy: { createdAt: "desc" } },
         creators: { orderBy: { createdAt: "desc" } },
-        _count: { select: { videos: true } },
+        children: {
+          select: { id: true, name: true },
+          orderBy: { createdAt: "asc" },
+        },
+        _count: { select: { videos: true, criteria: true, criterionFilters: true } },
       },
     });
 

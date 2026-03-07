@@ -60,6 +60,7 @@ export const ModelName = {
   Review: 'Review',
   Topic: 'Topic',
   Criterion: 'Criterion',
+  CriterionFilter: 'CriterionFilter',
   GoldStandard: 'GoldStandard',
   TopicKeyword: 'TopicKeyword',
   TopicCreator: 'TopicCreator',
@@ -196,6 +197,7 @@ export const TopicScalarFieldEnum = {
   active: 'active',
   pipelineIntervalHours: 'pipelineIntervalHours',
   lastPipelineRunAt: 'lastPipelineRunAt',
+  parentId: 'parentId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -215,6 +217,17 @@ export const CriterionScalarFieldEnum = {
 } as const
 
 export type CriterionScalarFieldEnum = (typeof CriterionScalarFieldEnum)[keyof typeof CriterionScalarFieldEnum]
+
+
+export const CriterionFilterScalarFieldEnum = {
+  id: 'id',
+  topicId: 'topicId',
+  criterionId: 'criterionId',
+  requiredResult: 'requiredResult',
+  createdAt: 'createdAt'
+} as const
+
+export type CriterionFilterScalarFieldEnum = (typeof CriterionFilterScalarFieldEnum)[keyof typeof CriterionFilterScalarFieldEnum]
 
 
 export const GoldStandardScalarFieldEnum = {

@@ -393,6 +393,7 @@ export const ModelName = {
   Review: 'Review',
   Topic: 'Topic',
   Criterion: 'Criterion',
+  CriterionFilter: 'CriterionFilter',
   GoldStandard: 'GoldStandard',
   TopicKeyword: 'TopicKeyword',
   TopicCreator: 'TopicCreator',
@@ -413,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "topic" | "criterion" | "goldStandard" | "topicKeyword" | "topicCreator" | "criterionResult" | "trainingRun"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "topic" | "criterion" | "criterionFilter" | "goldStandard" | "topicKeyword" | "topicCreator" | "criterionResult" | "trainingRun"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1083,6 +1084,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CriterionFilter: {
+      payload: Prisma.$CriterionFilterPayload<ExtArgs>
+      fields: Prisma.CriterionFilterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CriterionFilterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CriterionFilterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
+        }
+        findFirst: {
+          args: Prisma.CriterionFilterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CriterionFilterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
+        }
+        findMany: {
+          args: Prisma.CriterionFilterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>[]
+        }
+        create: {
+          args: Prisma.CriterionFilterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
+        }
+        createMany: {
+          args: Prisma.CriterionFilterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CriterionFilterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>[]
+        }
+        delete: {
+          args: Prisma.CriterionFilterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
+        }
+        update: {
+          args: Prisma.CriterionFilterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
+        }
+        deleteMany: {
+          args: Prisma.CriterionFilterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CriterionFilterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CriterionFilterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>[]
+        }
+        upsert: {
+          args: Prisma.CriterionFilterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
+        }
+        aggregate: {
+          args: Prisma.CriterionFilterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCriterionFilter>
+        }
+        groupBy: {
+          args: Prisma.CriterionFilterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CriterionFilterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CriterionFilterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CriterionFilterCountAggregateOutputType> | number
+        }
+      }
+    }
     GoldStandard: {
       payload: Prisma.$GoldStandardPayload<ExtArgs>
       fields: Prisma.GoldStandardFieldRefs
@@ -1605,6 +1680,7 @@ export const TopicScalarFieldEnum = {
   active: 'active',
   pipelineIntervalHours: 'pipelineIntervalHours',
   lastPipelineRunAt: 'lastPipelineRunAt',
+  parentId: 'parentId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1624,6 +1700,17 @@ export const CriterionScalarFieldEnum = {
 } as const
 
 export type CriterionScalarFieldEnum = (typeof CriterionScalarFieldEnum)[keyof typeof CriterionScalarFieldEnum]
+
+
+export const CriterionFilterScalarFieldEnum = {
+  id: 'id',
+  topicId: 'topicId',
+  criterionId: 'criterionId',
+  requiredResult: 'requiredResult',
+  createdAt: 'createdAt'
+} as const
+
+export type CriterionFilterScalarFieldEnum = (typeof CriterionFilterScalarFieldEnum)[keyof typeof CriterionFilterScalarFieldEnum]
 
 
 export const GoldStandardScalarFieldEnum = {
@@ -1986,6 +2073,7 @@ export type GlobalOmitConfig = {
   review?: Prisma.ReviewOmit
   topic?: Prisma.TopicOmit
   criterion?: Prisma.CriterionOmit
+  criterionFilter?: Prisma.CriterionFilterOmit
   goldStandard?: Prisma.GoldStandardOmit
   topicKeyword?: Prisma.TopicKeywordOmit
   topicCreator?: Prisma.TopicCreatorOmit

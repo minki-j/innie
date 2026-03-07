@@ -20,12 +20,13 @@ export async function GET() {
           select: {
             videos: true,
             criteria: true,
+            criterionFilters: true,
             keywords: true,
             creators: true,
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
     });
 
     return NextResponse.json(topics);
@@ -50,10 +51,23 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description } = body;
+    const { name, description, parentId } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
+    }
+
+    // Validate parentId ownership if provided
+    if (parentId) {
+      const parent = await prisma.topic.findFirst({
+        where: { id: parentId, userId: session.user.id },
+      });
+      if (!parent) {
+        return NextResponse.json(
+          { error: "Parent topic not found" },
+          { status: 404 },
+        );
+      }
     }
 
     const topic = await prisma.topic.create({
@@ -61,6 +75,7 @@ export async function POST(request: NextRequest) {
         name: name.trim(),
         description: description?.trim() || null,
         userId: session.user.id,
+        ...(parentId && { parentId }),
       },
     });
 

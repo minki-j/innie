@@ -42,6 +42,7 @@ export type TopicMinAggregateOutputType = {
   active: boolean | null
   pipelineIntervalHours: number | null
   lastPipelineRunAt: Date | null
+  parentId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +55,7 @@ export type TopicMaxAggregateOutputType = {
   active: boolean | null
   pipelineIntervalHours: number | null
   lastPipelineRunAt: Date | null
+  parentId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +68,7 @@ export type TopicCountAggregateOutputType = {
   active: number
   pipelineIntervalHours: number
   lastPipelineRunAt: number
+  parentId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -88,6 +91,7 @@ export type TopicMinAggregateInputType = {
   active?: true
   pipelineIntervalHours?: true
   lastPipelineRunAt?: true
+  parentId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +104,7 @@ export type TopicMaxAggregateInputType = {
   active?: true
   pipelineIntervalHours?: true
   lastPipelineRunAt?: true
+  parentId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +117,7 @@ export type TopicCountAggregateInputType = {
   active?: true
   pipelineIntervalHours?: true
   lastPipelineRunAt?: true
+  parentId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -211,6 +217,7 @@ export type TopicGroupByOutputType = {
   active: boolean
   pipelineIntervalHours: number
   lastPipelineRunAt: Date | null
+  parentId: string | null
   createdAt: Date
   updatedAt: Date
   _count: TopicCountAggregateOutputType | null
@@ -246,10 +253,14 @@ export type TopicWhereInput = {
   active?: Prisma.BoolFilter<"Topic"> | boolean
   pipelineIntervalHours?: Prisma.IntFilter<"Topic"> | number
   lastPipelineRunAt?: Prisma.DateTimeNullableFilter<"Topic"> | Date | string | null
+  parentId?: Prisma.StringNullableFilter<"Topic"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
+  parent?: Prisma.XOR<Prisma.TopicNullableScalarRelationFilter, Prisma.TopicWhereInput> | null
+  children?: Prisma.TopicListRelationFilter
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   criteria?: Prisma.CriterionListRelationFilter
+  criterionFilters?: Prisma.CriterionFilterListRelationFilter
   goldStandards?: Prisma.GoldStandardListRelationFilter
   keywords?: Prisma.TopicKeywordListRelationFilter
   creators?: Prisma.TopicCreatorListRelationFilter
@@ -266,10 +277,14 @@ export type TopicOrderByWithRelationInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  parent?: Prisma.TopicOrderByWithRelationInput
+  children?: Prisma.TopicOrderByRelationAggregateInput
   user?: Prisma.UserOrderByWithRelationInput
   criteria?: Prisma.CriterionOrderByRelationAggregateInput
+  criterionFilters?: Prisma.CriterionFilterOrderByRelationAggregateInput
   goldStandards?: Prisma.GoldStandardOrderByRelationAggregateInput
   keywords?: Prisma.TopicKeywordOrderByRelationAggregateInput
   creators?: Prisma.TopicCreatorOrderByRelationAggregateInput
@@ -289,10 +304,14 @@ export type TopicWhereUniqueInput = Prisma.AtLeast<{
   active?: Prisma.BoolFilter<"Topic"> | boolean
   pipelineIntervalHours?: Prisma.IntFilter<"Topic"> | number
   lastPipelineRunAt?: Prisma.DateTimeNullableFilter<"Topic"> | Date | string | null
+  parentId?: Prisma.StringNullableFilter<"Topic"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
+  parent?: Prisma.XOR<Prisma.TopicNullableScalarRelationFilter, Prisma.TopicWhereInput> | null
+  children?: Prisma.TopicListRelationFilter
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   criteria?: Prisma.CriterionListRelationFilter
+  criterionFilters?: Prisma.CriterionFilterListRelationFilter
   goldStandards?: Prisma.GoldStandardListRelationFilter
   keywords?: Prisma.TopicKeywordListRelationFilter
   creators?: Prisma.TopicCreatorListRelationFilter
@@ -309,6 +328,7 @@ export type TopicOrderByWithAggregationInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TopicCountOrderByAggregateInput
@@ -329,6 +349,7 @@ export type TopicScalarWhereWithAggregatesInput = {
   active?: Prisma.BoolWithAggregatesFilter<"Topic"> | boolean
   pipelineIntervalHours?: Prisma.IntWithAggregatesFilter<"Topic"> | number
   lastPipelineRunAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Topic"> | Date | string | null
+  parentId?: Prisma.StringNullableWithAggregatesFilter<"Topic"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Topic"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Topic"> | Date | string
 }
@@ -342,8 +363,11 @@ export type TopicCreateInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   user: Prisma.UserCreateNestedOneWithoutTopicsInput
   criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
@@ -360,9 +384,12 @@ export type TopicUncheckedCreateInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
@@ -380,8 +407,11 @@ export type TopicUpdateInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
   criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
@@ -398,9 +428,12 @@ export type TopicUncheckedUpdateInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
@@ -417,6 +450,7 @@ export type TopicCreateManyInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -440,6 +474,7 @@ export type TopicUncheckedUpdateManyInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -467,6 +502,7 @@ export type TopicCountOrderByAggregateInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrder
+  parentId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -483,6 +519,7 @@ export type TopicMaxOrderByAggregateInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrder
+  parentId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -495,6 +532,7 @@ export type TopicMinOrderByAggregateInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrder
+  parentId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -604,8 +642,66 @@ export type TopicUpdateOneWithoutReviewsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TopicUpdateToOneWithWhereWithoutReviewsInput, Prisma.TopicUpdateWithoutReviewsInput>, Prisma.TopicUncheckedUpdateWithoutReviewsInput>
 }
 
+export type TopicCreateNestedOneWithoutChildrenInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutChildrenInput, Prisma.TopicUncheckedCreateWithoutChildrenInput>
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutChildrenInput
+  connect?: Prisma.TopicWhereUniqueInput
+}
+
+export type TopicCreateNestedManyWithoutParentInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutParentInput, Prisma.TopicUncheckedCreateWithoutParentInput> | Prisma.TopicCreateWithoutParentInput[] | Prisma.TopicUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutParentInput | Prisma.TopicCreateOrConnectWithoutParentInput[]
+  createMany?: Prisma.TopicCreateManyParentInputEnvelope
+  connect?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+}
+
+export type TopicUncheckedCreateNestedManyWithoutParentInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutParentInput, Prisma.TopicUncheckedCreateWithoutParentInput> | Prisma.TopicCreateWithoutParentInput[] | Prisma.TopicUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutParentInput | Prisma.TopicCreateOrConnectWithoutParentInput[]
+  createMany?: Prisma.TopicCreateManyParentInputEnvelope
+  connect?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+}
+
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type TopicUpdateOneWithoutChildrenNestedInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutChildrenInput, Prisma.TopicUncheckedCreateWithoutChildrenInput>
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutChildrenInput
+  upsert?: Prisma.TopicUpsertWithoutChildrenInput
+  disconnect?: Prisma.TopicWhereInput | boolean
+  delete?: Prisma.TopicWhereInput | boolean
+  connect?: Prisma.TopicWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TopicUpdateToOneWithWhereWithoutChildrenInput, Prisma.TopicUpdateWithoutChildrenInput>, Prisma.TopicUncheckedUpdateWithoutChildrenInput>
+}
+
+export type TopicUpdateManyWithoutParentNestedInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutParentInput, Prisma.TopicUncheckedCreateWithoutParentInput> | Prisma.TopicCreateWithoutParentInput[] | Prisma.TopicUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutParentInput | Prisma.TopicCreateOrConnectWithoutParentInput[]
+  upsert?: Prisma.TopicUpsertWithWhereUniqueWithoutParentInput | Prisma.TopicUpsertWithWhereUniqueWithoutParentInput[]
+  createMany?: Prisma.TopicCreateManyParentInputEnvelope
+  set?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+  disconnect?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+  delete?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+  connect?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+  update?: Prisma.TopicUpdateWithWhereUniqueWithoutParentInput | Prisma.TopicUpdateWithWhereUniqueWithoutParentInput[]
+  updateMany?: Prisma.TopicUpdateManyWithWhereWithoutParentInput | Prisma.TopicUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.TopicScalarWhereInput | Prisma.TopicScalarWhereInput[]
+}
+
+export type TopicUncheckedUpdateManyWithoutParentNestedInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutParentInput, Prisma.TopicUncheckedCreateWithoutParentInput> | Prisma.TopicCreateWithoutParentInput[] | Prisma.TopicUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutParentInput | Prisma.TopicCreateOrConnectWithoutParentInput[]
+  upsert?: Prisma.TopicUpsertWithWhereUniqueWithoutParentInput | Prisma.TopicUpsertWithWhereUniqueWithoutParentInput[]
+  createMany?: Prisma.TopicCreateManyParentInputEnvelope
+  set?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+  disconnect?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+  delete?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+  connect?: Prisma.TopicWhereUniqueInput | Prisma.TopicWhereUniqueInput[]
+  update?: Prisma.TopicUpdateWithWhereUniqueWithoutParentInput | Prisma.TopicUpdateWithWhereUniqueWithoutParentInput[]
+  updateMany?: Prisma.TopicUpdateManyWithWhereWithoutParentInput | Prisma.TopicUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.TopicScalarWhereInput | Prisma.TopicScalarWhereInput[]
 }
 
 export type TopicCreateNestedOneWithoutCriteriaInput = {
@@ -620,6 +716,20 @@ export type TopicUpdateOneRequiredWithoutCriteriaNestedInput = {
   upsert?: Prisma.TopicUpsertWithoutCriteriaInput
   connect?: Prisma.TopicWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.TopicUpdateToOneWithWhereWithoutCriteriaInput, Prisma.TopicUpdateWithoutCriteriaInput>, Prisma.TopicUncheckedUpdateWithoutCriteriaInput>
+}
+
+export type TopicCreateNestedOneWithoutCriterionFiltersInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutCriterionFiltersInput, Prisma.TopicUncheckedCreateWithoutCriterionFiltersInput>
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutCriterionFiltersInput
+  connect?: Prisma.TopicWhereUniqueInput
+}
+
+export type TopicUpdateOneRequiredWithoutCriterionFiltersNestedInput = {
+  create?: Prisma.XOR<Prisma.TopicCreateWithoutCriterionFiltersInput, Prisma.TopicUncheckedCreateWithoutCriterionFiltersInput>
+  connectOrCreate?: Prisma.TopicCreateOrConnectWithoutCriterionFiltersInput
+  upsert?: Prisma.TopicUpsertWithoutCriterionFiltersInput
+  connect?: Prisma.TopicWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TopicUpdateToOneWithWhereWithoutCriterionFiltersInput, Prisma.TopicUpdateWithoutCriterionFiltersInput>, Prisma.TopicUncheckedUpdateWithoutCriterionFiltersInput>
 }
 
 export type TopicCreateNestedOneWithoutGoldStandardsInput = {
@@ -687,7 +797,10 @@ export type TopicCreateWithoutUserInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
@@ -703,9 +816,12 @@ export type TopicUncheckedCreateWithoutUserInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
@@ -751,6 +867,7 @@ export type TopicScalarWhereInput = {
   active?: Prisma.BoolFilter<"Topic"> | boolean
   pipelineIntervalHours?: Prisma.IntFilter<"Topic"> | number
   lastPipelineRunAt?: Prisma.DateTimeNullableFilter<"Topic"> | Date | string | null
+  parentId?: Prisma.StringNullableFilter<"Topic"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Topic"> | Date | string
 }
@@ -764,8 +881,11 @@ export type TopicCreateWithoutVideosInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   user: Prisma.UserCreateNestedOneWithoutTopicsInput
   criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
@@ -781,9 +901,12 @@ export type TopicUncheckedCreateWithoutVideosInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
@@ -821,8 +944,11 @@ export type TopicCreateWithoutReviewsInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   user: Prisma.UserCreateNestedOneWithoutTopicsInput
   criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
@@ -838,9 +964,12 @@ export type TopicUncheckedCreateWithoutReviewsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
@@ -873,8 +1002,11 @@ export type TopicUpdateWithoutReviewsInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
   criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
@@ -890,14 +1022,185 @@ export type TopicUncheckedUpdateWithoutReviewsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
   videos?: Prisma.VideoUncheckedUpdateManyWithoutTopicsNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutTopicNestedInput
+}
+
+export type TopicCreateWithoutChildrenInput = {
+  id?: string
+  name: string
+  description?: string | null
+  active?: boolean
+  pipelineIntervalHours?: number
+  lastPipelineRunAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  user: Prisma.UserCreateNestedOneWithoutTopicsInput
+  criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
+  goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
+  keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
+  creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
+  videos?: Prisma.VideoCreateNestedManyWithoutTopicsInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutTopicInput
+  trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutTopicInput
+}
+
+export type TopicUncheckedCreateWithoutChildrenInput = {
+  id?: string
+  name: string
+  description?: string | null
+  userId: string
+  active?: boolean
+  pipelineIntervalHours?: number
+  lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
+  goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
+  keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
+  creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
+  videos?: Prisma.VideoUncheckedCreateNestedManyWithoutTopicsInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutTopicInput
+  trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutTopicInput
+}
+
+export type TopicCreateOrConnectWithoutChildrenInput = {
+  where: Prisma.TopicWhereUniqueInput
+  create: Prisma.XOR<Prisma.TopicCreateWithoutChildrenInput, Prisma.TopicUncheckedCreateWithoutChildrenInput>
+}
+
+export type TopicCreateWithoutParentInput = {
+  id?: string
+  name: string
+  description?: string | null
+  active?: boolean
+  pipelineIntervalHours?: number
+  lastPipelineRunAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
+  user: Prisma.UserCreateNestedOneWithoutTopicsInput
+  criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
+  goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
+  keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
+  creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
+  videos?: Prisma.VideoCreateNestedManyWithoutTopicsInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutTopicInput
+  trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutTopicInput
+}
+
+export type TopicUncheckedCreateWithoutParentInput = {
+  id?: string
+  name: string
+  description?: string | null
+  userId: string
+  active?: boolean
+  pipelineIntervalHours?: number
+  lastPipelineRunAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
+  criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
+  goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
+  keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
+  creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
+  videos?: Prisma.VideoUncheckedCreateNestedManyWithoutTopicsInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutTopicInput
+  trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutTopicInput
+}
+
+export type TopicCreateOrConnectWithoutParentInput = {
+  where: Prisma.TopicWhereUniqueInput
+  create: Prisma.XOR<Prisma.TopicCreateWithoutParentInput, Prisma.TopicUncheckedCreateWithoutParentInput>
+}
+
+export type TopicCreateManyParentInputEnvelope = {
+  data: Prisma.TopicCreateManyParentInput | Prisma.TopicCreateManyParentInput[]
+  skipDuplicates?: boolean
+}
+
+export type TopicUpsertWithoutChildrenInput = {
+  update: Prisma.XOR<Prisma.TopicUpdateWithoutChildrenInput, Prisma.TopicUncheckedUpdateWithoutChildrenInput>
+  create: Prisma.XOR<Prisma.TopicCreateWithoutChildrenInput, Prisma.TopicUncheckedCreateWithoutChildrenInput>
+  where?: Prisma.TopicWhereInput
+}
+
+export type TopicUpdateToOneWithWhereWithoutChildrenInput = {
+  where?: Prisma.TopicWhereInput
+  data: Prisma.XOR<Prisma.TopicUpdateWithoutChildrenInput, Prisma.TopicUncheckedUpdateWithoutChildrenInput>
+}
+
+export type TopicUpdateWithoutChildrenInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
+  lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
+  criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
+  goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
+  keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
+  creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
+  videos?: Prisma.VideoUpdateManyWithoutTopicsNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutTopicNestedInput
+  trainingRuns?: Prisma.TrainingRunUpdateManyWithoutTopicNestedInput
+}
+
+export type TopicUncheckedUpdateWithoutChildrenInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
+  lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
+  goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
+  keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
+  creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
+  videos?: Prisma.VideoUncheckedUpdateManyWithoutTopicsNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutTopicNestedInput
+  trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutTopicNestedInput
+}
+
+export type TopicUpsertWithWhereUniqueWithoutParentInput = {
+  where: Prisma.TopicWhereUniqueInput
+  update: Prisma.XOR<Prisma.TopicUpdateWithoutParentInput, Prisma.TopicUncheckedUpdateWithoutParentInput>
+  create: Prisma.XOR<Prisma.TopicCreateWithoutParentInput, Prisma.TopicUncheckedCreateWithoutParentInput>
+}
+
+export type TopicUpdateWithWhereUniqueWithoutParentInput = {
+  where: Prisma.TopicWhereUniqueInput
+  data: Prisma.XOR<Prisma.TopicUpdateWithoutParentInput, Prisma.TopicUncheckedUpdateWithoutParentInput>
+}
+
+export type TopicUpdateManyWithWhereWithoutParentInput = {
+  where: Prisma.TopicScalarWhereInput
+  data: Prisma.XOR<Prisma.TopicUpdateManyMutationInput, Prisma.TopicUncheckedUpdateManyWithoutParentInput>
 }
 
 export type TopicCreateWithoutCriteriaInput = {
@@ -909,7 +1212,10 @@ export type TopicCreateWithoutCriteriaInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   user: Prisma.UserCreateNestedOneWithoutTopicsInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
@@ -926,8 +1232,11 @@ export type TopicUncheckedCreateWithoutCriteriaInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
@@ -961,7 +1270,10 @@ export type TopicUpdateWithoutCriteriaInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
@@ -978,8 +1290,111 @@ export type TopicUncheckedUpdateWithoutCriteriaInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
+  goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
+  keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
+  creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
+  videos?: Prisma.VideoUncheckedUpdateManyWithoutTopicsNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutTopicNestedInput
+  trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutTopicNestedInput
+}
+
+export type TopicCreateWithoutCriterionFiltersInput = {
+  id?: string
+  name: string
+  description?: string | null
+  active?: boolean
+  pipelineIntervalHours?: number
+  lastPipelineRunAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
+  user: Prisma.UserCreateNestedOneWithoutTopicsInput
+  criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
+  keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
+  creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
+  videos?: Prisma.VideoCreateNestedManyWithoutTopicsInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutTopicInput
+  trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutTopicInput
+}
+
+export type TopicUncheckedCreateWithoutCriterionFiltersInput = {
+  id?: string
+  name: string
+  description?: string | null
+  userId: string
+  active?: boolean
+  pipelineIntervalHours?: number
+  lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
+  criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
+  keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
+  creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
+  videos?: Prisma.VideoUncheckedCreateNestedManyWithoutTopicsInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutTopicInput
+  trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutTopicInput
+}
+
+export type TopicCreateOrConnectWithoutCriterionFiltersInput = {
+  where: Prisma.TopicWhereUniqueInput
+  create: Prisma.XOR<Prisma.TopicCreateWithoutCriterionFiltersInput, Prisma.TopicUncheckedCreateWithoutCriterionFiltersInput>
+}
+
+export type TopicUpsertWithoutCriterionFiltersInput = {
+  update: Prisma.XOR<Prisma.TopicUpdateWithoutCriterionFiltersInput, Prisma.TopicUncheckedUpdateWithoutCriterionFiltersInput>
+  create: Prisma.XOR<Prisma.TopicCreateWithoutCriterionFiltersInput, Prisma.TopicUncheckedCreateWithoutCriterionFiltersInput>
+  where?: Prisma.TopicWhereInput
+}
+
+export type TopicUpdateToOneWithWhereWithoutCriterionFiltersInput = {
+  where?: Prisma.TopicWhereInput
+  data: Prisma.XOR<Prisma.TopicUpdateWithoutCriterionFiltersInput, Prisma.TopicUncheckedUpdateWithoutCriterionFiltersInput>
+}
+
+export type TopicUpdateWithoutCriterionFiltersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
+  lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
+  criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
+  keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
+  creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
+  videos?: Prisma.VideoUpdateManyWithoutTopicsNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutTopicNestedInput
+  trainingRuns?: Prisma.TrainingRunUpdateManyWithoutTopicNestedInput
+}
+
+export type TopicUncheckedUpdateWithoutCriterionFiltersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
+  lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
+  criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
@@ -997,8 +1412,11 @@ export type TopicCreateWithoutGoldStandardsInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   user: Prisma.UserCreateNestedOneWithoutTopicsInput
   criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
   videos?: Prisma.VideoCreateNestedManyWithoutTopicsInput
@@ -1014,9 +1432,12 @@ export type TopicUncheckedCreateWithoutGoldStandardsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
   videos?: Prisma.VideoUncheckedCreateNestedManyWithoutTopicsInput
@@ -1049,8 +1470,11 @@ export type TopicUpdateWithoutGoldStandardsInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
   criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
   videos?: Prisma.VideoUpdateManyWithoutTopicsNestedInput
@@ -1066,9 +1490,12 @@ export type TopicUncheckedUpdateWithoutGoldStandardsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
   videos?: Prisma.VideoUncheckedUpdateManyWithoutTopicsNestedInput
@@ -1085,8 +1512,11 @@ export type TopicCreateWithoutKeywordsInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   user: Prisma.UserCreateNestedOneWithoutTopicsInput
   criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
   videos?: Prisma.VideoCreateNestedManyWithoutTopicsInput
@@ -1102,9 +1532,12 @@ export type TopicUncheckedCreateWithoutKeywordsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
   videos?: Prisma.VideoUncheckedCreateNestedManyWithoutTopicsInput
@@ -1137,8 +1570,11 @@ export type TopicUpdateWithoutKeywordsInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
   criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
   videos?: Prisma.VideoUpdateManyWithoutTopicsNestedInput
@@ -1154,9 +1590,12 @@ export type TopicUncheckedUpdateWithoutKeywordsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
   videos?: Prisma.VideoUncheckedUpdateManyWithoutTopicsNestedInput
@@ -1173,8 +1612,11 @@ export type TopicCreateWithoutCreatorsInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   user: Prisma.UserCreateNestedOneWithoutTopicsInput
   criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
   videos?: Prisma.VideoCreateNestedManyWithoutTopicsInput
@@ -1190,9 +1632,12 @@ export type TopicUncheckedCreateWithoutCreatorsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
   videos?: Prisma.VideoUncheckedCreateNestedManyWithoutTopicsInput
@@ -1225,8 +1670,11 @@ export type TopicUpdateWithoutCreatorsInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
   criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
   videos?: Prisma.VideoUpdateManyWithoutTopicsNestedInput
@@ -1242,9 +1690,12 @@ export type TopicUncheckedUpdateWithoutCreatorsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
   videos?: Prisma.VideoUncheckedUpdateManyWithoutTopicsNestedInput
@@ -1261,8 +1712,11 @@ export type TopicCreateWithoutTrainingRunsInput = {
   lastPipelineRunAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  parent?: Prisma.TopicCreateNestedOneWithoutChildrenInput
+  children?: Prisma.TopicCreateNestedManyWithoutParentInput
   user: Prisma.UserCreateNestedOneWithoutTopicsInput
   criteria?: Prisma.CriterionCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorCreateNestedManyWithoutTopicInput
@@ -1278,9 +1732,12 @@ export type TopicUncheckedCreateWithoutTrainingRunsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  children?: Prisma.TopicUncheckedCreateNestedManyWithoutParentInput
   criteria?: Prisma.CriterionUncheckedCreateNestedManyWithoutTopicInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedCreateNestedManyWithoutTopicInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutTopicInput
   keywords?: Prisma.TopicKeywordUncheckedCreateNestedManyWithoutTopicInput
   creators?: Prisma.TopicCreatorUncheckedCreateNestedManyWithoutTopicInput
@@ -1313,8 +1770,11 @@ export type TopicUpdateWithoutTrainingRunsInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
   criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
@@ -1330,9 +1790,12 @@ export type TopicUncheckedUpdateWithoutTrainingRunsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
@@ -1347,6 +1810,7 @@ export type TopicCreateManyUserInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  parentId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1360,7 +1824,10 @@ export type TopicUpdateWithoutUserInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
@@ -1376,9 +1843,12 @@ export type TopicUncheckedUpdateWithoutUserInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
@@ -1394,6 +1864,7 @@ export type TopicUncheckedUpdateManyWithoutUserInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1407,8 +1878,11 @@ export type TopicUpdateWithoutVideosInput = {
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.TopicUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
   criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
@@ -1424,9 +1898,12 @@ export type TopicUncheckedUpdateWithoutVideosInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
   criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
   keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
   creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
@@ -1435,6 +1912,73 @@ export type TopicUncheckedUpdateWithoutVideosInput = {
 }
 
 export type TopicUncheckedUpdateManyWithoutVideosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
+  lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TopicCreateManyParentInput = {
+  id?: string
+  name: string
+  description?: string | null
+  userId: string
+  active?: boolean
+  pipelineIntervalHours?: number
+  lastPipelineRunAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TopicUpdateWithoutParentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
+  lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUpdateManyWithoutParentNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutTopicsNestedInput
+  criteria?: Prisma.CriterionUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUpdateManyWithoutTopicNestedInput
+  goldStandards?: Prisma.GoldStandardUpdateManyWithoutTopicNestedInput
+  keywords?: Prisma.TopicKeywordUpdateManyWithoutTopicNestedInput
+  creators?: Prisma.TopicCreatorUpdateManyWithoutTopicNestedInput
+  videos?: Prisma.VideoUpdateManyWithoutTopicsNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutTopicNestedInput
+  trainingRuns?: Prisma.TrainingRunUpdateManyWithoutTopicNestedInput
+}
+
+export type TopicUncheckedUpdateWithoutParentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
+  lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.TopicUncheckedUpdateManyWithoutParentNestedInput
+  criteria?: Prisma.CriterionUncheckedUpdateManyWithoutTopicNestedInput
+  criterionFilters?: Prisma.CriterionFilterUncheckedUpdateManyWithoutTopicNestedInput
+  goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutTopicNestedInput
+  keywords?: Prisma.TopicKeywordUncheckedUpdateManyWithoutTopicNestedInput
+  creators?: Prisma.TopicCreatorUncheckedUpdateManyWithoutTopicNestedInput
+  videos?: Prisma.VideoUncheckedUpdateManyWithoutTopicsNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutTopicNestedInput
+  trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutTopicNestedInput
+}
+
+export type TopicUncheckedUpdateManyWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1452,7 +1996,9 @@ export type TopicUncheckedUpdateManyWithoutVideosInput = {
  */
 
 export type TopicCountOutputType = {
+  children: number
   criteria: number
+  criterionFilters: number
   goldStandards: number
   keywords: number
   creators: number
@@ -1462,7 +2008,9 @@ export type TopicCountOutputType = {
 }
 
 export type TopicCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  children?: boolean | TopicCountOutputTypeCountChildrenArgs
   criteria?: boolean | TopicCountOutputTypeCountCriteriaArgs
+  criterionFilters?: boolean | TopicCountOutputTypeCountCriterionFiltersArgs
   goldStandards?: boolean | TopicCountOutputTypeCountGoldStandardsArgs
   keywords?: boolean | TopicCountOutputTypeCountKeywordsArgs
   creators?: boolean | TopicCountOutputTypeCountCreatorsArgs
@@ -1484,8 +2032,22 @@ export type TopicCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
 /**
  * TopicCountOutputType without action
  */
+export type TopicCountOutputTypeCountChildrenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TopicWhereInput
+}
+
+/**
+ * TopicCountOutputType without action
+ */
 export type TopicCountOutputTypeCountCriteriaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.CriterionWhereInput
+}
+
+/**
+ * TopicCountOutputType without action
+ */
+export type TopicCountOutputTypeCountCriterionFiltersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CriterionFilterWhereInput
 }
 
 /**
@@ -1539,10 +2101,14 @@ export type TopicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   active?: boolean
   pipelineIntervalHours?: boolean
   lastPipelineRunAt?: boolean
+  parentId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  parent?: boolean | Prisma.Topic$parentArgs<ExtArgs>
+  children?: boolean | Prisma.Topic$childrenArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   criteria?: boolean | Prisma.Topic$criteriaArgs<ExtArgs>
+  criterionFilters?: boolean | Prisma.Topic$criterionFiltersArgs<ExtArgs>
   goldStandards?: boolean | Prisma.Topic$goldStandardsArgs<ExtArgs>
   keywords?: boolean | Prisma.Topic$keywordsArgs<ExtArgs>
   creators?: boolean | Prisma.Topic$creatorsArgs<ExtArgs>
@@ -1560,8 +2126,10 @@ export type TopicSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   active?: boolean
   pipelineIntervalHours?: boolean
   lastPipelineRunAt?: boolean
+  parentId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  parent?: boolean | Prisma.Topic$parentArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["topic"]>
 
@@ -1573,8 +2141,10 @@ export type TopicSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   active?: boolean
   pipelineIntervalHours?: boolean
   lastPipelineRunAt?: boolean
+  parentId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  parent?: boolean | Prisma.Topic$parentArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["topic"]>
 
@@ -1586,14 +2156,18 @@ export type TopicSelectScalar = {
   active?: boolean
   pipelineIntervalHours?: boolean
   lastPipelineRunAt?: boolean
+  parentId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TopicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "userId" | "active" | "pipelineIntervalHours" | "lastPipelineRunAt" | "createdAt" | "updatedAt", ExtArgs["result"]["topic"]>
+export type TopicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "userId" | "active" | "pipelineIntervalHours" | "lastPipelineRunAt" | "parentId" | "createdAt" | "updatedAt", ExtArgs["result"]["topic"]>
 export type TopicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Topic$parentArgs<ExtArgs>
+  children?: boolean | Prisma.Topic$childrenArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   criteria?: boolean | Prisma.Topic$criteriaArgs<ExtArgs>
+  criterionFilters?: boolean | Prisma.Topic$criterionFiltersArgs<ExtArgs>
   goldStandards?: boolean | Prisma.Topic$goldStandardsArgs<ExtArgs>
   keywords?: boolean | Prisma.Topic$keywordsArgs<ExtArgs>
   creators?: boolean | Prisma.Topic$creatorsArgs<ExtArgs>
@@ -1603,17 +2177,22 @@ export type TopicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   _count?: boolean | Prisma.TopicCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TopicIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Topic$parentArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type TopicIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Topic$parentArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $TopicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Topic"
   objects: {
+    parent: Prisma.$TopicPayload<ExtArgs> | null
+    children: Prisma.$TopicPayload<ExtArgs>[]
     user: Prisma.$UserPayload<ExtArgs>
     criteria: Prisma.$CriterionPayload<ExtArgs>[]
+    criterionFilters: Prisma.$CriterionFilterPayload<ExtArgs>[]
     goldStandards: Prisma.$GoldStandardPayload<ExtArgs>[]
     keywords: Prisma.$TopicKeywordPayload<ExtArgs>[]
     creators: Prisma.$TopicCreatorPayload<ExtArgs>[]
@@ -1629,6 +2208,7 @@ export type $TopicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     active: boolean
     pipelineIntervalHours: number
     lastPipelineRunAt: Date | null
+    parentId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["topic"]>
@@ -2025,8 +2605,11 @@ readonly fields: TopicFieldRefs;
  */
 export interface Prisma__TopicClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  parent<T extends Prisma.Topic$parentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$parentArgs<ExtArgs>>): Prisma.Prisma__TopicClient<runtime.Types.Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  children<T extends Prisma.Topic$childrenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   criteria<T extends Prisma.Topic$criteriaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$criteriaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CriterionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  criterionFilters<T extends Prisma.Topic$criterionFiltersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$criterionFiltersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CriterionFilterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   goldStandards<T extends Prisma.Topic$goldStandardsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$goldStandardsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GoldStandardPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   keywords<T extends Prisma.Topic$keywordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$keywordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TopicKeywordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   creators<T extends Prisma.Topic$creatorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Topic$creatorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TopicCreatorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2069,6 +2652,7 @@ export interface TopicFieldRefs {
   readonly active: Prisma.FieldRef<"Topic", 'Boolean'>
   readonly pipelineIntervalHours: Prisma.FieldRef<"Topic", 'Int'>
   readonly lastPipelineRunAt: Prisma.FieldRef<"Topic", 'DateTime'>
+  readonly parentId: Prisma.FieldRef<"Topic", 'String'>
   readonly createdAt: Prisma.FieldRef<"Topic", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Topic", 'DateTime'>
 }
@@ -2467,6 +3051,49 @@ export type TopicDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
+ * Topic.parent
+ */
+export type Topic$parentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Topic
+   */
+  select?: Prisma.TopicSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Topic
+   */
+  omit?: Prisma.TopicOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TopicInclude<ExtArgs> | null
+  where?: Prisma.TopicWhereInput
+}
+
+/**
+ * Topic.children
+ */
+export type Topic$childrenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Topic
+   */
+  select?: Prisma.TopicSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Topic
+   */
+  omit?: Prisma.TopicOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TopicInclude<ExtArgs> | null
+  where?: Prisma.TopicWhereInput
+  orderBy?: Prisma.TopicOrderByWithRelationInput | Prisma.TopicOrderByWithRelationInput[]
+  cursor?: Prisma.TopicWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TopicScalarFieldEnum | Prisma.TopicScalarFieldEnum[]
+}
+
+/**
  * Topic.criteria
  */
 export type Topic$criteriaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2488,6 +3115,30 @@ export type Topic$criteriaArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.CriterionScalarFieldEnum | Prisma.CriterionScalarFieldEnum[]
+}
+
+/**
+ * Topic.criterionFilters
+ */
+export type Topic$criterionFiltersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CriterionFilter
+   */
+  select?: Prisma.CriterionFilterSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CriterionFilter
+   */
+  omit?: Prisma.CriterionFilterOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CriterionFilterInclude<ExtArgs> | null
+  where?: Prisma.CriterionFilterWhereInput
+  orderBy?: Prisma.CriterionFilterOrderByWithRelationInput | Prisma.CriterionFilterOrderByWithRelationInput[]
+  cursor?: Prisma.CriterionFilterWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CriterionFilterScalarFieldEnum | Prisma.CriterionFilterScalarFieldEnum[]
 }
 
 /**

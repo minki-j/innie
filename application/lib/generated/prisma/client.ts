@@ -85,6 +85,11 @@ export type Topic = Prisma.TopicModel
  */
 export type Criterion = Prisma.CriterionModel
 /**
+ * Model CriterionFilter
+ * 
+ */
+export type CriterionFilter = Prisma.CriterionFilterModel
+/**
  * Model GoldStandard
  * 
  */
