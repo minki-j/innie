@@ -22,6 +22,18 @@ uv run pipeline
 uv run prefect deploy --all
 ```
 
+**Sync dependencies and env vars to the Prefect deployment:**
+```bash
+uv run sync-prefect
+```
+
+Run this after deploying to push pip packages (from `pyproject.toml`) and environment variables (from `.env` files) to the managed work pool as `job_variables`.
+
+**Generate flow diagram**
+```bash
+uv run generate_flow_diagram --flow {flow_name}
+```
+
 **Regenerate Pydantic models from Prisma schema:**
 
 ```bash

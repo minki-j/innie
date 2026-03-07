@@ -28,20 +28,17 @@ for env_path in [
 
 # ── Database ──────────────────────────────────────────────────
 
-DATABASE_URL: str = os.environ.get(
-    "POSTGRES_URL",
-    os.environ.get("POSTGRES_PRISMA_URL", ""),
-)
+DATABASE_URL: str = os.environ.get("POSTGRES_URL")
 
 # ── LLM API Keys ─────────────────────────────────────────────
 
-OPENAI_API_KEY: str = os.environ.get("OPENAI_API_KEY", "")
-ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY", "")
-GOOGLE_API_KEY: str = os.environ.get("GOOGLE_API_KEY", "")
+OPENAI_API_KEY: str = os.environ.get("OPENAI_API_KEY")
+ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY")
+GOOGLE_API_KEY: str = os.environ.get("GOOGLE_API_KEY")
 
 # ── LLM Settings ─────────────────────────────────────────────
 
-DEFAULT_LLM_MODEL: str = os.environ.get("DEFAULT_LLM_MODEL", "gpt-4o")
+DEFAULT_LLM_MODEL: str = os.environ.get("DEFAULT_LLM_MODEL")
 
 # ── YouTube Scraping ─────────────────────────────────────────
 
@@ -51,4 +48,4 @@ MAX_VIDEOS_PER_CREATOR: int = int(os.environ["MAX_VIDEOS_PER_CREATOR"])
 # ── Transcript ────────────────────────────────────────────────
 
 # Max characters of transcript to send to the LLM (to stay within context window)
-TRANSCRIPT_MAX_CHARS: int = int(os.environ.get("TRANSCRIPT_MAX_CHARS", "50000"))
+TRANSCRIPT_MAX_CHARS: int = int(os.environ.get("TRANSCRIPT_MAX_CHARS"))

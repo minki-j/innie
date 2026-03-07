@@ -16,7 +16,8 @@ deployments:
   - name: video-pipeline
     entrypoint: flows/video_pipeline.py:video_pipeline
     work_pool:
-      name: main # prefect managed work pool; prefect hosts and runs the worker; no extra workers needed to poll queues and spawn jobs
+      name: main # prefect managed work pool
+      # job_variables (pip_packages + env) are synced via: uv run sync-prefect
     # schedules:
     #   - cron: "0 * * * *"  # every hour; topics self-regulate via pipelineIntervalHours
     #     timezone: "UTC"

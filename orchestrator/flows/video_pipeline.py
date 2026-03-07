@@ -41,8 +41,8 @@ logging.basicConfig(level=logging.INFO)
 # ── Sub-flows ─────────────────────────────────────────────────
 
 
-@flow(name="discover_videos_fast")
-def discover_videos_fast(topic: Topic) -> list[str]:
+@flow(name="discover_videos", log_prints=True)
+def discover_videos(topic: Topic) -> list[str]:
     """
     Video discovery using keyword search and creator fetch (yt-dlp).
     Returns a deduplicated list of video IDs.
@@ -74,7 +74,7 @@ def discover_videos_fast(topic: Topic) -> list[str]:
     return list(discovered)
 
 
-@flow(name="process_video_for_topic")
+@flow(name="process_video_for_topic", log_prints=True)
 def process_video_for_topic(
     video_id: str,
     topic: Topic,
@@ -98,7 +98,10 @@ def process_video_for_topic(
     existing_video = get_video_data(video_id) if video_exists(video_id) else None
 
     if existing_video is not None:
-        logger.info("Video %s already exists in DB, skipping metadata/transcript fetch", video_id)
+        logger.info(
+            "Video %s already exists in DB, skipping metadata/transcript fetch",
+            video_id,
+        )
         video_data = existing_video
     else:
         # 2. Fetch metadata from YouTube
@@ -182,7 +185,7 @@ def _process_topic(topic: Topic, model_name: str | None, logger: Any) -> None:
         )
 
     # Discover and process new videos
-    fast_ids = discover_videos_fast(topic)
+    fast_ids = discover_videos(topic)
     new_ids = [vid for vid in fast_ids if vid not in existing_video_ids]
 
     if new_ids:

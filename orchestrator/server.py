@@ -1,5 +1,5 @@
 """
-Lightweight FastAPI server for triggering orchestrator pipelines on demand.
+Lightweight FastAPI server for triggering orchestrator pipelines locally.
 
 Run with:  uv run uvicorn server:app --port 8200
 """

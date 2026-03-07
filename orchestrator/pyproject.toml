@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.128.2",
+    "graphviz>=0.21",
     "httpx>=0.28.1",
     "langchain>=1.2.9",
     "langchain-anthropic>=1.3.1",
@@ -30,5 +31,7 @@ packages = ["flows", "models", "scripts", "tasks"]
 [project.scripts]
 generate-models = "scripts.generate_models:main"
 generate-diagrams = "scripts.generate_diagrams:main"
+generate_flow_diagram = "scripts.flow_diagram:main"
 pipeline = "flows.video_pipeline:video_pipeline"
 server = "server:app"
+sync-prefect = "scripts.sync_prefect:main"
