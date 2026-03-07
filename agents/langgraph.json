@@ -1,0 +1,10 @@
+{
+    "dependencies": [
+        "."
+    ],
+    "graphs": {
+        "classify_items": "./classify_items/classify_items_graph.py:g"
+    },
+    "env": ".env",
+    "python_version": "3.13"
+}
