@@ -75,40 +75,35 @@ export type Channel = Prisma.ChannelModel
  */
 export type Review = Prisma.ReviewModel
 /**
- * Model Topic
+ * Model Funnel
  * 
  */
-export type Topic = Prisma.TopicModel
+export type Funnel = Prisma.FunnelModel
 /**
- * Model Criterion
+ * Model ClassNode
  * 
  */
-export type Criterion = Prisma.CriterionModel
-/**
- * Model CriterionFilter
- * 
- */
-export type CriterionFilter = Prisma.CriterionFilterModel
+export type ClassNode = Prisma.ClassNodeModel
 /**
  * Model GoldStandard
  * 
  */
 export type GoldStandard = Prisma.GoldStandardModel
 /**
- * Model TopicKeyword
+ * Model FunnelKeyword
  * 
  */
-export type TopicKeyword = Prisma.TopicKeywordModel
+export type FunnelKeyword = Prisma.FunnelKeywordModel
 /**
- * Model TopicCreator
+ * Model FunnelCreator
  * 
  */
-export type TopicCreator = Prisma.TopicCreatorModel
+export type FunnelCreator = Prisma.FunnelCreatorModel
 /**
- * Model CriterionResult
+ * Model ClassNodeResult
  * 
  */
-export type CriterionResult = Prisma.CriterionResultModel
+export type ClassNodeResult = Prisma.ClassNodeResultModel
 /**
  * Model TrainingRun
  * 

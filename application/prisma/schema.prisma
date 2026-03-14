@@ -4,9 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  provider = "postgresql"
 }
 
 // ─── Auth (NextAuth Prisma Adapter) ───────────────────────────
@@ -21,7 +19,7 @@ model User {
   accounts     Account[]
   sessions     Session[]
   reviews      Review[]
-  topics       Topic[]
+  funnels       Funnel[]
   trainingRuns TrainingRun[]
 
   createdAt DateTime @default(now())
@@ -88,9 +86,9 @@ model Video {
   summary          String?  @db.Text
 
   reviews          Review[]
-  topics           Topic[]
+  funnels           Funnel[]
   channel          Channel?          @relation(fields: [channelId], references: [id])
-  criterionResults CriterionResult[]
+  classNodeResults ClassNodeResult[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -120,25 +118,25 @@ model Review {
   id      String  @id @default(cuid())
   userId  String
   videoId String
-  topicId String?
+  funnelId String?
   rating  Int // 1-5
   content String? @db.Text
 
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   video Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  topic Topic? @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  funnel Funnel? @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, videoId, topicId]) // One review per user per video per topic
+  @@unique([userId, videoId, funnelId]) // One review per user per video per funnel
   @@index([videoId])
-  @@index([topicId])
+  @@index([funnelId])
 }
 
-// ─── Topics ──────────────────────────────────────────────────
+// ───Classification ──────────────────────────────────────────────────
 
-model Topic {
+model Funnel {
   id          String  @id @default(cuid())
   name        String
   description String? @db.Text
@@ -148,130 +146,127 @@ model Topic {
   pipelineIntervalHours Int       @default(6)
   lastPipelineRunAt     DateTime?
 
-  parentId String?
-  parent   Topic?  @relation("TopicChildren", fields: [parentId], references: [id])
-  children Topic[] @relation("TopicChildren")
-
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  criteria         Criterion[]
-  criterionFilters CriterionFilter[]
-  goldStandards    GoldStandard[]
-  keywords         TopicKeyword[]
-  creators         TopicCreator[]
+  keywords         FunnelKeyword[]
+  creators         FunnelCreator[]
   videos           Video[]
+
+  classNodes       ClassNode[] @relation("FunnelClassNodes")
+
   reviews          Review[]
   trainingRuns     TrainingRun[]
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
-  @@index([parentId])
 }
 
-model Criterion {
+model ClassNode {
   id        String  @id @default(cuid())
-  topicId   String
-  condition String  @db.Text
-  include   Boolean @default(true) // true = Include, false = Exclude
-  level     String  @default("MUST_HAVE") // "MUST_HAVE" or "NICE_TO_HAVE"
-  order     Int     @default(0)
+  description String  @db.Text
 
-  topic            Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  criterionResults CriterionResult[]
-  criterionFilters CriterionFilter[]
+  parentClassNodeId  String?
+  parentClassNode    ClassNode?  @relation("ParentClassNode", fields: [parentClassNodeId], references: [id])
+  childrenClassNodes  ClassNode[] @relation("ParentClassNode")
+
+  // TODO
+  // mergeNodeChildId String?
+  // mergeNodeChild MergeNode? @relation("MergeNodeChild", fields: [mergeNodeChildId], references: [id])
+  // mergeNodeParentId String?
+  // mergeNodeParent MergeNode? @relation("MergeNodeParent", fields: [mergeNodeParentId], references: [id])
+
+  funnelId  String?
+  funnel    Funnel?     @relation("FunnelClassNodes", fields: [funnelId], references: [id], onDelete: Cascade)
+
+  results   ClassNodeResult[] @relation("ClassNodeResults")
+  goldStandards GoldStandard[] @relation("GoldStandardClassNode")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([topicId])
+  @@index([funnelId])
 }
 
-model CriterionFilter {
-  id             String               @id @default(cuid())
-  topicId        String
-  criterionId    String
-  requiredResult CriterionResultValue
-
-  topic     Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  criterion Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([topicId, criterionId])
-  @@index([topicId])
-}
+// TODO
+// model MergeNode {
+//   id        String  @id @default(cuid())
+//   parentClassNodes ClassNode[] @relation("MergeNodeParent")
+//   childClassNodes ClassNode[] @relation("MergeNodeChild")
+// }
 
 model GoldStandard {
   id         String  @id @default(cuid())
-  topicId    String
+  classNodeId    String
   videoUrl   String
   title      String? // cached title for display
   isPositive Boolean @default(true) // true = positive, false = negative
   note       String? @db.Text
 
-  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  classNode ClassNode @relation("GoldStandardClassNode", fields: [classNodeId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([topicId])
+  @@index([classNodeId])
 }
 
-model TopicKeyword {
+model FunnelKeyword {
   id      String @id @default(cuid())
-  topicId String
+  funnelId String
   keyword String
 
-  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  funnel Funnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([topicId])
+  @@index([funnelId])
 }
 
-model TopicCreator {
+model FunnelCreator {
   id               String  @id @default(cuid())
-  topicId          String
+  funnelId          String
   channelId        String?
   channelUrl       String?
   channelName      String?
   scrapeMonthsBack Int     @default(1) // 1-12
 
-  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  funnel Funnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([topicId])
+  @@index([funnelId])
 }
 
 // ─── Criterion Results (Pipeline Output) ─────────────────────
 
-enum CriterionResultValue {
+enum ClassNodeResultValue {
   PASS
   FAIL
   CANNOT_TELL
 }
 
-model CriterionResult {
+model ClassNodeResult {
   id          String               @id @default(cuid())
   videoId     String
-  criterionId String
-  result      CriterionResultValue
+  classNodeId String
+  result      ClassNodeResultValue
   explanation String?              @db.Text
   modelUsed   String? // e.g. "gpt-4o", "claude-sonnet-4-20250514"
+  confidence  Int? // 0-100
 
   video     Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  criterion Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+  classNode ClassNode @relation("ClassNodeResults", fields: [classNodeId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([videoId, criterionId])
+  @@unique([videoId, classNodeId])
   @@index([videoId])
-  @@index([criterionId])
+  @@index([classNodeId])
 }
 
 // ─── Training (Lab Server) ───────────────────────────────────
@@ -292,7 +287,7 @@ enum TrainingMethod {
 model TrainingRun {
   id             String         @id @default(cuid())
   userId         String
-  topicId        String
+  funnelId        String
   status         TrainingStatus @default(PENDING)
   method         TrainingMethod
   modelName      String         @unique // e.g. "innie-<topicId>-sft-v3"
@@ -307,12 +302,12 @@ model TrainingRun {
   isActive       Boolean        @default(false) // is this the model to use for inference?
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  funnel Funnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   completedAt DateTime?
 
-  @@index([userId, topicId])
-  @@index([topicId, method, isActive])
+  @@index([userId, funnelId])
+  @@index([funnelId, method, isActive])
 }

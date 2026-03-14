@@ -58,13 +58,12 @@ export const ModelName = {
   Video: 'Video',
   Channel: 'Channel',
   Review: 'Review',
-  Topic: 'Topic',
-  Criterion: 'Criterion',
-  CriterionFilter: 'CriterionFilter',
+  Funnel: 'Funnel',
+  ClassNode: 'ClassNode',
   GoldStandard: 'GoldStandard',
-  TopicKeyword: 'TopicKeyword',
-  TopicCreator: 'TopicCreator',
-  CriterionResult: 'CriterionResult',
+  FunnelKeyword: 'FunnelKeyword',
+  FunnelCreator: 'FunnelCreator',
+  ClassNodeResult: 'ClassNodeResult',
   TrainingRun: 'TrainingRun'
 } as const
 
@@ -179,7 +178,7 @@ export const ReviewScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   videoId: 'videoId',
-  topicId: 'topicId',
+  funnelId: 'funnelId',
   rating: 'rating',
   content: 'content',
   createdAt: 'createdAt',
@@ -189,7 +188,7 @@ export const ReviewScalarFieldEnum = {
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
-export const TopicScalarFieldEnum = {
+export const FunnelScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
@@ -197,42 +196,28 @@ export const TopicScalarFieldEnum = {
   active: 'active',
   pipelineIntervalHours: 'pipelineIntervalHours',
   lastPipelineRunAt: 'lastPipelineRunAt',
-  parentId: 'parentId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type TopicScalarFieldEnum = (typeof TopicScalarFieldEnum)[keyof typeof TopicScalarFieldEnum]
+export type FunnelScalarFieldEnum = (typeof FunnelScalarFieldEnum)[keyof typeof FunnelScalarFieldEnum]
 
 
-export const CriterionScalarFieldEnum = {
+export const ClassNodeScalarFieldEnum = {
   id: 'id',
-  topicId: 'topicId',
-  condition: 'condition',
-  include: 'include',
-  level: 'level',
-  order: 'order',
+  description: 'description',
+  parentClassNodeId: 'parentClassNodeId',
+  funnelId: 'funnelId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type CriterionScalarFieldEnum = (typeof CriterionScalarFieldEnum)[keyof typeof CriterionScalarFieldEnum]
-
-
-export const CriterionFilterScalarFieldEnum = {
-  id: 'id',
-  topicId: 'topicId',
-  criterionId: 'criterionId',
-  requiredResult: 'requiredResult',
-  createdAt: 'createdAt'
-} as const
-
-export type CriterionFilterScalarFieldEnum = (typeof CriterionFilterScalarFieldEnum)[keyof typeof CriterionFilterScalarFieldEnum]
+export type ClassNodeScalarFieldEnum = (typeof ClassNodeScalarFieldEnum)[keyof typeof ClassNodeScalarFieldEnum]
 
 
 export const GoldStandardScalarFieldEnum = {
   id: 'id',
-  topicId: 'topicId',
+  classNodeId: 'classNodeId',
   videoUrl: 'videoUrl',
   title: 'title',
   isPositive: 'isPositive',
@@ -244,20 +229,20 @@ export const GoldStandardScalarFieldEnum = {
 export type GoldStandardScalarFieldEnum = (typeof GoldStandardScalarFieldEnum)[keyof typeof GoldStandardScalarFieldEnum]
 
 
-export const TopicKeywordScalarFieldEnum = {
+export const FunnelKeywordScalarFieldEnum = {
   id: 'id',
-  topicId: 'topicId',
+  funnelId: 'funnelId',
   keyword: 'keyword',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type TopicKeywordScalarFieldEnum = (typeof TopicKeywordScalarFieldEnum)[keyof typeof TopicKeywordScalarFieldEnum]
+export type FunnelKeywordScalarFieldEnum = (typeof FunnelKeywordScalarFieldEnum)[keyof typeof FunnelKeywordScalarFieldEnum]
 
 
-export const TopicCreatorScalarFieldEnum = {
+export const FunnelCreatorScalarFieldEnum = {
   id: 'id',
-  topicId: 'topicId',
+  funnelId: 'funnelId',
   channelId: 'channelId',
   channelUrl: 'channelUrl',
   channelName: 'channelName',
@@ -266,27 +251,28 @@ export const TopicCreatorScalarFieldEnum = {
   updatedAt: 'updatedAt'
 } as const
 
-export type TopicCreatorScalarFieldEnum = (typeof TopicCreatorScalarFieldEnum)[keyof typeof TopicCreatorScalarFieldEnum]
+export type FunnelCreatorScalarFieldEnum = (typeof FunnelCreatorScalarFieldEnum)[keyof typeof FunnelCreatorScalarFieldEnum]
 
 
-export const CriterionResultScalarFieldEnum = {
+export const ClassNodeResultScalarFieldEnum = {
   id: 'id',
   videoId: 'videoId',
-  criterionId: 'criterionId',
+  classNodeId: 'classNodeId',
   result: 'result',
   explanation: 'explanation',
   modelUsed: 'modelUsed',
+  confidence: 'confidence',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type CriterionResultScalarFieldEnum = (typeof CriterionResultScalarFieldEnum)[keyof typeof CriterionResultScalarFieldEnum]
+export type ClassNodeResultScalarFieldEnum = (typeof ClassNodeResultScalarFieldEnum)[keyof typeof ClassNodeResultScalarFieldEnum]
 
 
 export const TrainingRunScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  topicId: 'topicId',
+  funnelId: 'funnelId',
   status: 'status',
   method: 'method',
   modelName: 'modelName',

@@ -201,7 +201,7 @@ export type UserWhereInput = {
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
-  topics?: Prisma.TopicListRelationFilter
+  funnels?: Prisma.FunnelListRelationFilter
   trainingRuns?: Prisma.TrainingRunListRelationFilter
 }
 
@@ -216,7 +216,7 @@ export type UserOrderByWithRelationInput = {
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
-  topics?: Prisma.TopicOrderByRelationAggregateInput
+  funnels?: Prisma.FunnelOrderByRelationAggregateInput
   trainingRuns?: Prisma.TrainingRunOrderByRelationAggregateInput
 }
 
@@ -234,7 +234,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
-  topics?: Prisma.TopicListRelationFilter
+  funnels?: Prisma.FunnelListRelationFilter
   trainingRuns?: Prisma.TrainingRunListRelationFilter
 }, "id" | "email">
 
@@ -275,7 +275,7 @@ export type UserCreateInput = {
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
 }
 
@@ -290,7 +290,7 @@ export type UserUncheckedCreateInput = {
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -305,7 +305,7 @@ export type UserUpdateInput = {
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
 }
 
@@ -320,7 +320,7 @@ export type UserUncheckedUpdateInput = {
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -447,18 +447,18 @@ export type UserUpdateOneRequiredWithoutReviewsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReviewsInput, Prisma.UserUpdateWithoutReviewsInput>, Prisma.UserUncheckedUpdateWithoutReviewsInput>
 }
 
-export type UserCreateNestedOneWithoutTopicsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutTopicsInput, Prisma.UserUncheckedCreateWithoutTopicsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTopicsInput
+export type UserCreateNestedOneWithoutFunnelsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFunnelsInput, Prisma.UserUncheckedCreateWithoutFunnelsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFunnelsInput
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateOneRequiredWithoutTopicsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutTopicsInput, Prisma.UserUncheckedCreateWithoutTopicsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTopicsInput
-  upsert?: Prisma.UserUpsertWithoutTopicsInput
+export type UserUpdateOneRequiredWithoutFunnelsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFunnelsInput, Prisma.UserUncheckedCreateWithoutFunnelsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFunnelsInput
+  upsert?: Prisma.UserUpsertWithoutFunnelsInput
   connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTopicsInput, Prisma.UserUpdateWithoutTopicsInput>, Prisma.UserUncheckedUpdateWithoutTopicsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFunnelsInput, Prisma.UserUpdateWithoutFunnelsInput>, Prisma.UserUncheckedUpdateWithoutFunnelsInput>
 }
 
 export type UserCreateNestedOneWithoutTrainingRunsInput = {
@@ -485,7 +485,7 @@ export type UserCreateWithoutAccountsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
 }
 
@@ -499,7 +499,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -529,7 +529,7 @@ export type UserUpdateWithoutAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
 }
 
@@ -543,7 +543,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -557,7 +557,7 @@ export type UserCreateWithoutSessionsInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
 }
 
@@ -571,7 +571,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -601,7 +601,7 @@ export type UserUpdateWithoutSessionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
 }
 
@@ -615,7 +615,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -629,7 +629,7 @@ export type UserCreateWithoutReviewsInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
 }
 
@@ -643,7 +643,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   updatedAt?: Date | string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -673,7 +673,7 @@ export type UserUpdateWithoutReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
 }
 
@@ -687,11 +687,11 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
 }
 
-export type UserCreateWithoutTopicsInput = {
+export type UserCreateWithoutFunnelsInput = {
   id?: string
   name?: string | null
   email?: string | null
@@ -705,7 +705,7 @@ export type UserCreateWithoutTopicsInput = {
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
 }
 
-export type UserUncheckedCreateWithoutTopicsInput = {
+export type UserUncheckedCreateWithoutFunnelsInput = {
   id?: string
   name?: string | null
   email?: string | null
@@ -719,23 +719,23 @@ export type UserUncheckedCreateWithoutTopicsInput = {
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
 }
 
-export type UserCreateOrConnectWithoutTopicsInput = {
+export type UserCreateOrConnectWithoutFunnelsInput = {
   where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutTopicsInput, Prisma.UserUncheckedCreateWithoutTopicsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutFunnelsInput, Prisma.UserUncheckedCreateWithoutFunnelsInput>
 }
 
-export type UserUpsertWithoutTopicsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutTopicsInput, Prisma.UserUncheckedUpdateWithoutTopicsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutTopicsInput, Prisma.UserUncheckedCreateWithoutTopicsInput>
+export type UserUpsertWithoutFunnelsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutFunnelsInput, Prisma.UserUncheckedUpdateWithoutFunnelsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutFunnelsInput, Prisma.UserUncheckedCreateWithoutFunnelsInput>
   where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateToOneWithWhereWithoutTopicsInput = {
+export type UserUpdateToOneWithWhereWithoutFunnelsInput = {
   where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutTopicsInput, Prisma.UserUncheckedUpdateWithoutTopicsInput>
+  data: Prisma.XOR<Prisma.UserUpdateWithoutFunnelsInput, Prisma.UserUncheckedUpdateWithoutFunnelsInput>
 }
 
-export type UserUpdateWithoutTopicsInput = {
+export type UserUpdateWithoutFunnelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -749,7 +749,7 @@ export type UserUpdateWithoutTopicsInput = {
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
 }
 
-export type UserUncheckedUpdateWithoutTopicsInput = {
+export type UserUncheckedUpdateWithoutFunnelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -774,7 +774,7 @@ export type UserCreateWithoutTrainingRunsInput = {
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTrainingRunsInput = {
@@ -788,7 +788,7 @@ export type UserUncheckedCreateWithoutTrainingRunsInput = {
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTrainingRunsInput = {
@@ -818,7 +818,7 @@ export type UserUpdateWithoutTrainingRunsInput = {
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTrainingRunsInput = {
@@ -832,7 +832,7 @@ export type UserUncheckedUpdateWithoutTrainingRunsInput = {
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -844,7 +844,7 @@ export type UserCountOutputType = {
   accounts: number
   sessions: number
   reviews: number
-  topics: number
+  funnels: number
   trainingRuns: number
 }
 
@@ -852,7 +852,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   accounts?: boolean | UserCountOutputTypeCountAccountsArgs
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   reviews?: boolean | UserCountOutputTypeCountReviewsArgs
-  topics?: boolean | UserCountOutputTypeCountTopicsArgs
+  funnels?: boolean | UserCountOutputTypeCountFunnelsArgs
   trainingRuns?: boolean | UserCountOutputTypeCountTrainingRunsArgs
 }
 
@@ -890,8 +890,8 @@ export type UserCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.Ex
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountTopicsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.TopicWhereInput
+export type UserCountOutputTypeCountFunnelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FunnelWhereInput
 }
 
 /**
@@ -913,7 +913,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
-  topics?: boolean | Prisma.User$topicsArgs<ExtArgs>
+  funnels?: boolean | Prisma.User$funnelsArgs<ExtArgs>
   trainingRuns?: boolean | Prisma.User$trainingRunsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -953,7 +953,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
-  topics?: boolean | Prisma.User$topicsArgs<ExtArgs>
+  funnels?: boolean | Prisma.User$funnelsArgs<ExtArgs>
   trainingRuns?: boolean | Prisma.User$trainingRunsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -966,7 +966,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     accounts: Prisma.$AccountPayload<ExtArgs>[]
     sessions: Prisma.$SessionPayload<ExtArgs>[]
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
-    topics: Prisma.$TopicPayload<ExtArgs>[]
+    funnels: Prisma.$FunnelPayload<ExtArgs>[]
     trainingRuns: Prisma.$TrainingRunPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1374,7 +1374,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.User$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  topics<T extends Prisma.User$topicsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$topicsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  funnels<T extends Prisma.User$funnelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$funnelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FunnelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   trainingRuns<T extends Prisma.User$trainingRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$trainingRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrainingRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1872,27 +1872,27 @@ export type User$reviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 }
 
 /**
- * User.topics
+ * User.funnels
  */
-export type User$topicsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$funnelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Topic
+   * Select specific fields to fetch from the Funnel
    */
-  select?: Prisma.TopicSelect<ExtArgs> | null
+  select?: Prisma.FunnelSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Topic
+   * Omit specific fields from the Funnel
    */
-  omit?: Prisma.TopicOmit<ExtArgs> | null
+  omit?: Prisma.FunnelOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.TopicInclude<ExtArgs> | null
-  where?: Prisma.TopicWhereInput
-  orderBy?: Prisma.TopicOrderByWithRelationInput | Prisma.TopicOrderByWithRelationInput[]
-  cursor?: Prisma.TopicWhereUniqueInput
+  include?: Prisma.FunnelInclude<ExtArgs> | null
+  where?: Prisma.FunnelWhereInput
+  orderBy?: Prisma.FunnelOrderByWithRelationInput | Prisma.FunnelOrderByWithRelationInput[]
+  cursor?: Prisma.FunnelWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.TopicScalarFieldEnum | Prisma.TopicScalarFieldEnum[]
+  distinct?: Prisma.FunnelScalarFieldEnum | Prisma.FunnelScalarFieldEnum[]
 }
 
 /**

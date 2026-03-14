@@ -38,7 +38,7 @@ export type ReviewMinAggregateOutputType = {
   id: string | null
   userId: string | null
   videoId: string | null
-  topicId: string | null
+  funnelId: string | null
   rating: number | null
   content: string | null
   createdAt: Date | null
@@ -49,7 +49,7 @@ export type ReviewMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   videoId: string | null
-  topicId: string | null
+  funnelId: string | null
   rating: number | null
   content: string | null
   createdAt: Date | null
@@ -60,7 +60,7 @@ export type ReviewCountAggregateOutputType = {
   id: number
   userId: number
   videoId: number
-  topicId: number
+  funnelId: number
   rating: number
   content: number
   createdAt: number
@@ -81,7 +81,7 @@ export type ReviewMinAggregateInputType = {
   id?: true
   userId?: true
   videoId?: true
-  topicId?: true
+  funnelId?: true
   rating?: true
   content?: true
   createdAt?: true
@@ -92,7 +92,7 @@ export type ReviewMaxAggregateInputType = {
   id?: true
   userId?: true
   videoId?: true
-  topicId?: true
+  funnelId?: true
   rating?: true
   content?: true
   createdAt?: true
@@ -103,7 +103,7 @@ export type ReviewCountAggregateInputType = {
   id?: true
   userId?: true
   videoId?: true
-  topicId?: true
+  funnelId?: true
   rating?: true
   content?: true
   createdAt?: true
@@ -201,7 +201,7 @@ export type ReviewGroupByOutputType = {
   id: string
   userId: string
   videoId: string
-  topicId: string | null
+  funnelId: string | null
   rating: number
   content: string | null
   createdAt: Date
@@ -235,53 +235,53 @@ export type ReviewWhereInput = {
   id?: Prisma.StringFilter<"Review"> | string
   userId?: Prisma.StringFilter<"Review"> | string
   videoId?: Prisma.StringFilter<"Review"> | string
-  topicId?: Prisma.StringNullableFilter<"Review"> | string | null
+  funnelId?: Prisma.StringNullableFilter<"Review"> | string | null
   rating?: Prisma.IntFilter<"Review"> | number
   content?: Prisma.StringNullableFilter<"Review"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   video?: Prisma.XOR<Prisma.VideoScalarRelationFilter, Prisma.VideoWhereInput>
-  topic?: Prisma.XOR<Prisma.TopicNullableScalarRelationFilter, Prisma.TopicWhereInput> | null
+  funnel?: Prisma.XOR<Prisma.FunnelNullableScalarRelationFilter, Prisma.FunnelWhereInput> | null
 }
 
 export type ReviewOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   videoId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrderInput | Prisma.SortOrder
+  funnelId?: Prisma.SortOrderInput | Prisma.SortOrder
   rating?: Prisma.SortOrder
   content?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   video?: Prisma.VideoOrderByWithRelationInput
-  topic?: Prisma.TopicOrderByWithRelationInput
+  funnel?: Prisma.FunnelOrderByWithRelationInput
 }
 
 export type ReviewWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  userId_videoId_topicId?: Prisma.ReviewUserIdVideoIdTopicIdCompoundUniqueInput
+  userId_videoId_funnelId?: Prisma.ReviewUserIdVideoIdFunnelIdCompoundUniqueInput
   AND?: Prisma.ReviewWhereInput | Prisma.ReviewWhereInput[]
   OR?: Prisma.ReviewWhereInput[]
   NOT?: Prisma.ReviewWhereInput | Prisma.ReviewWhereInput[]
   userId?: Prisma.StringFilter<"Review"> | string
   videoId?: Prisma.StringFilter<"Review"> | string
-  topicId?: Prisma.StringNullableFilter<"Review"> | string | null
+  funnelId?: Prisma.StringNullableFilter<"Review"> | string | null
   rating?: Prisma.IntFilter<"Review"> | number
   content?: Prisma.StringNullableFilter<"Review"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   video?: Prisma.XOR<Prisma.VideoScalarRelationFilter, Prisma.VideoWhereInput>
-  topic?: Prisma.XOR<Prisma.TopicNullableScalarRelationFilter, Prisma.TopicWhereInput> | null
-}, "id" | "userId_videoId_topicId">
+  funnel?: Prisma.XOR<Prisma.FunnelNullableScalarRelationFilter, Prisma.FunnelWhereInput> | null
+}, "id" | "userId_videoId_funnelId">
 
 export type ReviewOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   videoId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrderInput | Prisma.SortOrder
+  funnelId?: Prisma.SortOrderInput | Prisma.SortOrder
   rating?: Prisma.SortOrder
   content?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -300,7 +300,7 @@ export type ReviewScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Review"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Review"> | string
   videoId?: Prisma.StringWithAggregatesFilter<"Review"> | string
-  topicId?: Prisma.StringNullableWithAggregatesFilter<"Review"> | string | null
+  funnelId?: Prisma.StringNullableWithAggregatesFilter<"Review"> | string | null
   rating?: Prisma.IntWithAggregatesFilter<"Review"> | number
   content?: Prisma.StringNullableWithAggregatesFilter<"Review"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Review"> | Date | string
@@ -315,14 +315,14 @@ export type ReviewCreateInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutReviewsInput
   video: Prisma.VideoCreateNestedOneWithoutReviewsInput
-  topic?: Prisma.TopicCreateNestedOneWithoutReviewsInput
+  funnel?: Prisma.FunnelCreateNestedOneWithoutReviewsInput
 }
 
 export type ReviewUncheckedCreateInput = {
   id?: string
   userId: string
   videoId: string
-  topicId?: string | null
+  funnelId?: string | null
   rating: number
   content?: string | null
   createdAt?: Date | string
@@ -337,14 +337,14 @@ export type ReviewUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutReviewsNestedInput
   video?: Prisma.VideoUpdateOneRequiredWithoutReviewsNestedInput
-  topic?: Prisma.TopicUpdateOneWithoutReviewsNestedInput
+  funnel?: Prisma.FunnelUpdateOneWithoutReviewsNestedInput
 }
 
 export type ReviewUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,7 +355,7 @@ export type ReviewCreateManyInput = {
   id?: string
   userId: string
   videoId: string
-  topicId?: string | null
+  funnelId?: string | null
   rating: number
   content?: string | null
   createdAt?: Date | string
@@ -374,7 +374,7 @@ export type ReviewUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -391,17 +391,17 @@ export type ReviewOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type ReviewUserIdVideoIdTopicIdCompoundUniqueInput = {
+export type ReviewUserIdVideoIdFunnelIdCompoundUniqueInput = {
   userId: string
   videoId: string
-  topicId: string
+  funnelId: string
 }
 
 export type ReviewCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   videoId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  funnelId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   content?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -416,7 +416,7 @@ export type ReviewMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   videoId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  funnelId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   content?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -427,7 +427,7 @@ export type ReviewMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   videoId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  funnelId?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   content?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -522,45 +522,45 @@ export type ReviewUncheckedUpdateManyWithoutVideoNestedInput = {
   deleteMany?: Prisma.ReviewScalarWhereInput | Prisma.ReviewScalarWhereInput[]
 }
 
-export type ReviewCreateNestedManyWithoutTopicInput = {
-  create?: Prisma.XOR<Prisma.ReviewCreateWithoutTopicInput, Prisma.ReviewUncheckedCreateWithoutTopicInput> | Prisma.ReviewCreateWithoutTopicInput[] | Prisma.ReviewUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.ReviewCreateOrConnectWithoutTopicInput | Prisma.ReviewCreateOrConnectWithoutTopicInput[]
-  createMany?: Prisma.ReviewCreateManyTopicInputEnvelope
+export type ReviewCreateNestedManyWithoutFunnelInput = {
+  create?: Prisma.XOR<Prisma.ReviewCreateWithoutFunnelInput, Prisma.ReviewUncheckedCreateWithoutFunnelInput> | Prisma.ReviewCreateWithoutFunnelInput[] | Prisma.ReviewUncheckedCreateWithoutFunnelInput[]
+  connectOrCreate?: Prisma.ReviewCreateOrConnectWithoutFunnelInput | Prisma.ReviewCreateOrConnectWithoutFunnelInput[]
+  createMany?: Prisma.ReviewCreateManyFunnelInputEnvelope
   connect?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
 }
 
-export type ReviewUncheckedCreateNestedManyWithoutTopicInput = {
-  create?: Prisma.XOR<Prisma.ReviewCreateWithoutTopicInput, Prisma.ReviewUncheckedCreateWithoutTopicInput> | Prisma.ReviewCreateWithoutTopicInput[] | Prisma.ReviewUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.ReviewCreateOrConnectWithoutTopicInput | Prisma.ReviewCreateOrConnectWithoutTopicInput[]
-  createMany?: Prisma.ReviewCreateManyTopicInputEnvelope
+export type ReviewUncheckedCreateNestedManyWithoutFunnelInput = {
+  create?: Prisma.XOR<Prisma.ReviewCreateWithoutFunnelInput, Prisma.ReviewUncheckedCreateWithoutFunnelInput> | Prisma.ReviewCreateWithoutFunnelInput[] | Prisma.ReviewUncheckedCreateWithoutFunnelInput[]
+  connectOrCreate?: Prisma.ReviewCreateOrConnectWithoutFunnelInput | Prisma.ReviewCreateOrConnectWithoutFunnelInput[]
+  createMany?: Prisma.ReviewCreateManyFunnelInputEnvelope
   connect?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
 }
 
-export type ReviewUpdateManyWithoutTopicNestedInput = {
-  create?: Prisma.XOR<Prisma.ReviewCreateWithoutTopicInput, Prisma.ReviewUncheckedCreateWithoutTopicInput> | Prisma.ReviewCreateWithoutTopicInput[] | Prisma.ReviewUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.ReviewCreateOrConnectWithoutTopicInput | Prisma.ReviewCreateOrConnectWithoutTopicInput[]
-  upsert?: Prisma.ReviewUpsertWithWhereUniqueWithoutTopicInput | Prisma.ReviewUpsertWithWhereUniqueWithoutTopicInput[]
-  createMany?: Prisma.ReviewCreateManyTopicInputEnvelope
+export type ReviewUpdateManyWithoutFunnelNestedInput = {
+  create?: Prisma.XOR<Prisma.ReviewCreateWithoutFunnelInput, Prisma.ReviewUncheckedCreateWithoutFunnelInput> | Prisma.ReviewCreateWithoutFunnelInput[] | Prisma.ReviewUncheckedCreateWithoutFunnelInput[]
+  connectOrCreate?: Prisma.ReviewCreateOrConnectWithoutFunnelInput | Prisma.ReviewCreateOrConnectWithoutFunnelInput[]
+  upsert?: Prisma.ReviewUpsertWithWhereUniqueWithoutFunnelInput | Prisma.ReviewUpsertWithWhereUniqueWithoutFunnelInput[]
+  createMany?: Prisma.ReviewCreateManyFunnelInputEnvelope
   set?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
   disconnect?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
   delete?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
   connect?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
-  update?: Prisma.ReviewUpdateWithWhereUniqueWithoutTopicInput | Prisma.ReviewUpdateWithWhereUniqueWithoutTopicInput[]
-  updateMany?: Prisma.ReviewUpdateManyWithWhereWithoutTopicInput | Prisma.ReviewUpdateManyWithWhereWithoutTopicInput[]
+  update?: Prisma.ReviewUpdateWithWhereUniqueWithoutFunnelInput | Prisma.ReviewUpdateWithWhereUniqueWithoutFunnelInput[]
+  updateMany?: Prisma.ReviewUpdateManyWithWhereWithoutFunnelInput | Prisma.ReviewUpdateManyWithWhereWithoutFunnelInput[]
   deleteMany?: Prisma.ReviewScalarWhereInput | Prisma.ReviewScalarWhereInput[]
 }
 
-export type ReviewUncheckedUpdateManyWithoutTopicNestedInput = {
-  create?: Prisma.XOR<Prisma.ReviewCreateWithoutTopicInput, Prisma.ReviewUncheckedCreateWithoutTopicInput> | Prisma.ReviewCreateWithoutTopicInput[] | Prisma.ReviewUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.ReviewCreateOrConnectWithoutTopicInput | Prisma.ReviewCreateOrConnectWithoutTopicInput[]
-  upsert?: Prisma.ReviewUpsertWithWhereUniqueWithoutTopicInput | Prisma.ReviewUpsertWithWhereUniqueWithoutTopicInput[]
-  createMany?: Prisma.ReviewCreateManyTopicInputEnvelope
+export type ReviewUncheckedUpdateManyWithoutFunnelNestedInput = {
+  create?: Prisma.XOR<Prisma.ReviewCreateWithoutFunnelInput, Prisma.ReviewUncheckedCreateWithoutFunnelInput> | Prisma.ReviewCreateWithoutFunnelInput[] | Prisma.ReviewUncheckedCreateWithoutFunnelInput[]
+  connectOrCreate?: Prisma.ReviewCreateOrConnectWithoutFunnelInput | Prisma.ReviewCreateOrConnectWithoutFunnelInput[]
+  upsert?: Prisma.ReviewUpsertWithWhereUniqueWithoutFunnelInput | Prisma.ReviewUpsertWithWhereUniqueWithoutFunnelInput[]
+  createMany?: Prisma.ReviewCreateManyFunnelInputEnvelope
   set?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
   disconnect?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
   delete?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
   connect?: Prisma.ReviewWhereUniqueInput | Prisma.ReviewWhereUniqueInput[]
-  update?: Prisma.ReviewUpdateWithWhereUniqueWithoutTopicInput | Prisma.ReviewUpdateWithWhereUniqueWithoutTopicInput[]
-  updateMany?: Prisma.ReviewUpdateManyWithWhereWithoutTopicInput | Prisma.ReviewUpdateManyWithWhereWithoutTopicInput[]
+  update?: Prisma.ReviewUpdateWithWhereUniqueWithoutFunnelInput | Prisma.ReviewUpdateWithWhereUniqueWithoutFunnelInput[]
+  updateMany?: Prisma.ReviewUpdateManyWithWhereWithoutFunnelInput | Prisma.ReviewUpdateManyWithWhereWithoutFunnelInput[]
   deleteMany?: Prisma.ReviewScalarWhereInput | Prisma.ReviewScalarWhereInput[]
 }
 
@@ -571,13 +571,13 @@ export type ReviewCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   video: Prisma.VideoCreateNestedOneWithoutReviewsInput
-  topic?: Prisma.TopicCreateNestedOneWithoutReviewsInput
+  funnel?: Prisma.FunnelCreateNestedOneWithoutReviewsInput
 }
 
 export type ReviewUncheckedCreateWithoutUserInput = {
   id?: string
   videoId: string
-  topicId?: string | null
+  funnelId?: string | null
   rating: number
   content?: string | null
   createdAt?: Date | string
@@ -617,7 +617,7 @@ export type ReviewScalarWhereInput = {
   id?: Prisma.StringFilter<"Review"> | string
   userId?: Prisma.StringFilter<"Review"> | string
   videoId?: Prisma.StringFilter<"Review"> | string
-  topicId?: Prisma.StringNullableFilter<"Review"> | string | null
+  funnelId?: Prisma.StringNullableFilter<"Review"> | string | null
   rating?: Prisma.IntFilter<"Review"> | number
   content?: Prisma.StringNullableFilter<"Review"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
@@ -631,13 +631,13 @@ export type ReviewCreateWithoutVideoInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutReviewsInput
-  topic?: Prisma.TopicCreateNestedOneWithoutReviewsInput
+  funnel?: Prisma.FunnelCreateNestedOneWithoutReviewsInput
 }
 
 export type ReviewUncheckedCreateWithoutVideoInput = {
   id?: string
   userId: string
-  topicId?: string | null
+  funnelId?: string | null
   rating: number
   content?: string | null
   createdAt?: Date | string
@@ -670,7 +670,7 @@ export type ReviewUpdateManyWithWhereWithoutVideoInput = {
   data: Prisma.XOR<Prisma.ReviewUpdateManyMutationInput, Prisma.ReviewUncheckedUpdateManyWithoutVideoInput>
 }
 
-export type ReviewCreateWithoutTopicInput = {
+export type ReviewCreateWithoutFunnelInput = {
   id?: string
   rating: number
   content?: string | null
@@ -680,7 +680,7 @@ export type ReviewCreateWithoutTopicInput = {
   video: Prisma.VideoCreateNestedOneWithoutReviewsInput
 }
 
-export type ReviewUncheckedCreateWithoutTopicInput = {
+export type ReviewUncheckedCreateWithoutFunnelInput = {
   id?: string
   userId: string
   videoId: string
@@ -690,36 +690,36 @@ export type ReviewUncheckedCreateWithoutTopicInput = {
   updatedAt?: Date | string
 }
 
-export type ReviewCreateOrConnectWithoutTopicInput = {
+export type ReviewCreateOrConnectWithoutFunnelInput = {
   where: Prisma.ReviewWhereUniqueInput
-  create: Prisma.XOR<Prisma.ReviewCreateWithoutTopicInput, Prisma.ReviewUncheckedCreateWithoutTopicInput>
+  create: Prisma.XOR<Prisma.ReviewCreateWithoutFunnelInput, Prisma.ReviewUncheckedCreateWithoutFunnelInput>
 }
 
-export type ReviewCreateManyTopicInputEnvelope = {
-  data: Prisma.ReviewCreateManyTopicInput | Prisma.ReviewCreateManyTopicInput[]
+export type ReviewCreateManyFunnelInputEnvelope = {
+  data: Prisma.ReviewCreateManyFunnelInput | Prisma.ReviewCreateManyFunnelInput[]
   skipDuplicates?: boolean
 }
 
-export type ReviewUpsertWithWhereUniqueWithoutTopicInput = {
+export type ReviewUpsertWithWhereUniqueWithoutFunnelInput = {
   where: Prisma.ReviewWhereUniqueInput
-  update: Prisma.XOR<Prisma.ReviewUpdateWithoutTopicInput, Prisma.ReviewUncheckedUpdateWithoutTopicInput>
-  create: Prisma.XOR<Prisma.ReviewCreateWithoutTopicInput, Prisma.ReviewUncheckedCreateWithoutTopicInput>
+  update: Prisma.XOR<Prisma.ReviewUpdateWithoutFunnelInput, Prisma.ReviewUncheckedUpdateWithoutFunnelInput>
+  create: Prisma.XOR<Prisma.ReviewCreateWithoutFunnelInput, Prisma.ReviewUncheckedCreateWithoutFunnelInput>
 }
 
-export type ReviewUpdateWithWhereUniqueWithoutTopicInput = {
+export type ReviewUpdateWithWhereUniqueWithoutFunnelInput = {
   where: Prisma.ReviewWhereUniqueInput
-  data: Prisma.XOR<Prisma.ReviewUpdateWithoutTopicInput, Prisma.ReviewUncheckedUpdateWithoutTopicInput>
+  data: Prisma.XOR<Prisma.ReviewUpdateWithoutFunnelInput, Prisma.ReviewUncheckedUpdateWithoutFunnelInput>
 }
 
-export type ReviewUpdateManyWithWhereWithoutTopicInput = {
+export type ReviewUpdateManyWithWhereWithoutFunnelInput = {
   where: Prisma.ReviewScalarWhereInput
-  data: Prisma.XOR<Prisma.ReviewUpdateManyMutationInput, Prisma.ReviewUncheckedUpdateManyWithoutTopicInput>
+  data: Prisma.XOR<Prisma.ReviewUpdateManyMutationInput, Prisma.ReviewUncheckedUpdateManyWithoutFunnelInput>
 }
 
 export type ReviewCreateManyUserInput = {
   id?: string
   videoId: string
-  topicId?: string | null
+  funnelId?: string | null
   rating: number
   content?: string | null
   createdAt?: Date | string
@@ -733,13 +733,13 @@ export type ReviewUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   video?: Prisma.VideoUpdateOneRequiredWithoutReviewsNestedInput
-  topic?: Prisma.TopicUpdateOneWithoutReviewsNestedInput
+  funnel?: Prisma.FunnelUpdateOneWithoutReviewsNestedInput
 }
 
 export type ReviewUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -749,7 +749,7 @@ export type ReviewUncheckedUpdateWithoutUserInput = {
 export type ReviewUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -759,7 +759,7 @@ export type ReviewUncheckedUpdateManyWithoutUserInput = {
 export type ReviewCreateManyVideoInput = {
   id?: string
   userId: string
-  topicId?: string | null
+  funnelId?: string | null
   rating: number
   content?: string | null
   createdAt?: Date | string
@@ -773,13 +773,13 @@ export type ReviewUpdateWithoutVideoInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutReviewsNestedInput
-  topic?: Prisma.TopicUpdateOneWithoutReviewsNestedInput
+  funnel?: Prisma.FunnelUpdateOneWithoutReviewsNestedInput
 }
 
 export type ReviewUncheckedUpdateWithoutVideoInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -789,14 +789,14 @@ export type ReviewUncheckedUpdateWithoutVideoInput = {
 export type ReviewUncheckedUpdateManyWithoutVideoInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type ReviewCreateManyTopicInput = {
+export type ReviewCreateManyFunnelInput = {
   id?: string
   userId: string
   videoId: string
@@ -806,7 +806,7 @@ export type ReviewCreateManyTopicInput = {
   updatedAt?: Date | string
 }
 
-export type ReviewUpdateWithoutTopicInput = {
+export type ReviewUpdateWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -816,7 +816,7 @@ export type ReviewUpdateWithoutTopicInput = {
   video?: Prisma.VideoUpdateOneRequiredWithoutReviewsNestedInput
 }
 
-export type ReviewUncheckedUpdateWithoutTopicInput = {
+export type ReviewUncheckedUpdateWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -826,7 +826,7 @@ export type ReviewUncheckedUpdateWithoutTopicInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type ReviewUncheckedUpdateManyWithoutTopicInput = {
+export type ReviewUncheckedUpdateManyWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -842,70 +842,70 @@ export type ReviewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   id?: boolean
   userId?: boolean
   videoId?: boolean
-  topicId?: boolean
+  funnelId?: boolean
   rating?: boolean
   content?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.Review$topicArgs<ExtArgs>
+  funnel?: boolean | Prisma.Review$funnelArgs<ExtArgs>
 }, ExtArgs["result"]["review"]>
 
 export type ReviewSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
   videoId?: boolean
-  topicId?: boolean
+  funnelId?: boolean
   rating?: boolean
   content?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.Review$topicArgs<ExtArgs>
+  funnel?: boolean | Prisma.Review$funnelArgs<ExtArgs>
 }, ExtArgs["result"]["review"]>
 
 export type ReviewSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
   videoId?: boolean
-  topicId?: boolean
+  funnelId?: boolean
   rating?: boolean
   content?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.Review$topicArgs<ExtArgs>
+  funnel?: boolean | Prisma.Review$funnelArgs<ExtArgs>
 }, ExtArgs["result"]["review"]>
 
 export type ReviewSelectScalar = {
   id?: boolean
   userId?: boolean
   videoId?: boolean
-  topicId?: boolean
+  funnelId?: boolean
   rating?: boolean
   content?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "videoId" | "topicId" | "rating" | "content" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
+export type ReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "videoId" | "funnelId" | "rating" | "content" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
 export type ReviewInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.Review$topicArgs<ExtArgs>
+  funnel?: boolean | Prisma.Review$funnelArgs<ExtArgs>
 }
 export type ReviewIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.Review$topicArgs<ExtArgs>
+  funnel?: boolean | Prisma.Review$funnelArgs<ExtArgs>
 }
 export type ReviewIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.Review$topicArgs<ExtArgs>
+  funnel?: boolean | Prisma.Review$funnelArgs<ExtArgs>
 }
 
 export type $ReviewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -913,13 +913,13 @@ export type $ReviewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     video: Prisma.$VideoPayload<ExtArgs>
-    topic: Prisma.$TopicPayload<ExtArgs> | null
+    funnel: Prisma.$FunnelPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
     videoId: string
-    topicId: string | null
+    funnelId: string | null
     rating: number
     content: string | null
     createdAt: Date
@@ -1320,7 +1320,7 @@ export interface Prisma__ReviewClient<T, Null = never, ExtArgs extends runtime.T
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   video<T extends Prisma.VideoDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VideoDefaultArgs<ExtArgs>>): Prisma.Prisma__VideoClient<runtime.Types.Result.GetResult<Prisma.$VideoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  topic<T extends Prisma.Review$topicArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Review$topicArgs<ExtArgs>>): Prisma.Prisma__TopicClient<runtime.Types.Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  funnel<T extends Prisma.Review$funnelArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Review$funnelArgs<ExtArgs>>): Prisma.Prisma__FunnelClient<runtime.Types.Result.GetResult<Prisma.$FunnelPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1353,7 +1353,7 @@ export interface ReviewFieldRefs {
   readonly id: Prisma.FieldRef<"Review", 'String'>
   readonly userId: Prisma.FieldRef<"Review", 'String'>
   readonly videoId: Prisma.FieldRef<"Review", 'String'>
-  readonly topicId: Prisma.FieldRef<"Review", 'String'>
+  readonly funnelId: Prisma.FieldRef<"Review", 'String'>
   readonly rating: Prisma.FieldRef<"Review", 'Int'>
   readonly content: Prisma.FieldRef<"Review", 'String'>
   readonly createdAt: Prisma.FieldRef<"Review", 'DateTime'>
@@ -1754,22 +1754,22 @@ export type ReviewDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
- * Review.topic
+ * Review.funnel
  */
-export type Review$topicArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Review$funnelArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Topic
+   * Select specific fields to fetch from the Funnel
    */
-  select?: Prisma.TopicSelect<ExtArgs> | null
+  select?: Prisma.FunnelSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Topic
+   * Omit specific fields from the Funnel
    */
-  omit?: Prisma.TopicOmit<ExtArgs> | null
+  omit?: Prisma.FunnelOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.TopicInclude<ExtArgs> | null
-  where?: Prisma.TopicWhereInput
+  include?: Prisma.FunnelInclude<ExtArgs> | null
+  where?: Prisma.FunnelWhereInput
 }
 
 /**

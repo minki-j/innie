@@ -14,7 +14,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class CriterionResultValue(str, Enum):
+class ClassNodeResultValue(str, Enum):
     PASS = "PASS"
     FAIL = "FAIL"
     CANNOT_TELL = "CANNOT_TELL"
@@ -25,6 +25,7 @@ class TrainingStatus(str, Enum):
     TRAINING = "TRAINING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
 
 
 class TrainingMethod(str, Enum):
@@ -121,14 +122,14 @@ class Review(BaseModel):
     id: str
     user_id: str = Field(alias="userId")
     video_id: str = Field(alias="videoId")
-    topic_id: str | None = Field(default=None, alias="topicId")
+    funnel_id: str | None = Field(default=None, alias="funnelId")
     rating: int
     content: str | None = Field(default=None)
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
-class Topic(BaseModel):
+class Funnel(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
@@ -142,24 +143,26 @@ class Topic(BaseModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
-class Criterion(BaseModel):
+class ClassNode(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
-    topic_id: str = Field(alias="topicId")
-    condition: str
-    include: bool = Field(default=True)
-    level: str = Field(default="MUST_HAVE")
-    order: int = Field(default=0)
+    description: str
+    parent_class_node_id: str | None = Field(default=None, alias="parentClassNodeId")
+    funnel_id: str | None = Field(default=None, alias="funnelId")
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class MergeNode(BaseModel):
+    pass
 
 
 class GoldStandard(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
-    topic_id: str = Field(alias="topicId")
+    class_node_id: str = Field(alias="classNodeId")
     video_url: str = Field(alias="videoUrl")
     title: str | None = Field(default=None)
     is_positive: bool = Field(default=True, alias="isPositive")
@@ -168,21 +171,21 @@ class GoldStandard(BaseModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
-class TopicKeyword(BaseModel):
+class FunnelKeyword(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
-    topic_id: str = Field(alias="topicId")
+    funnel_id: str = Field(alias="funnelId")
     keyword: str
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
-class TopicCreator(BaseModel):
+class FunnelCreator(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
-    topic_id: str = Field(alias="topicId")
+    funnel_id: str = Field(alias="funnelId")
     channel_id: str | None = Field(default=None, alias="channelId")
     channel_url: str | None = Field(default=None, alias="channelUrl")
     channel_name: str | None = Field(default=None, alias="channelName")
@@ -191,15 +194,16 @@ class TopicCreator(BaseModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
-class CriterionResult(BaseModel):
+class ClassNodeResult(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
     video_id: str = Field(alias="videoId")
-    criterion_id: str = Field(alias="criterionId")
-    result: CriterionResultValue
+    class_node_id: str = Field(alias="classNodeId")
+    result: ClassNodeResultValue
     explanation: str | None = Field(default=None)
     model_used: str | None = Field(default=None, alias="modelUsed")
+    confidence: int | None = Field(default=None)
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
@@ -209,7 +213,7 @@ class TrainingRun(BaseModel):
 
     id: str
     user_id: str = Field(alias="userId")
-    topic_id: str = Field(alias="topicId")
+    funnel_id: str = Field(alias="funnelId")
     status: TrainingStatus
     method: TrainingMethod
     model_name: str = Field(alias="modelName")

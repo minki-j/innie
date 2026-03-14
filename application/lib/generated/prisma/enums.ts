@@ -9,13 +9,13 @@
 * 🟢 You can import this file directly.
 */
 
-export const CriterionResultValue = {
+export const ClassNodeResultValue = {
   PASS: 'PASS',
   FAIL: 'FAIL',
   CANNOT_TELL: 'CANNOT_TELL'
 } as const
 
-export type CriterionResultValue = (typeof CriterionResultValue)[keyof typeof CriterionResultValue]
+export type ClassNodeResultValue = (typeof ClassNodeResultValue)[keyof typeof ClassNodeResultValue]
 
 
 export const TrainingStatus = {

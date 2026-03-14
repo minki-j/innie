@@ -345,9 +345,9 @@ export type VideoWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Video"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Video"> | Date | string
   reviews?: Prisma.ReviewListRelationFilter
-  topics?: Prisma.TopicListRelationFilter
+  funnels?: Prisma.FunnelListRelationFilter
   channel?: Prisma.XOR<Prisma.ChannelNullableScalarRelationFilter, Prisma.ChannelWhereInput> | null
-  criterionResults?: Prisma.CriterionResultListRelationFilter
+  classNodeResults?: Prisma.ClassNodeResultListRelationFilter
 }
 
 export type VideoOrderByWithRelationInput = {
@@ -372,9 +372,9 @@ export type VideoOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
-  topics?: Prisma.TopicOrderByRelationAggregateInput
+  funnels?: Prisma.FunnelOrderByRelationAggregateInput
   channel?: Prisma.ChannelOrderByWithRelationInput
-  criterionResults?: Prisma.CriterionResultOrderByRelationAggregateInput
+  classNodeResults?: Prisma.ClassNodeResultOrderByRelationAggregateInput
 }
 
 export type VideoWhereUniqueInput = Prisma.AtLeast<{
@@ -402,9 +402,9 @@ export type VideoWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Video"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Video"> | Date | string
   reviews?: Prisma.ReviewListRelationFilter
-  topics?: Prisma.TopicListRelationFilter
+  funnels?: Prisma.FunnelListRelationFilter
   channel?: Prisma.XOR<Prisma.ChannelNullableScalarRelationFilter, Prisma.ChannelWhereInput> | null
-  criterionResults?: Prisma.CriterionResultListRelationFilter
+  classNodeResults?: Prisma.ClassNodeResultListRelationFilter
 }, "id">
 
 export type VideoOrderByWithAggregationInput = {
@@ -482,9 +482,9 @@ export type VideoCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reviews?: Prisma.ReviewCreateNestedManyWithoutVideoInput
-  topics?: Prisma.TopicCreateNestedManyWithoutVideosInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutVideosInput
   channel?: Prisma.ChannelCreateNestedOneWithoutVideosInput
-  criterionResults?: Prisma.CriterionResultCreateNestedManyWithoutVideoInput
+  classNodeResults?: Prisma.ClassNodeResultCreateNestedManyWithoutVideoInput
 }
 
 export type VideoUncheckedCreateInput = {
@@ -509,8 +509,8 @@ export type VideoUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutVideoInput
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutVideosInput
-  criterionResults?: Prisma.CriterionResultUncheckedCreateNestedManyWithoutVideoInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutVideosInput
+  classNodeResults?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutVideoInput
 }
 
 export type VideoUpdateInput = {
@@ -534,9 +534,9 @@ export type VideoUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUpdateManyWithoutVideoNestedInput
-  topics?: Prisma.TopicUpdateManyWithoutVideosNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutVideosNestedInput
   channel?: Prisma.ChannelUpdateOneWithoutVideosNestedInput
-  criterionResults?: Prisma.CriterionResultUpdateManyWithoutVideoNestedInput
+  classNodeResults?: Prisma.ClassNodeResultUpdateManyWithoutVideoNestedInput
 }
 
 export type VideoUncheckedUpdateInput = {
@@ -561,8 +561,8 @@ export type VideoUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutVideoNestedInput
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutVideosNestedInput
-  criterionResults?: Prisma.CriterionResultUncheckedUpdateManyWithoutVideoNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutVideosNestedInput
+  classNodeResults?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutVideoNestedInput
 }
 
 export type VideoCreateManyInput = {
@@ -818,56 +818,56 @@ export type VideoUpdateOneRequiredWithoutReviewsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.VideoUpdateToOneWithWhereWithoutReviewsInput, Prisma.VideoUpdateWithoutReviewsInput>, Prisma.VideoUncheckedUpdateWithoutReviewsInput>
 }
 
-export type VideoCreateNestedManyWithoutTopicsInput = {
-  create?: Prisma.XOR<Prisma.VideoCreateWithoutTopicsInput, Prisma.VideoUncheckedCreateWithoutTopicsInput> | Prisma.VideoCreateWithoutTopicsInput[] | Prisma.VideoUncheckedCreateWithoutTopicsInput[]
-  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutTopicsInput | Prisma.VideoCreateOrConnectWithoutTopicsInput[]
+export type VideoCreateNestedManyWithoutFunnelsInput = {
+  create?: Prisma.XOR<Prisma.VideoCreateWithoutFunnelsInput, Prisma.VideoUncheckedCreateWithoutFunnelsInput> | Prisma.VideoCreateWithoutFunnelsInput[] | Prisma.VideoUncheckedCreateWithoutFunnelsInput[]
+  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutFunnelsInput | Prisma.VideoCreateOrConnectWithoutFunnelsInput[]
   connect?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
 }
 
-export type VideoUncheckedCreateNestedManyWithoutTopicsInput = {
-  create?: Prisma.XOR<Prisma.VideoCreateWithoutTopicsInput, Prisma.VideoUncheckedCreateWithoutTopicsInput> | Prisma.VideoCreateWithoutTopicsInput[] | Prisma.VideoUncheckedCreateWithoutTopicsInput[]
-  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutTopicsInput | Prisma.VideoCreateOrConnectWithoutTopicsInput[]
+export type VideoUncheckedCreateNestedManyWithoutFunnelsInput = {
+  create?: Prisma.XOR<Prisma.VideoCreateWithoutFunnelsInput, Prisma.VideoUncheckedCreateWithoutFunnelsInput> | Prisma.VideoCreateWithoutFunnelsInput[] | Prisma.VideoUncheckedCreateWithoutFunnelsInput[]
+  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutFunnelsInput | Prisma.VideoCreateOrConnectWithoutFunnelsInput[]
   connect?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
 }
 
-export type VideoUpdateManyWithoutTopicsNestedInput = {
-  create?: Prisma.XOR<Prisma.VideoCreateWithoutTopicsInput, Prisma.VideoUncheckedCreateWithoutTopicsInput> | Prisma.VideoCreateWithoutTopicsInput[] | Prisma.VideoUncheckedCreateWithoutTopicsInput[]
-  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutTopicsInput | Prisma.VideoCreateOrConnectWithoutTopicsInput[]
-  upsert?: Prisma.VideoUpsertWithWhereUniqueWithoutTopicsInput | Prisma.VideoUpsertWithWhereUniqueWithoutTopicsInput[]
+export type VideoUpdateManyWithoutFunnelsNestedInput = {
+  create?: Prisma.XOR<Prisma.VideoCreateWithoutFunnelsInput, Prisma.VideoUncheckedCreateWithoutFunnelsInput> | Prisma.VideoCreateWithoutFunnelsInput[] | Prisma.VideoUncheckedCreateWithoutFunnelsInput[]
+  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutFunnelsInput | Prisma.VideoCreateOrConnectWithoutFunnelsInput[]
+  upsert?: Prisma.VideoUpsertWithWhereUniqueWithoutFunnelsInput | Prisma.VideoUpsertWithWhereUniqueWithoutFunnelsInput[]
   set?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
   disconnect?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
   delete?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
   connect?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
-  update?: Prisma.VideoUpdateWithWhereUniqueWithoutTopicsInput | Prisma.VideoUpdateWithWhereUniqueWithoutTopicsInput[]
-  updateMany?: Prisma.VideoUpdateManyWithWhereWithoutTopicsInput | Prisma.VideoUpdateManyWithWhereWithoutTopicsInput[]
+  update?: Prisma.VideoUpdateWithWhereUniqueWithoutFunnelsInput | Prisma.VideoUpdateWithWhereUniqueWithoutFunnelsInput[]
+  updateMany?: Prisma.VideoUpdateManyWithWhereWithoutFunnelsInput | Prisma.VideoUpdateManyWithWhereWithoutFunnelsInput[]
   deleteMany?: Prisma.VideoScalarWhereInput | Prisma.VideoScalarWhereInput[]
 }
 
-export type VideoUncheckedUpdateManyWithoutTopicsNestedInput = {
-  create?: Prisma.XOR<Prisma.VideoCreateWithoutTopicsInput, Prisma.VideoUncheckedCreateWithoutTopicsInput> | Prisma.VideoCreateWithoutTopicsInput[] | Prisma.VideoUncheckedCreateWithoutTopicsInput[]
-  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutTopicsInput | Prisma.VideoCreateOrConnectWithoutTopicsInput[]
-  upsert?: Prisma.VideoUpsertWithWhereUniqueWithoutTopicsInput | Prisma.VideoUpsertWithWhereUniqueWithoutTopicsInput[]
+export type VideoUncheckedUpdateManyWithoutFunnelsNestedInput = {
+  create?: Prisma.XOR<Prisma.VideoCreateWithoutFunnelsInput, Prisma.VideoUncheckedCreateWithoutFunnelsInput> | Prisma.VideoCreateWithoutFunnelsInput[] | Prisma.VideoUncheckedCreateWithoutFunnelsInput[]
+  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutFunnelsInput | Prisma.VideoCreateOrConnectWithoutFunnelsInput[]
+  upsert?: Prisma.VideoUpsertWithWhereUniqueWithoutFunnelsInput | Prisma.VideoUpsertWithWhereUniqueWithoutFunnelsInput[]
   set?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
   disconnect?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
   delete?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
   connect?: Prisma.VideoWhereUniqueInput | Prisma.VideoWhereUniqueInput[]
-  update?: Prisma.VideoUpdateWithWhereUniqueWithoutTopicsInput | Prisma.VideoUpdateWithWhereUniqueWithoutTopicsInput[]
-  updateMany?: Prisma.VideoUpdateManyWithWhereWithoutTopicsInput | Prisma.VideoUpdateManyWithWhereWithoutTopicsInput[]
+  update?: Prisma.VideoUpdateWithWhereUniqueWithoutFunnelsInput | Prisma.VideoUpdateWithWhereUniqueWithoutFunnelsInput[]
+  updateMany?: Prisma.VideoUpdateManyWithWhereWithoutFunnelsInput | Prisma.VideoUpdateManyWithWhereWithoutFunnelsInput[]
   deleteMany?: Prisma.VideoScalarWhereInput | Prisma.VideoScalarWhereInput[]
 }
 
-export type VideoCreateNestedOneWithoutCriterionResultsInput = {
-  create?: Prisma.XOR<Prisma.VideoCreateWithoutCriterionResultsInput, Prisma.VideoUncheckedCreateWithoutCriterionResultsInput>
-  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutCriterionResultsInput
+export type VideoCreateNestedOneWithoutClassNodeResultsInput = {
+  create?: Prisma.XOR<Prisma.VideoCreateWithoutClassNodeResultsInput, Prisma.VideoUncheckedCreateWithoutClassNodeResultsInput>
+  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutClassNodeResultsInput
   connect?: Prisma.VideoWhereUniqueInput
 }
 
-export type VideoUpdateOneRequiredWithoutCriterionResultsNestedInput = {
-  create?: Prisma.XOR<Prisma.VideoCreateWithoutCriterionResultsInput, Prisma.VideoUncheckedCreateWithoutCriterionResultsInput>
-  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutCriterionResultsInput
-  upsert?: Prisma.VideoUpsertWithoutCriterionResultsInput
+export type VideoUpdateOneRequiredWithoutClassNodeResultsNestedInput = {
+  create?: Prisma.XOR<Prisma.VideoCreateWithoutClassNodeResultsInput, Prisma.VideoUncheckedCreateWithoutClassNodeResultsInput>
+  connectOrCreate?: Prisma.VideoCreateOrConnectWithoutClassNodeResultsInput
+  upsert?: Prisma.VideoUpsertWithoutClassNodeResultsInput
   connect?: Prisma.VideoWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.VideoUpdateToOneWithWhereWithoutCriterionResultsInput, Prisma.VideoUpdateWithoutCriterionResultsInput>, Prisma.VideoUncheckedUpdateWithoutCriterionResultsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VideoUpdateToOneWithWhereWithoutClassNodeResultsInput, Prisma.VideoUpdateWithoutClassNodeResultsInput>, Prisma.VideoUncheckedUpdateWithoutClassNodeResultsInput>
 }
 
 export type VideoCreateWithoutChannelInput = {
@@ -891,8 +891,8 @@ export type VideoCreateWithoutChannelInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reviews?: Prisma.ReviewCreateNestedManyWithoutVideoInput
-  topics?: Prisma.TopicCreateNestedManyWithoutVideosInput
-  criterionResults?: Prisma.CriterionResultCreateNestedManyWithoutVideoInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutVideosInput
+  classNodeResults?: Prisma.ClassNodeResultCreateNestedManyWithoutVideoInput
 }
 
 export type VideoUncheckedCreateWithoutChannelInput = {
@@ -916,8 +916,8 @@ export type VideoUncheckedCreateWithoutChannelInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutVideoInput
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutVideosInput
-  criterionResults?: Prisma.CriterionResultUncheckedCreateNestedManyWithoutVideoInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutVideosInput
+  classNodeResults?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutVideoInput
 }
 
 export type VideoCreateOrConnectWithoutChannelInput = {
@@ -992,9 +992,9 @@ export type VideoCreateWithoutReviewsInput = {
   summary?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  topics?: Prisma.TopicCreateNestedManyWithoutVideosInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutVideosInput
   channel?: Prisma.ChannelCreateNestedOneWithoutVideosInput
-  criterionResults?: Prisma.CriterionResultCreateNestedManyWithoutVideoInput
+  classNodeResults?: Prisma.ClassNodeResultCreateNestedManyWithoutVideoInput
 }
 
 export type VideoUncheckedCreateWithoutReviewsInput = {
@@ -1018,8 +1018,8 @@ export type VideoUncheckedCreateWithoutReviewsInput = {
   summary?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutVideosInput
-  criterionResults?: Prisma.CriterionResultUncheckedCreateNestedManyWithoutVideoInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutVideosInput
+  classNodeResults?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutVideoInput
 }
 
 export type VideoCreateOrConnectWithoutReviewsInput = {
@@ -1058,9 +1058,9 @@ export type VideoUpdateWithoutReviewsInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  topics?: Prisma.TopicUpdateManyWithoutVideosNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutVideosNestedInput
   channel?: Prisma.ChannelUpdateOneWithoutVideosNestedInput
-  criterionResults?: Prisma.CriterionResultUpdateManyWithoutVideoNestedInput
+  classNodeResults?: Prisma.ClassNodeResultUpdateManyWithoutVideoNestedInput
 }
 
 export type VideoUncheckedUpdateWithoutReviewsInput = {
@@ -1084,11 +1084,11 @@ export type VideoUncheckedUpdateWithoutReviewsInput = {
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutVideosNestedInput
-  criterionResults?: Prisma.CriterionResultUncheckedUpdateManyWithoutVideoNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutVideosNestedInput
+  classNodeResults?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutVideoNestedInput
 }
 
-export type VideoCreateWithoutTopicsInput = {
+export type VideoCreateWithoutFunnelsInput = {
   id: string
   title: string
   description: string
@@ -1110,10 +1110,10 @@ export type VideoCreateWithoutTopicsInput = {
   updatedAt?: Date | string
   reviews?: Prisma.ReviewCreateNestedManyWithoutVideoInput
   channel?: Prisma.ChannelCreateNestedOneWithoutVideosInput
-  criterionResults?: Prisma.CriterionResultCreateNestedManyWithoutVideoInput
+  classNodeResults?: Prisma.ClassNodeResultCreateNestedManyWithoutVideoInput
 }
 
-export type VideoUncheckedCreateWithoutTopicsInput = {
+export type VideoUncheckedCreateWithoutFunnelsInput = {
   id: string
   title: string
   description: string
@@ -1135,31 +1135,31 @@ export type VideoUncheckedCreateWithoutTopicsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutVideoInput
-  criterionResults?: Prisma.CriterionResultUncheckedCreateNestedManyWithoutVideoInput
+  classNodeResults?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutVideoInput
 }
 
-export type VideoCreateOrConnectWithoutTopicsInput = {
+export type VideoCreateOrConnectWithoutFunnelsInput = {
   where: Prisma.VideoWhereUniqueInput
-  create: Prisma.XOR<Prisma.VideoCreateWithoutTopicsInput, Prisma.VideoUncheckedCreateWithoutTopicsInput>
+  create: Prisma.XOR<Prisma.VideoCreateWithoutFunnelsInput, Prisma.VideoUncheckedCreateWithoutFunnelsInput>
 }
 
-export type VideoUpsertWithWhereUniqueWithoutTopicsInput = {
+export type VideoUpsertWithWhereUniqueWithoutFunnelsInput = {
   where: Prisma.VideoWhereUniqueInput
-  update: Prisma.XOR<Prisma.VideoUpdateWithoutTopicsInput, Prisma.VideoUncheckedUpdateWithoutTopicsInput>
-  create: Prisma.XOR<Prisma.VideoCreateWithoutTopicsInput, Prisma.VideoUncheckedCreateWithoutTopicsInput>
+  update: Prisma.XOR<Prisma.VideoUpdateWithoutFunnelsInput, Prisma.VideoUncheckedUpdateWithoutFunnelsInput>
+  create: Prisma.XOR<Prisma.VideoCreateWithoutFunnelsInput, Prisma.VideoUncheckedCreateWithoutFunnelsInput>
 }
 
-export type VideoUpdateWithWhereUniqueWithoutTopicsInput = {
+export type VideoUpdateWithWhereUniqueWithoutFunnelsInput = {
   where: Prisma.VideoWhereUniqueInput
-  data: Prisma.XOR<Prisma.VideoUpdateWithoutTopicsInput, Prisma.VideoUncheckedUpdateWithoutTopicsInput>
+  data: Prisma.XOR<Prisma.VideoUpdateWithoutFunnelsInput, Prisma.VideoUncheckedUpdateWithoutFunnelsInput>
 }
 
-export type VideoUpdateManyWithWhereWithoutTopicsInput = {
+export type VideoUpdateManyWithWhereWithoutFunnelsInput = {
   where: Prisma.VideoScalarWhereInput
-  data: Prisma.XOR<Prisma.VideoUpdateManyMutationInput, Prisma.VideoUncheckedUpdateManyWithoutTopicsInput>
+  data: Prisma.XOR<Prisma.VideoUpdateManyMutationInput, Prisma.VideoUncheckedUpdateManyWithoutFunnelsInput>
 }
 
-export type VideoCreateWithoutCriterionResultsInput = {
+export type VideoCreateWithoutClassNodeResultsInput = {
   id: string
   title: string
   description: string
@@ -1180,11 +1180,11 @@ export type VideoCreateWithoutCriterionResultsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reviews?: Prisma.ReviewCreateNestedManyWithoutVideoInput
-  topics?: Prisma.TopicCreateNestedManyWithoutVideosInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutVideosInput
   channel?: Prisma.ChannelCreateNestedOneWithoutVideosInput
 }
 
-export type VideoUncheckedCreateWithoutCriterionResultsInput = {
+export type VideoUncheckedCreateWithoutClassNodeResultsInput = {
   id: string
   title: string
   description: string
@@ -1206,26 +1206,26 @@ export type VideoUncheckedCreateWithoutCriterionResultsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutVideoInput
-  topics?: Prisma.TopicUncheckedCreateNestedManyWithoutVideosInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutVideosInput
 }
 
-export type VideoCreateOrConnectWithoutCriterionResultsInput = {
+export type VideoCreateOrConnectWithoutClassNodeResultsInput = {
   where: Prisma.VideoWhereUniqueInput
-  create: Prisma.XOR<Prisma.VideoCreateWithoutCriterionResultsInput, Prisma.VideoUncheckedCreateWithoutCriterionResultsInput>
+  create: Prisma.XOR<Prisma.VideoCreateWithoutClassNodeResultsInput, Prisma.VideoUncheckedCreateWithoutClassNodeResultsInput>
 }
 
-export type VideoUpsertWithoutCriterionResultsInput = {
-  update: Prisma.XOR<Prisma.VideoUpdateWithoutCriterionResultsInput, Prisma.VideoUncheckedUpdateWithoutCriterionResultsInput>
-  create: Prisma.XOR<Prisma.VideoCreateWithoutCriterionResultsInput, Prisma.VideoUncheckedCreateWithoutCriterionResultsInput>
+export type VideoUpsertWithoutClassNodeResultsInput = {
+  update: Prisma.XOR<Prisma.VideoUpdateWithoutClassNodeResultsInput, Prisma.VideoUncheckedUpdateWithoutClassNodeResultsInput>
+  create: Prisma.XOR<Prisma.VideoCreateWithoutClassNodeResultsInput, Prisma.VideoUncheckedCreateWithoutClassNodeResultsInput>
   where?: Prisma.VideoWhereInput
 }
 
-export type VideoUpdateToOneWithWhereWithoutCriterionResultsInput = {
+export type VideoUpdateToOneWithWhereWithoutClassNodeResultsInput = {
   where?: Prisma.VideoWhereInput
-  data: Prisma.XOR<Prisma.VideoUpdateWithoutCriterionResultsInput, Prisma.VideoUncheckedUpdateWithoutCriterionResultsInput>
+  data: Prisma.XOR<Prisma.VideoUpdateWithoutClassNodeResultsInput, Prisma.VideoUncheckedUpdateWithoutClassNodeResultsInput>
 }
 
-export type VideoUpdateWithoutCriterionResultsInput = {
+export type VideoUpdateWithoutClassNodeResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1246,11 +1246,11 @@ export type VideoUpdateWithoutCriterionResultsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUpdateManyWithoutVideoNestedInput
-  topics?: Prisma.TopicUpdateManyWithoutVideosNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutVideosNestedInput
   channel?: Prisma.ChannelUpdateOneWithoutVideosNestedInput
 }
 
-export type VideoUncheckedUpdateWithoutCriterionResultsInput = {
+export type VideoUncheckedUpdateWithoutClassNodeResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1272,7 +1272,7 @@ export type VideoUncheckedUpdateWithoutCriterionResultsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutVideoNestedInput
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutVideosNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutVideosNestedInput
 }
 
 export type VideoCreateManyChannelInput = {
@@ -1318,8 +1318,8 @@ export type VideoUpdateWithoutChannelInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUpdateManyWithoutVideoNestedInput
-  topics?: Prisma.TopicUpdateManyWithoutVideosNestedInput
-  criterionResults?: Prisma.CriterionResultUpdateManyWithoutVideoNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutVideosNestedInput
+  classNodeResults?: Prisma.ClassNodeResultUpdateManyWithoutVideoNestedInput
 }
 
 export type VideoUncheckedUpdateWithoutChannelInput = {
@@ -1343,8 +1343,8 @@ export type VideoUncheckedUpdateWithoutChannelInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutVideoNestedInput
-  topics?: Prisma.TopicUncheckedUpdateManyWithoutVideosNestedInput
-  criterionResults?: Prisma.CriterionResultUncheckedUpdateManyWithoutVideoNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutVideosNestedInput
+  classNodeResults?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutVideoNestedInput
 }
 
 export type VideoUncheckedUpdateManyWithoutChannelInput = {
@@ -1369,7 +1369,7 @@ export type VideoUncheckedUpdateManyWithoutChannelInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type VideoUpdateWithoutTopicsInput = {
+export type VideoUpdateWithoutFunnelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1391,10 +1391,10 @@ export type VideoUpdateWithoutTopicsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUpdateManyWithoutVideoNestedInput
   channel?: Prisma.ChannelUpdateOneWithoutVideosNestedInput
-  criterionResults?: Prisma.CriterionResultUpdateManyWithoutVideoNestedInput
+  classNodeResults?: Prisma.ClassNodeResultUpdateManyWithoutVideoNestedInput
 }
 
-export type VideoUncheckedUpdateWithoutTopicsInput = {
+export type VideoUncheckedUpdateWithoutFunnelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1416,10 +1416,10 @@ export type VideoUncheckedUpdateWithoutTopicsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutVideoNestedInput
-  criterionResults?: Prisma.CriterionResultUncheckedUpdateManyWithoutVideoNestedInput
+  classNodeResults?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutVideoNestedInput
 }
 
-export type VideoUncheckedUpdateManyWithoutTopicsInput = {
+export type VideoUncheckedUpdateManyWithoutFunnelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1449,14 +1449,14 @@ export type VideoUncheckedUpdateManyWithoutTopicsInput = {
 
 export type VideoCountOutputType = {
   reviews: number
-  topics: number
-  criterionResults: number
+  funnels: number
+  classNodeResults: number
 }
 
 export type VideoCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   reviews?: boolean | VideoCountOutputTypeCountReviewsArgs
-  topics?: boolean | VideoCountOutputTypeCountTopicsArgs
-  criterionResults?: boolean | VideoCountOutputTypeCountCriterionResultsArgs
+  funnels?: boolean | VideoCountOutputTypeCountFunnelsArgs
+  classNodeResults?: boolean | VideoCountOutputTypeCountClassNodeResultsArgs
 }
 
 /**
@@ -1479,15 +1479,15 @@ export type VideoCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.E
 /**
  * VideoCountOutputType without action
  */
-export type VideoCountOutputTypeCountTopicsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.TopicWhereInput
+export type VideoCountOutputTypeCountFunnelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FunnelWhereInput
 }
 
 /**
  * VideoCountOutputType without action
  */
-export type VideoCountOutputTypeCountCriterionResultsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.CriterionResultWhereInput
+export type VideoCountOutputTypeCountClassNodeResultsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassNodeResultWhereInput
 }
 
 
@@ -1513,9 +1513,9 @@ export type VideoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdAt?: boolean
   updatedAt?: boolean
   reviews?: boolean | Prisma.Video$reviewsArgs<ExtArgs>
-  topics?: boolean | Prisma.Video$topicsArgs<ExtArgs>
+  funnels?: boolean | Prisma.Video$funnelsArgs<ExtArgs>
   channel?: boolean | Prisma.Video$channelArgs<ExtArgs>
-  criterionResults?: boolean | Prisma.Video$criterionResultsArgs<ExtArgs>
+  classNodeResults?: boolean | Prisma.Video$classNodeResultsArgs<ExtArgs>
   _count?: boolean | Prisma.VideoCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["video"]>
 
@@ -1593,9 +1593,9 @@ export type VideoSelectScalar = {
 export type VideoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "channelTitle" | "channelId" | "publishedAt" | "viewCount" | "likeCount" | "commentCount" | "durationSeconds" | "definition" | "caption" | "tags" | "thumbnailDefault" | "thumbnailMedium" | "thumbnailHigh" | "transcript" | "summary" | "createdAt" | "updatedAt", ExtArgs["result"]["video"]>
 export type VideoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   reviews?: boolean | Prisma.Video$reviewsArgs<ExtArgs>
-  topics?: boolean | Prisma.Video$topicsArgs<ExtArgs>
+  funnels?: boolean | Prisma.Video$funnelsArgs<ExtArgs>
   channel?: boolean | Prisma.Video$channelArgs<ExtArgs>
-  criterionResults?: boolean | Prisma.Video$criterionResultsArgs<ExtArgs>
+  classNodeResults?: boolean | Prisma.Video$classNodeResultsArgs<ExtArgs>
   _count?: boolean | Prisma.VideoCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VideoIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1609,9 +1609,9 @@ export type $VideoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "Video"
   objects: {
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
-    topics: Prisma.$TopicPayload<ExtArgs>[]
+    funnels: Prisma.$FunnelPayload<ExtArgs>[]
     channel: Prisma.$ChannelPayload<ExtArgs> | null
-    criterionResults: Prisma.$CriterionResultPayload<ExtArgs>[]
+    classNodeResults: Prisma.$ClassNodeResultPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2029,9 +2029,9 @@ readonly fields: VideoFieldRefs;
 export interface Prisma__VideoClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   reviews<T extends Prisma.Video$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Video$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  topics<T extends Prisma.Video$topicsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Video$topicsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  funnels<T extends Prisma.Video$funnelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Video$funnelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FunnelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   channel<T extends Prisma.Video$channelArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Video$channelArgs<ExtArgs>>): Prisma.Prisma__ChannelClient<runtime.Types.Result.GetResult<Prisma.$ChannelPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  criterionResults<T extends Prisma.Video$criterionResultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Video$criterionResultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CriterionResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  classNodeResults<T extends Prisma.Video$classNodeResultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Video$classNodeResultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassNodeResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2501,27 +2501,27 @@ export type Video$reviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 }
 
 /**
- * Video.topics
+ * Video.funnels
  */
-export type Video$topicsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Video$funnelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Topic
+   * Select specific fields to fetch from the Funnel
    */
-  select?: Prisma.TopicSelect<ExtArgs> | null
+  select?: Prisma.FunnelSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Topic
+   * Omit specific fields from the Funnel
    */
-  omit?: Prisma.TopicOmit<ExtArgs> | null
+  omit?: Prisma.FunnelOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.TopicInclude<ExtArgs> | null
-  where?: Prisma.TopicWhereInput
-  orderBy?: Prisma.TopicOrderByWithRelationInput | Prisma.TopicOrderByWithRelationInput[]
-  cursor?: Prisma.TopicWhereUniqueInput
+  include?: Prisma.FunnelInclude<ExtArgs> | null
+  where?: Prisma.FunnelWhereInput
+  orderBy?: Prisma.FunnelOrderByWithRelationInput | Prisma.FunnelOrderByWithRelationInput[]
+  cursor?: Prisma.FunnelWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.TopicScalarFieldEnum | Prisma.TopicScalarFieldEnum[]
+  distinct?: Prisma.FunnelScalarFieldEnum | Prisma.FunnelScalarFieldEnum[]
 }
 
 /**
@@ -2544,27 +2544,27 @@ export type Video$channelArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 }
 
 /**
- * Video.criterionResults
+ * Video.classNodeResults
  */
-export type Video$criterionResultsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Video$classNodeResultsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the CriterionResult
+   * Select specific fields to fetch from the ClassNodeResult
    */
-  select?: Prisma.CriterionResultSelect<ExtArgs> | null
+  select?: Prisma.ClassNodeResultSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the CriterionResult
+   * Omit specific fields from the ClassNodeResult
    */
-  omit?: Prisma.CriterionResultOmit<ExtArgs> | null
+  omit?: Prisma.ClassNodeResultOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.CriterionResultInclude<ExtArgs> | null
-  where?: Prisma.CriterionResultWhereInput
-  orderBy?: Prisma.CriterionResultOrderByWithRelationInput | Prisma.CriterionResultOrderByWithRelationInput[]
-  cursor?: Prisma.CriterionResultWhereUniqueInput
+  include?: Prisma.ClassNodeResultInclude<ExtArgs> | null
+  where?: Prisma.ClassNodeResultWhereInput
+  orderBy?: Prisma.ClassNodeResultOrderByWithRelationInput | Prisma.ClassNodeResultOrderByWithRelationInput[]
+  cursor?: Prisma.ClassNodeResultWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.CriterionResultScalarFieldEnum | Prisma.CriterionResultScalarFieldEnum[]
+  distinct?: Prisma.ClassNodeResultScalarFieldEnum | Prisma.ClassNodeResultScalarFieldEnum[]
 }
 
 /**

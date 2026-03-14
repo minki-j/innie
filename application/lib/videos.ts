@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { YouTubeVideo, VideoTopic } from "@/types/youtube";
+import { YouTubeVideo, VideoFunnel } from "@/types/youtube";
 
 function secondsToIsoDuration(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
@@ -13,7 +13,7 @@ function secondsToIsoDuration(totalSeconds: number): string {
   return duration;
 }
 
-interface VideoWithTopics {
+interface VideoWithFunnels {
   id: string;
   title: string;
   description: string;
@@ -30,11 +30,11 @@ interface VideoWithTopics {
   thumbnailDefault: string | null;
   thumbnailMedium: string | null;
   thumbnailHigh: string | null;
-  topics: VideoTopic[];
+  funnels: VideoFunnel[];
   summary?: string | null;
 }
 
-function videoToYouTubeFormat(v: VideoWithTopics): YouTubeVideo {
+function videoToYouTubeFormat(v: VideoWithFunnels): YouTubeVideo {
   return {
     kind: "youtube#video",
     etag: "",
@@ -77,73 +77,9 @@ function videoToYouTubeFormat(v: VideoWithTopics): YouTubeVideo {
       definition: v.definition,
       caption: v.caption,
     },
-    topics: v.topics,
+    funnels: v.funnels,
     summary: v.summary ?? null,
   };
-}
-
-/**
- * Determine if a criterion result is "satisfied" (signals include).
- * - include=true  + PASS → satisfied
- * - include=true  + FAIL → not satisfied
- * - include=false + PASS → not satisfied (exclude condition matched)
- * - include=false + FAIL → satisfied (exclude condition didn't match)
- * - CANNOT_TELL → not satisfied
- */
-function isCriterionSatisfied(include: boolean, result: string): boolean {
-  if (result === "CANNOT_TELL") return false;
-  return include ? result === "PASS" : result === "FAIL";
-}
-
-/**
- * Check if a video has any must-have criteria that aren't fully satisfied.
- */
-function hasFailingMustHaveCriteria(video: YouTubeVideo): boolean {
-  if (!video.topics) return false;
-  return video.topics.some(
-    (t) =>
-      t.totalCriteria != null &&
-      t.totalCriteria > 0 &&
-      (t.passedCriteria ?? 0) < t.totalCriteria,
-  );
-}
-
-/** Enrich a raw DB video with criteria scores and convert to YouTubeVideo format. */
-function enrichAndFormat(
-  v: Parameters<typeof videoToYouTubeFormat>[0] & {
-    criterionResults: {
-      result: string;
-      criterion: { topicId: string; include: boolean; level: string };
-    }[];
-  },
-): YouTubeVideo {
-  const topicScores = new Map<string, { passed: number; total: number }>();
-
-  for (const cr of v.criterionResults) {
-    const topicId = cr.criterion.topicId;
-    if (!topicScores.has(topicId)) {
-      topicScores.set(topicId, { passed: 0, total: 0 });
-    }
-    const score = topicScores.get(topicId)!;
-    score.total++;
-    if (isCriterionSatisfied(cr.criterion.include, cr.result)) {
-      score.passed++;
-    }
-  }
-
-  const enrichedTopics: VideoTopic[] = v.topics.map((t) => {
-    const score = topicScores.get(t.id);
-    return {
-      id: t.id,
-      name: t.name,
-      ...(score && {
-        passedCriteria: score.passed,
-        totalCriteria: score.total,
-      }),
-    };
-  });
-
-  return videoToYouTubeFormat({ ...v, topics: enrichedTopics });
 }
 
 // ─── Cursor helpers ──────────────────────────────────────────
@@ -159,25 +95,15 @@ function decodeCursor(cursor: string): { updatedAt: Date; id: string } {
   return { updatedAt: new Date(parsed.updatedAt), id: parsed.id };
 }
 
-// ─── Video include fragment (shared between queries) ─────────
+// ─── Video include fragment ──────────────────────────────────
 
 const videoInclude = {
-  topics: {
+  funnels: {
     select: { id: true, name: true },
-  },
-  criterionResults: {
-    where: {
-      criterion: { level: "MUST_HAVE" },
-    },
-    include: {
-      criterion: {
-        select: { topicId: true, include: true, level: true },
-      },
-    },
   },
 } as const;
 
-// ─── Paginated videos (for API / infinite scroll) ────────────
+// ─── Paginated videos ─────────────────────────────────────────
 
 export interface PaginatedVideosResult {
   videos: YouTubeVideo[];
@@ -185,11 +111,11 @@ export interface PaginatedVideosResult {
 }
 
 export async function getVideosPaginated(options: {
-  topicIds?: string[];
+  funnelIds?: string[];
   cursor?: string | null;
   limit: number;
 }): Promise<PaginatedVideosResult> {
-  const { topicIds, limit } = options;
+  const { funnelIds, limit } = options;
   const cursorData = options.cursor ? decodeCursor(options.cursor) : null;
 
   interface CollectedItem {
@@ -203,15 +129,14 @@ export async function getVideosPaginated(options: {
   let dbCursorId: string | null = cursorData?.id ?? null;
   let exhausted = false;
 
-  // Keep fetching batches until we have enough passing videos or run out
   while (collected.length < limit && !exhausted) {
     const batchSize = Math.max(limit * 3, 30);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
 
-    if (topicIds && topicIds.length > 0) {
-      where.topics = { some: { id: { in: topicIds } } };
+    if (funnelIds && funnelIds.length > 0) {
+      where.funnels = { some: { id: { in: funnelIds } } };
     }
 
     if (dbCursorUpdatedAt && dbCursorId) {
@@ -237,14 +162,12 @@ export async function getVideosPaginated(options: {
     }
 
     for (const raw of batch) {
-      const enriched = enrichAndFormat(raw);
-      if (!hasFailingMustHaveCriteria(enriched)) {
-        collected.push({
-          video: enriched,
-          updatedAt: raw.updatedAt,
-          id: raw.id,
-        });
-      }
+      const formatted = videoToYouTubeFormat(raw);
+      collected.push({
+        video: formatted,
+        updatedAt: raw.updatedAt,
+        id: raw.id,
+      });
     }
   }
 
@@ -259,12 +182,10 @@ export async function getVideosPaginated(options: {
   return { videos: result.map((r) => r.video), nextCursor };
 }
 
-// ─── All videos (legacy, non-paginated) ──────────────────────
-
-export async function getVideos(topicIds?: string[]): Promise<YouTubeVideo[]> {
+export async function getVideos(funnelIds?: string[]): Promise<YouTubeVideo[]> {
   const where =
-    topicIds && topicIds.length > 0
-      ? { topics: { some: { id: { in: topicIds } } } }
+    funnelIds && funnelIds.length > 0
+      ? { funnels: { some: { id: { in: funnelIds } } } }
       : {};
 
   const videos = await prisma.video.findMany({
@@ -273,7 +194,7 @@ export async function getVideos(topicIds?: string[]): Promise<YouTubeVideo[]> {
     include: videoInclude,
   });
 
-  return videos.map((v) => enrichAndFormat(v));
+  return videos.map((v) => videoToYouTubeFormat(v));
 }
 
 export async function getVideoById(
@@ -282,7 +203,7 @@ export async function getVideoById(
   const v = await prisma.video.findUnique({
     where: { id: videoId },
     include: {
-      topics: {
+      funnels: {
         select: { id: true, name: true },
       },
     },

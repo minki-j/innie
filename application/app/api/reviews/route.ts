@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const videoId = searchParams.get('videoId');
-    const topicId = searchParams.get('topicId');
+    const funnelId = searchParams.get('funnelId');
 
     if (!videoId) {
       return NextResponse.json(
@@ -36,15 +36,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Try the composite key first, fall back to a manual query for null topicId
     let review;
-    if (topicId) {
+    if (funnelId) {
       review = await prisma.review.findUnique({
         where: {
-          userId_videoId_topicId: {
+          userId_videoId_funnelId: {
             userId: session.user.id,
             videoId,
-            topicId,
+            funnelId,
           },
         },
       });
@@ -53,51 +52,21 @@ export async function GET(request: NextRequest) {
         where: {
           userId: session.user.id,
           videoId,
-          topicId: null,
+          funnelId: null,
         },
       });
     }
 
     if (!review) {
-      // Even without a review, check if a GoldStandard exists for this video+topic
-      if (topicId) {
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-        const existingGoldStandard = await prisma.goldStandard.findFirst({
-          where: { topicId, videoUrl },
-        });
-        if (existingGoldStandard) {
-          return NextResponse.json({
-            rating: null,
-            likeAspects: [],
-            feedback: '',
-            includeInTestSet: true,
-          });
-        }
-      }
       return NextResponse.json(null);
     }
 
-    // Parse the content JSON and map rating back to string.
-    // Supports both JSON format (from UI) and plain text (from synthetic scripts).
     let parsedContent: { likeAspects?: string[]; feedback?: string; includeInTestSet?: boolean } = {};
     if (review.content) {
       try {
         parsedContent = JSON.parse(review.content);
       } catch {
-        // Not valid JSON — treat the raw string as feedback text
         parsedContent = { feedback: review.content };
-      }
-    }
-
-    // Also check if a GoldStandard record exists (may have been added from topic settings)
-    let includeInTestSet = parsedContent.includeInTestSet ?? false;
-    if (topicId && !includeInTestSet) {
-      const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-      const existingGoldStandard = await prisma.goldStandard.findFirst({
-        where: { topicId, videoUrl },
-      });
-      if (existingGoldStandard) {
-        includeInTestSet = true;
       }
     }
 
@@ -105,7 +74,7 @@ export async function GET(request: NextRequest) {
       rating: REVERSE_RATING_MAP[review.rating] ?? null,
       likeAspects: parsedContent.likeAspects ?? [],
       feedback: parsedContent.feedback ?? '',
-      includeInTestSet,
+      includeInTestSet: parsedContent.includeInTestSet ?? false,
     });
   } catch (error) {
     console.error('Error fetching review:', error);
@@ -128,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { videoId, topicId, rating, likeAspects, feedback, includeInTestSet } = body;
+    const { videoId, funnelId, rating, likeAspects, feedback } = body;
 
     if (!videoId || !rating) {
       return NextResponse.json(
@@ -145,21 +114,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Store extra data as JSON in the content field
     const content = JSON.stringify({
       likeAspects: likeAspects ?? [],
       feedback: feedback ?? '',
-      includeInTestSet: includeInTestSet ?? false,
     });
 
     let review;
-    if (topicId) {
+    if (funnelId) {
       review = await prisma.review.upsert({
         where: {
-          userId_videoId_topicId: {
+          userId_videoId_funnelId: {
             userId: session.user.id,
             videoId,
-            topicId,
+            funnelId,
           },
         },
         update: {
@@ -169,59 +136,17 @@ export async function POST(request: NextRequest) {
         create: {
           userId: session.user.id,
           videoId,
-          topicId,
+          funnelId,
           rating: numericRating,
           content,
         },
       });
-
-      // Sync GoldStandard record based on includeInTestSet toggle
-      const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-      if (includeInTestSet) {
-        // Check if a GoldStandard already exists for this topic + video URL
-        const existingGoldStandard = await prisma.goldStandard.findFirst({
-          where: { topicId, videoUrl },
-        });
-
-        if (!existingGoldStandard) {
-          // Fetch video title for display
-          const video = await prisma.video.findUnique({
-            where: { id: videoId },
-            select: { title: true },
-          });
-
-          const isPositive = rating !== 'dislike';
-
-          await prisma.goldStandard.create({
-            data: {
-              topicId,
-              videoUrl,
-              title: video?.title ?? null,
-              isPositive,
-              note: feedback?.trim() || null,
-            },
-          });
-        }
-      } else {
-        // Remove GoldStandard if it exists for this topic + video URL
-        const existingGoldStandard = await prisma.goldStandard.findFirst({
-          where: { topicId, videoUrl },
-        });
-
-        if (existingGoldStandard) {
-          await prisma.goldStandard.delete({
-            where: { id: existingGoldStandard.id },
-          });
-        }
-      }
     } else {
-      // For reviews without a topic, find existing or create
       const existing = await prisma.review.findFirst({
         where: {
           userId: session.user.id,
           videoId,
-          topicId: null,
+          funnelId: null,
         },
       });
 

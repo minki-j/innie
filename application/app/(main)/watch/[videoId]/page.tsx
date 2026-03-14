@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { VideoPlayer } from '@/components/video/VideoPlayer';
 import { VideoInfo } from '@/components/video/VideoInfo';
 import { VideoDescription } from '@/components/video/VideoDescription';
-// import { RelatedVideos } from '@/components/video/RelatedVideos';
 import { VideoReviewPanel } from '@/components/video/VideoReviewPanel';
 import { getVideoById, getVideos } from '@/lib/videos';
 
@@ -17,9 +16,7 @@ export async function generateMetadata({ params }: WatchPageProps) {
   const video = await getVideoById(videoId);
 
   if (!video) {
-    return {
-      title: 'Video Not Found',
-    };
+    return { title: 'Video Not Found' };
   }
 
   return {
@@ -36,13 +33,6 @@ export default async function WatchPage({ params }: WatchPageProps) {
     notFound();
   }
 
-  // Get related videos (all other videos, shuffled, limited to 20)
-  const allVideos = await getVideos();
-  const relatedVideos = allVideos
-    .filter((v) => v.id !== videoId)
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 20);
-
   return (
     <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -56,16 +46,12 @@ export default async function WatchPage({ params }: WatchPageProps) {
             summary={video.summary}
           />
         </div>
-        <div className='lg:col-span-1'>
+        <div className="lg:col-span-1">
           <VideoReviewPanel
             videoId={videoId}
-            topics={video.topics ?? []}
+            funnels={video.funnels ?? []}
           />
         </div>
-
-        {/* <div className="lg:col-span-1">
-          <RelatedVideos videos={relatedVideos} />
-        </div> */}
       </div>
     </div>
   );

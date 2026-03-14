@@ -3,12 +3,6 @@ import { auth } from "@/lib/auth";
 
 const LAB_SERVER_URL = process.env.LAB_SERVER_URL || "http://localhost:8100";
 
-/**
- * POST /api/inference
- *
- * Generate a review using a trained innie model.
- * Proxies to the lab server's POST /inference.
- */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -21,14 +15,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { modelName, topicId, method, transcript, videoTitle } = body;
+    const { modelName, funnelId, method, transcript, videoTitle } = body;
 
-    // Must provide either modelName or (topicId + method)
-    if (!modelName && (!topicId || !method)) {
+    if (!modelName && (!funnelId || !method)) {
       return NextResponse.json(
         {
           error:
-            "Must provide either 'modelName' or both 'topicId' and 'method'",
+            "Must provide either 'modelName' or both 'funnelId' and 'method'",
         },
         { status: 400 },
       );
@@ -46,7 +39,7 @@ export async function POST(request: NextRequest) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         modelName: modelName || undefined,
-        topicId: topicId || undefined,
+        funnelId: funnelId || undefined,
         method: method || undefined,
         transcript,
         videoTitle: videoTitle || undefined,

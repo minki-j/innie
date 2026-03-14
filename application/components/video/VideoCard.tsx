@@ -2,34 +2,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { YouTubeVideo } from '@/types/youtube';
 import { formatViewCount, formatPublishedDate, formatDuration } from '@/lib/youtube/utils';
-import { TopicBadgeList } from '@/components/topic/TopicBadge';
+import { FunnelBadgeList } from '@/components/funnel/FunnelBadge';
 
 interface VideoCardProps {
   video: YouTubeVideo;
 }
 
-/**
- * Check if any topic on this video has criteria that aren't fully satisfied.
- */
-function hasFailingCriteria(video: YouTubeVideo): boolean {
-  if (!video.topics) return false;
-  return video.topics.some(
-    (t) =>
-      t.totalCriteria != null &&
-      t.totalCriteria > 0 &&
-      (t.passedCriteria ?? 0) < t.totalCriteria,
-  );
-}
-
 export function VideoCard({ video }: VideoCardProps) {
   const thumbnailUrl = video.snippet.thumbnails.high?.url || video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default.url;
   const duration = video.contentDetails?.duration;
-  const dimmed = hasFailingCriteria(video);
 
   return (
     <Link
       href={`/watch/${video.id}`}
-      className={`flex flex-col gap-3 group ${dimmed ? 'opacity-60' : ''}`}
+      className="flex flex-col gap-3 group"
     >
       <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100">
         <Image
@@ -69,9 +55,9 @@ export function VideoCard({ video }: VideoCardProps) {
             )}
             <span>{formatPublishedDate(video.snippet.publishedAt)}</span>
           </div>
-          {video.topics && video.topics.length > 0 && (
+          {video.funnels && video.funnels.length > 0 && (
             <div className="mt-1.5">
-              <TopicBadgeList topics={video.topics} max={2} />
+              <FunnelBadgeList funnels={video.funnels} max={2} />
             </div>
           )}
         </div>

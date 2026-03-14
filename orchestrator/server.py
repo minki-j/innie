@@ -39,23 +39,23 @@ async def health():
     return {"status": "ok"}
 
 
-@app.post("/trigger/{topic_id}")
-async def trigger_pipeline(topic_id: str):
-    """Trigger the video pipeline for a specific topic."""
-    logger.info("Received trigger request for topic_id=%s", topic_id)
+@app.post("/trigger/{funnel_id}")
+async def trigger_pipeline(funnel_id: str):
+    """Trigger the video pipeline for a specific funnel."""
+    logger.info("Received trigger request for funnel_id=%s", funnel_id)
     try:
         loop = asyncio.get_event_loop()
         loop.run_in_executor(
             _executor,
-            lambda: video_pipeline(topic_id=topic_id),
+            lambda: video_pipeline(funnel_id=funnel_id),
         )
         return {
             "status": "triggered",
-            "topic_id": topic_id,
+            "funnel_id": funnel_id,
             "message": "Pipeline run started in background",
         }
     except Exception as e:
-        logger.exception("Failed to trigger pipeline for topic %s", topic_id)
+        logger.exception("Failed to trigger pipeline for funnel %s", funnel_id)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -63,12 +63,12 @@ class ReEvaluateRequest(BaseModel):
     video_ids: list[str]
 
 
-@app.post("/re-evaluate/{topic_id}")
-async def re_evaluate(topic_id: str, body: ReEvaluateRequest):
-    """Re-evaluate selected videos against a topic's current criteria."""
+@app.post("/re-evaluate/{funnel_id}")
+async def re_evaluate(funnel_id: str, body: ReEvaluateRequest):
+    """Re-evaluate selected videos against a funnel's current ClassNodes."""
     logger.info(
-        "Received re-evaluate request for topic_id=%s, %d videos",
-        topic_id,
+        "Received re-evaluate request for funnel_id=%s, %d videos",
+        funnel_id,
         len(body.video_ids),
     )
     if not body.video_ids:
@@ -78,16 +78,16 @@ async def re_evaluate(topic_id: str, body: ReEvaluateRequest):
         loop = asyncio.get_event_loop()
         loop.run_in_executor(
             _executor,
-            lambda: re_evaluate_videos(topic_id=topic_id, video_ids=body.video_ids),
+            lambda: re_evaluate_videos(funnel_id=funnel_id, video_ids=body.video_ids),
         )
         return {
             "status": "triggered",
-            "topic_id": topic_id,
+            "funnel_id": funnel_id,
             "video_count": len(body.video_ids),
             "message": "Re-evaluation started in background",
         }
     except Exception as e:
-        logger.exception("Failed to start re-evaluation for topic %s", topic_id)
+        logger.exception("Failed to start re-evaluation for funnel %s", funnel_id)
         raise HTTPException(status_code=500, detail=str(e))
 
 

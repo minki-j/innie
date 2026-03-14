@@ -1,13 +1,9 @@
 import random
 import asyncio
 import logging
-from bson import ObjectId
 from typing import Any, Type, Set, Union, Optional, Tuple, Callable
 from pydantic import BaseModel, create_model
 from pydantic_core import PydanticUndefined
-
-from app.db.database import get_user_items_collection
-from app.models.item import ItemInDB
 
 from agents.state import ItemState, ClassNodeState
 from agents.llm_factory import AIModel
@@ -77,7 +73,8 @@ def restore_abbreviated_node_ids(
         elif node.id in new_short_id_to_long_id_map:
             node.id = new_short_id_to_long_id_map[node.id]
         else:
-            new_node_id = str(ObjectId())
+            import uuid
+            new_node_id = uuid.uuid4().hex
             new_short_id_to_long_id_map[node.id] = new_node_id
             node.id = new_node_id
 
@@ -87,7 +84,8 @@ def restore_abbreviated_node_ids(
             elif node.parent_node_id in new_short_id_to_long_id_map:
                 node.parent_node_id = new_short_id_to_long_id_map[node.parent_node_id]
             else:
-                new_parent_node_id = str(ObjectId())
+                import uuid
+                new_parent_node_id = uuid.uuid4().hex
                 new_short_id_to_long_id_map[node.parent_node_id] = new_parent_node_id
                 node.parent_node_id = new_parent_node_id
 
@@ -127,20 +125,27 @@ def format_batch_items(
 ########################################################
 
 
-async def format_node_examples(
-    example_item_ids: list[str], num_examples: int, max_length: int, user_id: str
+def format_node_examples(
+    example_item_ids: list[str],
+    num_examples: int,
+    max_length: int,
+    all_items: list[ItemState],
 ) -> str:
-    # fetch items from the database
-    item_collection = get_user_items_collection(user_id)
-    cursor = item_collection.find(
-        {"_id": {"$in": [ObjectId(id) for id in example_item_ids]}}
-    )
-    items: list[ItemInDB] = [ItemInDB(**item) async for item in cursor]
-    # print(f"Fetched {len(items)} items from db with ids: {example_item_ids}")
-    # print(f"Items: {items}")
+    """
+    Format few-shot item examples for a node by looking up item content
+    from the in-memory items list (no database access required).
+    """
+    item_map = {item.id: item for item in all_items}
 
     formatted_examples = []
-    for item in items[:num_examples]:
+    count = 0
+    for item_id in example_item_ids:
+        if count >= num_examples:
+            break
+        item = item_map.get(item_id)
+        if item is None:
+            continue
+
         # Truncate content if it exceeds max_length
         truncated_content = item.content[:max_length]
 
@@ -152,14 +157,14 @@ async def format_node_examples(
             cleaned_content += "..."
 
         formatted_examples.append(f"- {cleaned_content}")
+        count += 1
 
-    formatted_string = "\n".join(formatted_examples)
-    return formatted_string
+    return "\n".join(formatted_examples)
 
 
 async def format_single_node(
     node: ClassNodeState,
-    user_id: str,
+    all_items: list[ItemState],
     include_parent_node_id: bool = True,
     num_examples: int = 10,
     max_length: int = 1000,
@@ -186,10 +191,11 @@ async def format_single_node(
             item.item_id for item in node.items or [] if item.used_as_few_shot_example
         ]
         if few_shot_item_ids:
-            formatted_examples = await format_node_examples(
-                few_shot_item_ids, num_examples, max_length, user_id
+            formatted_examples = format_node_examples(
+                few_shot_item_ids, num_examples, max_length, all_items
             )
-            lines.append(f"Exemplary Items:\n{formatted_examples}")
+            if formatted_examples:
+                lines.append(f"Exemplary Items:\n{formatted_examples}")
 
     return "\n".join(lines)
 
@@ -198,7 +204,7 @@ async def format_class_nodes(
     nodes: list[ClassNodeState] | ClassNodeState,
     num_examples: int,
     max_length: int,
-    user_id: str,
+    all_items: list[ItemState],
     include_parent_node_id: bool = True,
 ) -> str:
     if isinstance(nodes, ClassNodeState):
@@ -208,7 +214,7 @@ async def format_class_nodes(
         await asyncio.gather(
             *[
                 format_single_node(
-                    node, user_id, include_parent_node_id, num_examples, max_length
+                    node, all_items, include_parent_node_id, num_examples, max_length
                 )
                 for node in nodes
             ]
@@ -219,7 +225,7 @@ async def format_class_nodes(
 async def format_children_nodes_from_parent_node_ids(
     nodes: list[ClassNodeState],
     parent_node_ids: list[str] | str,
-    user_id: str,
+    all_items: list[ItemState],
     num_examples: int = 10,
     max_length: int = 1000,
 ) -> str:
@@ -250,11 +256,11 @@ async def format_children_nodes_from_parent_node_ids(
         [
             f"""
 <ParentNode>
-{await format_class_nodes(parent_children_dict["parent_node"], num_examples=num_examples, max_length=max_length, include_parent_node_id=False, user_id=user_id)}
+{await format_class_nodes(parent_children_dict["parent_node"], num_examples=num_examples, max_length=max_length, include_parent_node_id=False, all_items=all_items)}
 </ParentNode>
 
 <ChildNodes>
-{await format_class_nodes(parent_children_dict["children_nodes"], num_examples=num_examples, max_length=max_length, include_parent_node_id=False, user_id=user_id)}
+{await format_class_nodes(parent_children_dict["children_nodes"], num_examples=num_examples, max_length=max_length, include_parent_node_id=False, all_items=all_items)}
 </ChildNodes>
             """.strip()
             for parent_children_dict in nodes_to_format
@@ -262,7 +268,7 @@ async def format_children_nodes_from_parent_node_ids(
     )
 
     if formatted_string.strip() == "":
-        raise ValueError("Formmatted nodes string is empty")
+        raise ValueError("Formatted nodes string is empty")
 
     return formatted_string
 
@@ -406,15 +412,11 @@ def exclude_fields(
         """Convert an instance of the new model to the original model."""
         # Get all data from the new instance
         data = new_instance.model_dump()
-
-        # Add excluded fields with their default values
         for field_name, default_value in excluded_field_defaults.items():
-            if callable(default_value):  # default_factory case
+            if callable(default_value):
                 data[field_name] = default_value()
             else:
                 data[field_name] = default_value
-
-        # Create and return original model instance
         return original_model(**data)
 
     return new_model, convert_to_original

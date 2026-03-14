@@ -2,9 +2,7 @@ from langgraph.graph import START, END, StateGraph
 from langgraph.types import Command, interrupt, Send
 from langgraph.config import get_stream_writer
 
-from agents.common import get_checkpointer
 from agents.state import (
-    ClassNodeState,
     ClassificationReturnState,
     ClassifyItemsOverallState,
     InterruptType,
@@ -137,7 +135,7 @@ g.add_node(
     ),
 )
 
-g = g.compile(checkpointer=get_checkpointer())
+g = g.compile()
 
 
 def _annotate_edges(mermaid: str) -> str:
@@ -152,7 +150,7 @@ def _annotate_edges(mermaid: str) -> str:
     replacements = {
         # Relabel classify node to make parallelism explicit
         "classify_an_item_graph\\3aclassify(classify)": (
-            "classify_an_item_graph\\3aclassify(\"classify (× N in parallel)\")"
+            'classify_an_item_graph\\3aclassify("classify (× N in parallel)")'
         ),
         "classify_an_item_graph\\3aspawn_classifications -.-> classify_an_item_graph\\3aclassify;": (
             "classify_an_item_graph\\3aspawn_classifications -.->|fan out: one per model × invocation| classify_an_item_graph\\3aclassify;"
@@ -160,9 +158,7 @@ def _annotate_edges(mermaid: str) -> str:
         "classify_an_item_graph\\3aclassify --> classify_an_item_graph\\3aaggregate_item_classification;": (
             "classify_an_item_graph\\3aclassify -->|all complete: majority vote| classify_an_item_graph\\3aaggregate_item_classification;"
         ),
-        "spawn_next_batch -.-> __end__;": (
-            "spawn_next_batch -.->|no items| __end__;"
-        ),
+        "spawn_next_batch -.-> __end__;": ("spawn_next_batch -.->|no items| __end__;"),
         "spawn_next_batch -.-> classify_an_item_graph\\3aspawn_classifications;": (
             "spawn_next_batch -.->|fan out items| classify_an_item_graph\\3aspawn_classifications;"
         ),
@@ -192,5 +188,5 @@ if __name__ == "__main__":
 
     mermaid = g.get_graph(xray=True).draw_mermaid()
     mermaid = _annotate_edges(mermaid)
-    with open("./agents/diagrams/classify_items.png", "wb") as f:
+    with open("./agents/classify_items/classify_items_graph.png", "wb") as f:
         f.write(draw_mermaid_png(mermaid_syntax=mermaid))

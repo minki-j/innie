@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { VideoGrid } from '@/components/video/VideoGrid';
-import { TopicFilter } from '@/components/topic/TopicFilter';
-import { getUserTopics } from '@/lib/topics';
+import { FunnelFilter } from '@/components/funnel/FunnelFilter';
+import { getUserFunnels } from '@/lib/funnels';
 
 interface HomeProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -10,31 +10,28 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
 
-  // Parse topic filter from query params
-  const topicParam = params.topic;
-  const selectedTopicIds: string[] = Array.isArray(topicParam)
-    ? topicParam
-    : topicParam
-      ? [topicParam]
+  const funnelParam = params.funnel;
+  const selectedFunnelIds: string[] = Array.isArray(funnelParam)
+    ? funnelParam
+    : funnelParam
+      ? [funnelParam]
       : [];
 
-  const topics = await getUserTopics();
+  const funnels = await getUserFunnels();
 
-  // When no specific topics are selected ("All Topics"), use all of the
-  // user's topic IDs so we only show videos that belong to at least one topic.
-  const effectiveTopicIds =
-    selectedTopicIds.length > 0
-      ? selectedTopicIds
-      : topics.map((t) => t.id);
+  const effectiveFunnelIds =
+    selectedFunnelIds.length > 0
+      ? selectedFunnelIds
+      : funnels.map((f) => f.id);
 
   return (
     <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Suspense fallback={null}>
-        <TopicFilter topics={topics} selectedTopicIds={selectedTopicIds} />
+        <FunnelFilter funnels={funnels} selectedFunnelIds={selectedFunnelIds} />
       </Suspense>
       <VideoGrid
-        key={effectiveTopicIds.join(',')}
-        selectedTopicIds={effectiveTopicIds}
+        key={effectiveFunnelIds.join(',')}
+        selectedFunnelIds={effectiveFunnelIds}
       />
     </div>
   );

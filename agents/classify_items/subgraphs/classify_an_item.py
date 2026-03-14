@@ -86,7 +86,7 @@ async def classify(state: ClassifyInternalState):
     formatted_nodes = await format_children_nodes_from_parent_node_ids(
         nodes=abbreviated_nodes,
         parent_node_ids=abbreviated_parent_node_id,
-        user_id=state.user_id,
+        all_items=state.items,
         num_examples=4,
         max_length=1000,
     )

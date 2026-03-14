@@ -183,7 +183,7 @@ def fetch_video_metadata(video_id: str) -> VideoData | None:
     if not isinstance(info, dict):
         return None
 
-    return VideoData(
+    video = VideoData(
         video_id=str(info.get("id") or video_id),
         title=info.get("title") or "",
         description=info.get("description") or "",
@@ -196,6 +196,13 @@ def fetch_video_metadata(video_id: str) -> VideoData | None:
         duration_seconds=int(info.get("duration") or 0),
         tags=info.get("tags") or [],
     )
+    logger.info(
+        "Fetched metadata for video %s: '%s' by %s",
+        video_id,
+        video.title,
+        video.channel_title,
+    )
+    return video
 
 
 # ── Transcript fetching ──────────────────────────────────────

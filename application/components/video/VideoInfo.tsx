@@ -1,6 +1,6 @@
 import { YouTubeVideo } from '@/types/youtube';
 import { formatViewCount } from '@/lib/youtube/utils';
-import { TopicBadgeList } from '@/components/topic/TopicBadge';
+import { FunnelBadgeList } from '@/components/funnel/FunnelBadge';
 
 interface VideoInfoProps {
   video: YouTubeVideo;
@@ -14,8 +14,8 @@ export function VideoInfo({ video }: VideoInfoProps) {
       <h1 className="text-xl font-semibold text-gray-900">
         {snippet.title}
       </h1>
-      {video.topics && video.topics.length > 0 && (
-        <TopicBadgeList topics={video.topics} size="md" />
+      {video.funnels && video.funnels.length > 0 && (
+        <FunnelBadgeList funnels={video.funnels} size="md" />
       )}
 
       <div className="flex items-center justify-between flex-wrap gap-4">

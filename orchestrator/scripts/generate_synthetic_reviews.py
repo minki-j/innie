@@ -1,12 +1,12 @@
 """
-Generate synthetic reviews for all videos in a topic using an LLM persona.
+Generate synthetic reviews for all videos in a funnel using an LLM persona.
 
-Fetches every video linked to a given topic, asks an LLM to write a review
+Fetches every video linked to a given funnel, asks an LLM to write a review
 from a configurable user persona, and inserts the results into the Review table.
 
 Usage:
     uv run python scripts/generate_synthetic_reviews.py
-    uv run python scripts/generate_synthetic_reviews.py --topic <TOPIC_ID> --model gpt-4o-mini --dry-run
+    uv run python scripts/generate_synthetic_reviews.py --funnel <FUNNEL_ID> --model gpt-4o-mini --dry-run
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ from tasks.evaluate import _get_llm
 
 # ── Default values ────────────────────────────────────────────
 
-DEFAULT_TOPIC_ID = "cmlbif7sp0005v6ubu2tq2i0w"
+DEFAULT_FUNNEL_ID = "cmlbif7sp0005v6ubu2tq2i0w"
 
 DEFAULT_PERSONA = (
     "Imagine you are a GenZ software engineer who is interested in cool technology "
@@ -103,8 +103,8 @@ REVIEW_PROMPT = ChatPromptTemplate.from_messages(
 # ── Core logic ────────────────────────────────────────────────
 
 
-def fetch_topic_videos(topic_id: str) -> list[dict]:
-    """Return all videos linked to the topic, with basic metadata."""
+def fetch_funnel_videos(funnel_id: str) -> list[dict]:
+    """Return all videos linked to the funnel, with basic metadata."""
     with get_connection() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
@@ -112,36 +112,36 @@ def fetch_topic_videos(topic_id: str) -> list[dict]:
                 SELECT v.id, v.title, v.description, v."channelTitle",
                        v.transcript, v.summary
                 FROM "Video" v
-                JOIN "_TopicToVideo" tv ON tv."B" = v.id
-                WHERE tv."A" = %s
+                JOIN "_FunnelToVideo" fv ON fv."B" = v.id
+                WHERE fv."A" = %s
                 ORDER BY v."publishedAt" DESC
                 """,
-                (topic_id,),
+                (funnel_id,),
             )
             return cur.fetchall()
 
 
-def fetch_existing_review_video_ids(topic_id: str, user_id: str) -> set[str]:
-    """Return video IDs that already have a review from this user in this topic."""
+def fetch_existing_review_video_ids(funnel_id: str, user_id: str) -> set[str]:
+    """Return video IDs that already have a review from this user in this funnel."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
                 SELECT "videoId" FROM "Review"
-                WHERE "topicId" = %s AND "userId" = %s
+                WHERE "funnelId" = %s AND "userId" = %s
                 """,
-                (topic_id, user_id),
+                (funnel_id, user_id),
             )
             return {row[0] for row in cur.fetchall()}
 
 
-def get_topic_user_id(topic_id: str) -> str | None:
-    """Return the userId that owns the given topic."""
+def get_funnel_user_id(funnel_id: str) -> str | None:
+    """Return the userId that owns the given funnel."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                'SELECT "userId" FROM "Topic" WHERE id = %s',
-                (topic_id,),
+                'SELECT "userId" FROM "Funnel" WHERE id = %s',
+                (funnel_id,),
             )
             row = cur.fetchone()
             return row[0] if row else None
@@ -181,7 +181,7 @@ def generate_review(
 
 def save_review(
     video_id: str,
-    topic_id: str,
+    funnel_id: str,
     user_id: str,
     rating: int,
     content: str,
@@ -194,15 +194,15 @@ def save_review(
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO "Review" (id, "userId", "videoId", "topicId",
+                INSERT INTO "Review" (id, "userId", "videoId", "funnelId",
                                       rating, content, "createdAt", "updatedAt")
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT ("userId", "videoId", "topicId") DO UPDATE SET
+                ON CONFLICT ("userId", "videoId", "funnelId") DO UPDATE SET
                     rating = EXCLUDED.rating,
                     content = EXCLUDED.content,
                     "updatedAt" = EXCLUDED."updatedAt"
                 """,
-                (review_id, user_id, video_id, topic_id, rating, content, now, now),
+                (review_id, user_id, video_id, funnel_id, rating, content, now, now),
             )
             conn.commit()
     return review_id
@@ -213,12 +213,12 @@ def save_review(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate synthetic LLM reviews for videos in a topic.",
+        description="Generate synthetic LLM reviews for videos in a funnel.",
     )
     parser.add_argument(
-        "--topic",
-        default=DEFAULT_TOPIC_ID,
-        help=f"Topic ID to process (default: {DEFAULT_TOPIC_ID})",
+        "--funnel",
+        default=DEFAULT_FUNNEL_ID,
+        help=f"Funnel ID to process (default: {DEFAULT_FUNNEL_ID})",
     )
     parser.add_argument(
         "--model",
@@ -252,33 +252,30 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    topic_id: str = args.topic
+    funnel_id: str = args.funnel
     persona: str = args.persona
     model_name: str | None = args.model
     dry_run: bool = args.dry_run
 
-    # Resolve the user who owns the topic
-    user_id = get_topic_user_id(topic_id)
+    user_id = get_funnel_user_id(funnel_id)
     if not user_id:
-        print(f"Topic {topic_id} not found — aborting.")
+        print(f"Funnel {funnel_id} not found — aborting.")
         sys.exit(1)
 
-    print(f"Topic:   {topic_id}")
+    print(f"Funnel:  {funnel_id}")
     print(f"User:    {user_id}")
     print(f"Model:   {model_name or '(default)'}")
     print(f"Dry run: {dry_run}")
 
-    # Fetch all videos in the topic
-    videos = fetch_topic_videos(topic_id)
-    print(f"Found {len(videos)} videos in topic.")
+    videos = fetch_funnel_videos(funnel_id)
+    print(f"Found {len(videos)} videos in funnel.")
 
     if not videos:
         print("No videos found — nothing to do.")
         return
 
-    # Optionally skip videos that already have reviews
     if args.skip_existing:
-        existing = fetch_existing_review_video_ids(topic_id, user_id)
+        existing = fetch_existing_review_video_ids(funnel_id, user_id)
         before = len(videos)
         videos = [v for v in videos if v["id"] not in existing]
         skipped = before - len(videos)
@@ -300,13 +297,12 @@ def main() -> None:
             print(f"  ⭐ {review.rating}/5  |  {review.content[:120]}")
 
             if not dry_run:
-                # Store content as JSON matching the application's expected format
                 content_json = json.dumps({
                     "likeAspects": [],
                     "feedback": review.content,
                     "includeInTestSet": False,
                 })
-                rid = save_review(vid_id, topic_id, user_id, review.rating, content_json)
+                rid = save_review(vid_id, funnel_id, user_id, review.rating, content_json)
                 print(f"  → saved review {rid}")
             else:
                 print("  → dry-run, not saved")

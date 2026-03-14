@@ -229,21 +229,21 @@ export type BoolWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
-export type EnumCriterionResultValueFilter<$PrismaModel = never> = {
-  equals?: $Enums.CriterionResultValue | Prisma.EnumCriterionResultValueFieldRefInput<$PrismaModel>
-  in?: $Enums.CriterionResultValue[] | Prisma.ListEnumCriterionResultValueFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CriterionResultValue[] | Prisma.ListEnumCriterionResultValueFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCriterionResultValueFilter<$PrismaModel> | $Enums.CriterionResultValue
+export type EnumClassNodeResultValueFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClassNodeResultValue | Prisma.EnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  in?: $Enums.ClassNodeResultValue[] | Prisma.ListEnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClassNodeResultValue[] | Prisma.ListEnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClassNodeResultValueFilter<$PrismaModel> | $Enums.ClassNodeResultValue
 }
 
-export type EnumCriterionResultValueWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.CriterionResultValue | Prisma.EnumCriterionResultValueFieldRefInput<$PrismaModel>
-  in?: $Enums.CriterionResultValue[] | Prisma.ListEnumCriterionResultValueFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CriterionResultValue[] | Prisma.ListEnumCriterionResultValueFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCriterionResultValueWithAggregatesFilter<$PrismaModel> | $Enums.CriterionResultValue
+export type EnumClassNodeResultValueWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClassNodeResultValue | Prisma.EnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  in?: $Enums.ClassNodeResultValue[] | Prisma.ListEnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClassNodeResultValue[] | Prisma.ListEnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClassNodeResultValueWithAggregatesFilter<$PrismaModel> | $Enums.ClassNodeResultValue
   _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumCriterionResultValueFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumCriterionResultValueFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClassNodeResultValueFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClassNodeResultValueFilter<$PrismaModel>
 }
 
 export type EnumTrainingStatusFilter<$PrismaModel = never> = {
@@ -559,21 +559,21 @@ export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
-export type NestedEnumCriterionResultValueFilter<$PrismaModel = never> = {
-  equals?: $Enums.CriterionResultValue | Prisma.EnumCriterionResultValueFieldRefInput<$PrismaModel>
-  in?: $Enums.CriterionResultValue[] | Prisma.ListEnumCriterionResultValueFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CriterionResultValue[] | Prisma.ListEnumCriterionResultValueFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCriterionResultValueFilter<$PrismaModel> | $Enums.CriterionResultValue
+export type NestedEnumClassNodeResultValueFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClassNodeResultValue | Prisma.EnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  in?: $Enums.ClassNodeResultValue[] | Prisma.ListEnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClassNodeResultValue[] | Prisma.ListEnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClassNodeResultValueFilter<$PrismaModel> | $Enums.ClassNodeResultValue
 }
 
-export type NestedEnumCriterionResultValueWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.CriterionResultValue | Prisma.EnumCriterionResultValueFieldRefInput<$PrismaModel>
-  in?: $Enums.CriterionResultValue[] | Prisma.ListEnumCriterionResultValueFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CriterionResultValue[] | Prisma.ListEnumCriterionResultValueFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCriterionResultValueWithAggregatesFilter<$PrismaModel> | $Enums.CriterionResultValue
+export type NestedEnumClassNodeResultValueWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClassNodeResultValue | Prisma.EnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  in?: $Enums.ClassNodeResultValue[] | Prisma.ListEnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClassNodeResultValue[] | Prisma.ListEnumClassNodeResultValueFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClassNodeResultValueWithAggregatesFilter<$PrismaModel> | $Enums.ClassNodeResultValue
   _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumCriterionResultValueFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumCriterionResultValueFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClassNodeResultValueFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClassNodeResultValueFilter<$PrismaModel>
 }
 
 export type NestedEnumTrainingStatusFilter<$PrismaModel = never> = {

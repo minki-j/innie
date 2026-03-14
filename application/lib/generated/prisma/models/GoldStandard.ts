@@ -26,7 +26,7 @@ export type AggregateGoldStandard = {
 
 export type GoldStandardMinAggregateOutputType = {
   id: string | null
-  topicId: string | null
+  classNodeId: string | null
   videoUrl: string | null
   title: string | null
   isPositive: boolean | null
@@ -37,7 +37,7 @@ export type GoldStandardMinAggregateOutputType = {
 
 export type GoldStandardMaxAggregateOutputType = {
   id: string | null
-  topicId: string | null
+  classNodeId: string | null
   videoUrl: string | null
   title: string | null
   isPositive: boolean | null
@@ -48,7 +48,7 @@ export type GoldStandardMaxAggregateOutputType = {
 
 export type GoldStandardCountAggregateOutputType = {
   id: number
-  topicId: number
+  classNodeId: number
   videoUrl: number
   title: number
   isPositive: number
@@ -61,7 +61,7 @@ export type GoldStandardCountAggregateOutputType = {
 
 export type GoldStandardMinAggregateInputType = {
   id?: true
-  topicId?: true
+  classNodeId?: true
   videoUrl?: true
   title?: true
   isPositive?: true
@@ -72,7 +72,7 @@ export type GoldStandardMinAggregateInputType = {
 
 export type GoldStandardMaxAggregateInputType = {
   id?: true
-  topicId?: true
+  classNodeId?: true
   videoUrl?: true
   title?: true
   isPositive?: true
@@ -83,7 +83,7 @@ export type GoldStandardMaxAggregateInputType = {
 
 export type GoldStandardCountAggregateInputType = {
   id?: true
-  topicId?: true
+  classNodeId?: true
   videoUrl?: true
   title?: true
   isPositive?: true
@@ -167,7 +167,7 @@ export type GoldStandardGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 
 export type GoldStandardGroupByOutputType = {
   id: string
-  topicId: string
+  classNodeId: string
   videoUrl: string
   title: string | null
   isPositive: boolean
@@ -199,26 +199,26 @@ export type GoldStandardWhereInput = {
   OR?: Prisma.GoldStandardWhereInput[]
   NOT?: Prisma.GoldStandardWhereInput | Prisma.GoldStandardWhereInput[]
   id?: Prisma.StringFilter<"GoldStandard"> | string
-  topicId?: Prisma.StringFilter<"GoldStandard"> | string
+  classNodeId?: Prisma.StringFilter<"GoldStandard"> | string
   videoUrl?: Prisma.StringFilter<"GoldStandard"> | string
   title?: Prisma.StringNullableFilter<"GoldStandard"> | string | null
   isPositive?: Prisma.BoolFilter<"GoldStandard"> | boolean
   note?: Prisma.StringNullableFilter<"GoldStandard"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GoldStandard"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GoldStandard"> | Date | string
-  topic?: Prisma.XOR<Prisma.TopicScalarRelationFilter, Prisma.TopicWhereInput>
+  classNode?: Prisma.XOR<Prisma.ClassNodeScalarRelationFilter, Prisma.ClassNodeWhereInput>
 }
 
 export type GoldStandardOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  classNodeId?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   isPositive?: Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  topic?: Prisma.TopicOrderByWithRelationInput
+  classNode?: Prisma.ClassNodeOrderByWithRelationInput
 }
 
 export type GoldStandardWhereUniqueInput = Prisma.AtLeast<{
@@ -226,19 +226,19 @@ export type GoldStandardWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.GoldStandardWhereInput | Prisma.GoldStandardWhereInput[]
   OR?: Prisma.GoldStandardWhereInput[]
   NOT?: Prisma.GoldStandardWhereInput | Prisma.GoldStandardWhereInput[]
-  topicId?: Prisma.StringFilter<"GoldStandard"> | string
+  classNodeId?: Prisma.StringFilter<"GoldStandard"> | string
   videoUrl?: Prisma.StringFilter<"GoldStandard"> | string
   title?: Prisma.StringNullableFilter<"GoldStandard"> | string | null
   isPositive?: Prisma.BoolFilter<"GoldStandard"> | boolean
   note?: Prisma.StringNullableFilter<"GoldStandard"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GoldStandard"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GoldStandard"> | Date | string
-  topic?: Prisma.XOR<Prisma.TopicScalarRelationFilter, Prisma.TopicWhereInput>
+  classNode?: Prisma.XOR<Prisma.ClassNodeScalarRelationFilter, Prisma.ClassNodeWhereInput>
 }, "id">
 
 export type GoldStandardOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  classNodeId?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   isPositive?: Prisma.SortOrder
@@ -255,7 +255,7 @@ export type GoldStandardScalarWhereWithAggregatesInput = {
   OR?: Prisma.GoldStandardScalarWhereWithAggregatesInput[]
   NOT?: Prisma.GoldStandardScalarWhereWithAggregatesInput | Prisma.GoldStandardScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"GoldStandard"> | string
-  topicId?: Prisma.StringWithAggregatesFilter<"GoldStandard"> | string
+  classNodeId?: Prisma.StringWithAggregatesFilter<"GoldStandard"> | string
   videoUrl?: Prisma.StringWithAggregatesFilter<"GoldStandard"> | string
   title?: Prisma.StringNullableWithAggregatesFilter<"GoldStandard"> | string | null
   isPositive?: Prisma.BoolWithAggregatesFilter<"GoldStandard"> | boolean
@@ -272,12 +272,12 @@ export type GoldStandardCreateInput = {
   note?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  topic: Prisma.TopicCreateNestedOneWithoutGoldStandardsInput
+  classNode: Prisma.ClassNodeCreateNestedOneWithoutGoldStandardsInput
 }
 
 export type GoldStandardUncheckedCreateInput = {
   id?: string
-  topicId: string
+  classNodeId: string
   videoUrl: string
   title?: string | null
   isPositive?: boolean
@@ -294,12 +294,12 @@ export type GoldStandardUpdateInput = {
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  topic?: Prisma.TopicUpdateOneRequiredWithoutGoldStandardsNestedInput
+  classNode?: Prisma.ClassNodeUpdateOneRequiredWithoutGoldStandardsNestedInput
 }
 
 export type GoldStandardUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.StringFieldUpdateOperationsInput | string
+  classNodeId?: Prisma.StringFieldUpdateOperationsInput | string
   videoUrl?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPositive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -310,7 +310,7 @@ export type GoldStandardUncheckedUpdateInput = {
 
 export type GoldStandardCreateManyInput = {
   id?: string
-  topicId: string
+  classNodeId: string
   videoUrl: string
   title?: string | null
   isPositive?: boolean
@@ -331,7 +331,7 @@ export type GoldStandardUpdateManyMutationInput = {
 
 export type GoldStandardUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.StringFieldUpdateOperationsInput | string
+  classNodeId?: Prisma.StringFieldUpdateOperationsInput | string
   videoUrl?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isPositive?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -352,7 +352,7 @@ export type GoldStandardOrderByRelationAggregateInput = {
 
 export type GoldStandardCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  classNodeId?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   title?: Prisma.SortOrder
   isPositive?: Prisma.SortOrder
@@ -363,7 +363,7 @@ export type GoldStandardCountOrderByAggregateInput = {
 
 export type GoldStandardMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  classNodeId?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   title?: Prisma.SortOrder
   isPositive?: Prisma.SortOrder
@@ -374,7 +374,7 @@ export type GoldStandardMaxOrderByAggregateInput = {
 
 export type GoldStandardMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  classNodeId?: Prisma.SortOrder
   videoUrl?: Prisma.SortOrder
   title?: Prisma.SortOrder
   isPositive?: Prisma.SortOrder
@@ -383,49 +383,49 @@ export type GoldStandardMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
-export type GoldStandardCreateNestedManyWithoutTopicInput = {
-  create?: Prisma.XOR<Prisma.GoldStandardCreateWithoutTopicInput, Prisma.GoldStandardUncheckedCreateWithoutTopicInput> | Prisma.GoldStandardCreateWithoutTopicInput[] | Prisma.GoldStandardUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.GoldStandardCreateOrConnectWithoutTopicInput | Prisma.GoldStandardCreateOrConnectWithoutTopicInput[]
-  createMany?: Prisma.GoldStandardCreateManyTopicInputEnvelope
+export type GoldStandardCreateNestedManyWithoutClassNodeInput = {
+  create?: Prisma.XOR<Prisma.GoldStandardCreateWithoutClassNodeInput, Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput> | Prisma.GoldStandardCreateWithoutClassNodeInput[] | Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput[]
+  connectOrCreate?: Prisma.GoldStandardCreateOrConnectWithoutClassNodeInput | Prisma.GoldStandardCreateOrConnectWithoutClassNodeInput[]
+  createMany?: Prisma.GoldStandardCreateManyClassNodeInputEnvelope
   connect?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
 }
 
-export type GoldStandardUncheckedCreateNestedManyWithoutTopicInput = {
-  create?: Prisma.XOR<Prisma.GoldStandardCreateWithoutTopicInput, Prisma.GoldStandardUncheckedCreateWithoutTopicInput> | Prisma.GoldStandardCreateWithoutTopicInput[] | Prisma.GoldStandardUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.GoldStandardCreateOrConnectWithoutTopicInput | Prisma.GoldStandardCreateOrConnectWithoutTopicInput[]
-  createMany?: Prisma.GoldStandardCreateManyTopicInputEnvelope
+export type GoldStandardUncheckedCreateNestedManyWithoutClassNodeInput = {
+  create?: Prisma.XOR<Prisma.GoldStandardCreateWithoutClassNodeInput, Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput> | Prisma.GoldStandardCreateWithoutClassNodeInput[] | Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput[]
+  connectOrCreate?: Prisma.GoldStandardCreateOrConnectWithoutClassNodeInput | Prisma.GoldStandardCreateOrConnectWithoutClassNodeInput[]
+  createMany?: Prisma.GoldStandardCreateManyClassNodeInputEnvelope
   connect?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
 }
 
-export type GoldStandardUpdateManyWithoutTopicNestedInput = {
-  create?: Prisma.XOR<Prisma.GoldStandardCreateWithoutTopicInput, Prisma.GoldStandardUncheckedCreateWithoutTopicInput> | Prisma.GoldStandardCreateWithoutTopicInput[] | Prisma.GoldStandardUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.GoldStandardCreateOrConnectWithoutTopicInput | Prisma.GoldStandardCreateOrConnectWithoutTopicInput[]
-  upsert?: Prisma.GoldStandardUpsertWithWhereUniqueWithoutTopicInput | Prisma.GoldStandardUpsertWithWhereUniqueWithoutTopicInput[]
-  createMany?: Prisma.GoldStandardCreateManyTopicInputEnvelope
+export type GoldStandardUpdateManyWithoutClassNodeNestedInput = {
+  create?: Prisma.XOR<Prisma.GoldStandardCreateWithoutClassNodeInput, Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput> | Prisma.GoldStandardCreateWithoutClassNodeInput[] | Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput[]
+  connectOrCreate?: Prisma.GoldStandardCreateOrConnectWithoutClassNodeInput | Prisma.GoldStandardCreateOrConnectWithoutClassNodeInput[]
+  upsert?: Prisma.GoldStandardUpsertWithWhereUniqueWithoutClassNodeInput | Prisma.GoldStandardUpsertWithWhereUniqueWithoutClassNodeInput[]
+  createMany?: Prisma.GoldStandardCreateManyClassNodeInputEnvelope
   set?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
   disconnect?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
   delete?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
   connect?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
-  update?: Prisma.GoldStandardUpdateWithWhereUniqueWithoutTopicInput | Prisma.GoldStandardUpdateWithWhereUniqueWithoutTopicInput[]
-  updateMany?: Prisma.GoldStandardUpdateManyWithWhereWithoutTopicInput | Prisma.GoldStandardUpdateManyWithWhereWithoutTopicInput[]
+  update?: Prisma.GoldStandardUpdateWithWhereUniqueWithoutClassNodeInput | Prisma.GoldStandardUpdateWithWhereUniqueWithoutClassNodeInput[]
+  updateMany?: Prisma.GoldStandardUpdateManyWithWhereWithoutClassNodeInput | Prisma.GoldStandardUpdateManyWithWhereWithoutClassNodeInput[]
   deleteMany?: Prisma.GoldStandardScalarWhereInput | Prisma.GoldStandardScalarWhereInput[]
 }
 
-export type GoldStandardUncheckedUpdateManyWithoutTopicNestedInput = {
-  create?: Prisma.XOR<Prisma.GoldStandardCreateWithoutTopicInput, Prisma.GoldStandardUncheckedCreateWithoutTopicInput> | Prisma.GoldStandardCreateWithoutTopicInput[] | Prisma.GoldStandardUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.GoldStandardCreateOrConnectWithoutTopicInput | Prisma.GoldStandardCreateOrConnectWithoutTopicInput[]
-  upsert?: Prisma.GoldStandardUpsertWithWhereUniqueWithoutTopicInput | Prisma.GoldStandardUpsertWithWhereUniqueWithoutTopicInput[]
-  createMany?: Prisma.GoldStandardCreateManyTopicInputEnvelope
+export type GoldStandardUncheckedUpdateManyWithoutClassNodeNestedInput = {
+  create?: Prisma.XOR<Prisma.GoldStandardCreateWithoutClassNodeInput, Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput> | Prisma.GoldStandardCreateWithoutClassNodeInput[] | Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput[]
+  connectOrCreate?: Prisma.GoldStandardCreateOrConnectWithoutClassNodeInput | Prisma.GoldStandardCreateOrConnectWithoutClassNodeInput[]
+  upsert?: Prisma.GoldStandardUpsertWithWhereUniqueWithoutClassNodeInput | Prisma.GoldStandardUpsertWithWhereUniqueWithoutClassNodeInput[]
+  createMany?: Prisma.GoldStandardCreateManyClassNodeInputEnvelope
   set?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
   disconnect?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
   delete?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
   connect?: Prisma.GoldStandardWhereUniqueInput | Prisma.GoldStandardWhereUniqueInput[]
-  update?: Prisma.GoldStandardUpdateWithWhereUniqueWithoutTopicInput | Prisma.GoldStandardUpdateWithWhereUniqueWithoutTopicInput[]
-  updateMany?: Prisma.GoldStandardUpdateManyWithWhereWithoutTopicInput | Prisma.GoldStandardUpdateManyWithWhereWithoutTopicInput[]
+  update?: Prisma.GoldStandardUpdateWithWhereUniqueWithoutClassNodeInput | Prisma.GoldStandardUpdateWithWhereUniqueWithoutClassNodeInput[]
+  updateMany?: Prisma.GoldStandardUpdateManyWithWhereWithoutClassNodeInput | Prisma.GoldStandardUpdateManyWithWhereWithoutClassNodeInput[]
   deleteMany?: Prisma.GoldStandardScalarWhereInput | Prisma.GoldStandardScalarWhereInput[]
 }
 
-export type GoldStandardCreateWithoutTopicInput = {
+export type GoldStandardCreateWithoutClassNodeInput = {
   id?: string
   videoUrl: string
   title?: string | null
@@ -435,7 +435,7 @@ export type GoldStandardCreateWithoutTopicInput = {
   updatedAt?: Date | string
 }
 
-export type GoldStandardUncheckedCreateWithoutTopicInput = {
+export type GoldStandardUncheckedCreateWithoutClassNodeInput = {
   id?: string
   videoUrl: string
   title?: string | null
@@ -445,30 +445,30 @@ export type GoldStandardUncheckedCreateWithoutTopicInput = {
   updatedAt?: Date | string
 }
 
-export type GoldStandardCreateOrConnectWithoutTopicInput = {
+export type GoldStandardCreateOrConnectWithoutClassNodeInput = {
   where: Prisma.GoldStandardWhereUniqueInput
-  create: Prisma.XOR<Prisma.GoldStandardCreateWithoutTopicInput, Prisma.GoldStandardUncheckedCreateWithoutTopicInput>
+  create: Prisma.XOR<Prisma.GoldStandardCreateWithoutClassNodeInput, Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput>
 }
 
-export type GoldStandardCreateManyTopicInputEnvelope = {
-  data: Prisma.GoldStandardCreateManyTopicInput | Prisma.GoldStandardCreateManyTopicInput[]
+export type GoldStandardCreateManyClassNodeInputEnvelope = {
+  data: Prisma.GoldStandardCreateManyClassNodeInput | Prisma.GoldStandardCreateManyClassNodeInput[]
   skipDuplicates?: boolean
 }
 
-export type GoldStandardUpsertWithWhereUniqueWithoutTopicInput = {
+export type GoldStandardUpsertWithWhereUniqueWithoutClassNodeInput = {
   where: Prisma.GoldStandardWhereUniqueInput
-  update: Prisma.XOR<Prisma.GoldStandardUpdateWithoutTopicInput, Prisma.GoldStandardUncheckedUpdateWithoutTopicInput>
-  create: Prisma.XOR<Prisma.GoldStandardCreateWithoutTopicInput, Prisma.GoldStandardUncheckedCreateWithoutTopicInput>
+  update: Prisma.XOR<Prisma.GoldStandardUpdateWithoutClassNodeInput, Prisma.GoldStandardUncheckedUpdateWithoutClassNodeInput>
+  create: Prisma.XOR<Prisma.GoldStandardCreateWithoutClassNodeInput, Prisma.GoldStandardUncheckedCreateWithoutClassNodeInput>
 }
 
-export type GoldStandardUpdateWithWhereUniqueWithoutTopicInput = {
+export type GoldStandardUpdateWithWhereUniqueWithoutClassNodeInput = {
   where: Prisma.GoldStandardWhereUniqueInput
-  data: Prisma.XOR<Prisma.GoldStandardUpdateWithoutTopicInput, Prisma.GoldStandardUncheckedUpdateWithoutTopicInput>
+  data: Prisma.XOR<Prisma.GoldStandardUpdateWithoutClassNodeInput, Prisma.GoldStandardUncheckedUpdateWithoutClassNodeInput>
 }
 
-export type GoldStandardUpdateManyWithWhereWithoutTopicInput = {
+export type GoldStandardUpdateManyWithWhereWithoutClassNodeInput = {
   where: Prisma.GoldStandardScalarWhereInput
-  data: Prisma.XOR<Prisma.GoldStandardUpdateManyMutationInput, Prisma.GoldStandardUncheckedUpdateManyWithoutTopicInput>
+  data: Prisma.XOR<Prisma.GoldStandardUpdateManyMutationInput, Prisma.GoldStandardUncheckedUpdateManyWithoutClassNodeInput>
 }
 
 export type GoldStandardScalarWhereInput = {
@@ -476,7 +476,7 @@ export type GoldStandardScalarWhereInput = {
   OR?: Prisma.GoldStandardScalarWhereInput[]
   NOT?: Prisma.GoldStandardScalarWhereInput | Prisma.GoldStandardScalarWhereInput[]
   id?: Prisma.StringFilter<"GoldStandard"> | string
-  topicId?: Prisma.StringFilter<"GoldStandard"> | string
+  classNodeId?: Prisma.StringFilter<"GoldStandard"> | string
   videoUrl?: Prisma.StringFilter<"GoldStandard"> | string
   title?: Prisma.StringNullableFilter<"GoldStandard"> | string | null
   isPositive?: Prisma.BoolFilter<"GoldStandard"> | boolean
@@ -485,7 +485,7 @@ export type GoldStandardScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"GoldStandard"> | Date | string
 }
 
-export type GoldStandardCreateManyTopicInput = {
+export type GoldStandardCreateManyClassNodeInput = {
   id?: string
   videoUrl: string
   title?: string | null
@@ -495,7 +495,7 @@ export type GoldStandardCreateManyTopicInput = {
   updatedAt?: Date | string
 }
 
-export type GoldStandardUpdateWithoutTopicInput = {
+export type GoldStandardUpdateWithoutClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   videoUrl?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -505,7 +505,7 @@ export type GoldStandardUpdateWithoutTopicInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type GoldStandardUncheckedUpdateWithoutTopicInput = {
+export type GoldStandardUncheckedUpdateWithoutClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   videoUrl?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -515,7 +515,7 @@ export type GoldStandardUncheckedUpdateWithoutTopicInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type GoldStandardUncheckedUpdateManyWithoutTopicInput = {
+export type GoldStandardUncheckedUpdateManyWithoutClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   videoUrl?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -529,43 +529,43 @@ export type GoldStandardUncheckedUpdateManyWithoutTopicInput = {
 
 export type GoldStandardSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  topicId?: boolean
+  classNodeId?: boolean
   videoUrl?: boolean
   title?: boolean
   isPositive?: boolean
   note?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  classNode?: boolean | Prisma.ClassNodeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["goldStandard"]>
 
 export type GoldStandardSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  topicId?: boolean
+  classNodeId?: boolean
   videoUrl?: boolean
   title?: boolean
   isPositive?: boolean
   note?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  classNode?: boolean | Prisma.ClassNodeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["goldStandard"]>
 
 export type GoldStandardSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  topicId?: boolean
+  classNodeId?: boolean
   videoUrl?: boolean
   title?: boolean
   isPositive?: boolean
   note?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  classNode?: boolean | Prisma.ClassNodeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["goldStandard"]>
 
 export type GoldStandardSelectScalar = {
   id?: boolean
-  topicId?: boolean
+  classNodeId?: boolean
   videoUrl?: boolean
   title?: boolean
   isPositive?: boolean
@@ -574,25 +574,25 @@ export type GoldStandardSelectScalar = {
   updatedAt?: boolean
 }
 
-export type GoldStandardOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "topicId" | "videoUrl" | "title" | "isPositive" | "note" | "createdAt" | "updatedAt", ExtArgs["result"]["goldStandard"]>
+export type GoldStandardOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "classNodeId" | "videoUrl" | "title" | "isPositive" | "note" | "createdAt" | "updatedAt", ExtArgs["result"]["goldStandard"]>
 export type GoldStandardInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  classNode?: boolean | Prisma.ClassNodeDefaultArgs<ExtArgs>
 }
 export type GoldStandardIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  classNode?: boolean | Prisma.ClassNodeDefaultArgs<ExtArgs>
 }
 export type GoldStandardIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  classNode?: boolean | Prisma.ClassNodeDefaultArgs<ExtArgs>
 }
 
 export type $GoldStandardPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "GoldStandard"
   objects: {
-    topic: Prisma.$TopicPayload<ExtArgs>
+    classNode: Prisma.$ClassNodePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    topicId: string
+    classNodeId: string
     videoUrl: string
     title: string | null
     isPositive: boolean
@@ -993,7 +993,7 @@ readonly fields: GoldStandardFieldRefs;
  */
 export interface Prisma__GoldStandardClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  topic<T extends Prisma.TopicDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TopicDefaultArgs<ExtArgs>>): Prisma.Prisma__TopicClient<runtime.Types.Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  classNode<T extends Prisma.ClassNodeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassNodeDefaultArgs<ExtArgs>>): Prisma.Prisma__ClassNodeClient<runtime.Types.Result.GetResult<Prisma.$ClassNodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1024,7 +1024,7 @@ export interface Prisma__GoldStandardClient<T, Null = never, ExtArgs extends run
  */
 export interface GoldStandardFieldRefs {
   readonly id: Prisma.FieldRef<"GoldStandard", 'String'>
-  readonly topicId: Prisma.FieldRef<"GoldStandard", 'String'>
+  readonly classNodeId: Prisma.FieldRef<"GoldStandard", 'String'>
   readonly videoUrl: Prisma.FieldRef<"GoldStandard", 'String'>
   readonly title: Prisma.FieldRef<"GoldStandard", 'String'>
   readonly isPositive: Prisma.FieldRef<"GoldStandard", 'Boolean'>

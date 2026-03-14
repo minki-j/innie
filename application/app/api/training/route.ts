@@ -3,12 +3,6 @@ import { auth } from "@/lib/auth";
 
 const LAB_SERVER_URL = process.env.LAB_SERVER_URL || "http://localhost:8100";
 
-/**
- * POST /api/training
- *
- * Trigger a new training run for the authenticated user's topic.
- * Proxies to the lab server's POST /training/start.
- */
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -21,11 +15,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { topicId, method } = body;
+    const { funnelId, method } = body;
 
-    if (!topicId || !method) {
+    if (!funnelId || !method) {
       return NextResponse.json(
-        { error: "topicId and method are required" },
+        { error: "funnelId and method are required" },
         { status: 400 },
       );
     }
@@ -37,7 +31,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build the webhook URL pointing back to this app
     const appUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
     const webhookUrl = `${appUrl}/api/webhooks/training`;
 
@@ -46,7 +39,7 @@ export async function POST(request: NextRequest) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId: session.user.id,
-        topicId,
+        funnelId,
         method,
         webhookUrl,
         config: body.config || null,

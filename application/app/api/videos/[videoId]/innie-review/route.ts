@@ -4,13 +4,6 @@ import { prisma } from "@/lib/prisma";
 
 const LAB_SERVER_URL = process.env.LAB_SERVER_URL || "http://localhost:8100";
 
-/**
- * POST /api/videos/:videoId/innie-review
- *
- * Generate a review using the trained innie model.
- * Fetches the video transcript from DB, calls the lab server inference,
- * and streams the review text back word-by-word.
- */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ videoId: string }> },
@@ -25,16 +18,15 @@ export async function POST(
     }
 
     const { videoId } = await params;
-    const { topicId } = await request.json();
+    const { funnelId } = await request.json();
 
-    if (!topicId) {
+    if (!funnelId) {
       return NextResponse.json(
-        { error: "topicId is required" },
+        { error: "funnelId is required" },
         { status: 400 },
       );
     }
 
-    // Get video transcript from DB
     const video = await prisma.video.findUnique({
       where: { id: videoId },
       select: { title: true, transcript: true },
@@ -54,14 +46,13 @@ export async function POST(
       );
     }
 
-    // Try RLVR first, then fall back to SFT
     let labResponse: Response | null = null;
     for (const method of ["RLVR", "SFT"]) {
       labResponse = await fetch(`${LAB_SERVER_URL}/inference`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          topicId,
+          funnelId,
           method,
           transcript: video.transcript,
           videoTitle: video.title,
@@ -77,7 +68,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            error?.detail || "No trained model available for this topic",
+            error?.detail || "No trained model available for this funnel",
         },
         { status: labResponse?.status ?? 500 },
       );
@@ -86,7 +77,6 @@ export async function POST(
     const result = await labResponse.json();
     const reviewText: string = result.review;
 
-    // Stream the review text word-by-word for a typing effect
     const encoder = new TextEncoder();
     const words = reviewText.split(/(\s+)/);
 
@@ -94,7 +84,6 @@ export async function POST(
       async start(controller) {
         for (const word of words) {
           controller.enqueue(encoder.encode(word));
-          // Add a small delay between actual words (skip whitespace-only)
           if (word.trim()) {
             await new Promise((resolve) => setTimeout(resolve, 30));
           }

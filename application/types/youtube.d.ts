@@ -33,11 +33,9 @@ export interface YouTubeVideoContentDetails {
   caption: string;
 }
 
-export interface VideoTopic {
+export interface VideoFunnel {
   id: string;
   name: string;
-  passedCriteria?: number;
-  totalCriteria?: number;
 }
 
 export interface YouTubeVideo {
@@ -47,7 +45,7 @@ export interface YouTubeVideo {
   snippet: YouTubeVideoSnippet;
   statistics?: YouTubeVideoStatistics;
   contentDetails?: YouTubeVideoContentDetails;
-  topics?: VideoTopic[];
+  funnels?: VideoFunnel[];
   summary?: string | null;
 }
 

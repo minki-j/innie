@@ -39,7 +39,7 @@ export type TrainingRunSumAggregateOutputType = {
 export type TrainingRunMinAggregateOutputType = {
   id: string | null
   userId: string | null
-  topicId: string | null
+  funnelId: string | null
   status: $Enums.TrainingStatus | null
   method: $Enums.TrainingMethod | null
   modelName: string | null
@@ -58,7 +58,7 @@ export type TrainingRunMinAggregateOutputType = {
 export type TrainingRunMaxAggregateOutputType = {
   id: string | null
   userId: string | null
-  topicId: string | null
+  funnelId: string | null
   status: $Enums.TrainingStatus | null
   method: $Enums.TrainingMethod | null
   modelName: string | null
@@ -77,7 +77,7 @@ export type TrainingRunMaxAggregateOutputType = {
 export type TrainingRunCountAggregateOutputType = {
   id: number
   userId: number
-  topicId: number
+  funnelId: number
   status: number
   method: number
   modelName: number
@@ -110,7 +110,7 @@ export type TrainingRunSumAggregateInputType = {
 export type TrainingRunMinAggregateInputType = {
   id?: true
   userId?: true
-  topicId?: true
+  funnelId?: true
   status?: true
   method?: true
   modelName?: true
@@ -129,7 +129,7 @@ export type TrainingRunMinAggregateInputType = {
 export type TrainingRunMaxAggregateInputType = {
   id?: true
   userId?: true
-  topicId?: true
+  funnelId?: true
   status?: true
   method?: true
   modelName?: true
@@ -148,7 +148,7 @@ export type TrainingRunMaxAggregateInputType = {
 export type TrainingRunCountAggregateInputType = {
   id?: true
   userId?: true
-  topicId?: true
+  funnelId?: true
   status?: true
   method?: true
   modelName?: true
@@ -256,7 +256,7 @@ export type TrainingRunGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type TrainingRunGroupByOutputType = {
   id: string
   userId: string
-  topicId: string
+  funnelId: string
   status: $Enums.TrainingStatus
   method: $Enums.TrainingMethod
   modelName: string
@@ -300,7 +300,7 @@ export type TrainingRunWhereInput = {
   NOT?: Prisma.TrainingRunWhereInput | Prisma.TrainingRunWhereInput[]
   id?: Prisma.StringFilter<"TrainingRun"> | string
   userId?: Prisma.StringFilter<"TrainingRun"> | string
-  topicId?: Prisma.StringFilter<"TrainingRun"> | string
+  funnelId?: Prisma.StringFilter<"TrainingRun"> | string
   status?: Prisma.EnumTrainingStatusFilter<"TrainingRun"> | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodFilter<"TrainingRun"> | $Enums.TrainingMethod
   modelName?: Prisma.StringFilter<"TrainingRun"> | string
@@ -317,13 +317,13 @@ export type TrainingRunWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"TrainingRun"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"TrainingRun"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  topic?: Prisma.XOR<Prisma.TopicScalarRelationFilter, Prisma.TopicWhereInput>
+  funnel?: Prisma.XOR<Prisma.FunnelScalarRelationFilter, Prisma.FunnelWhereInput>
 }
 
 export type TrainingRunOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  funnelId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   method?: Prisma.SortOrder
   modelName?: Prisma.SortOrder
@@ -340,7 +340,7 @@ export type TrainingRunOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
-  topic?: Prisma.TopicOrderByWithRelationInput
+  funnel?: Prisma.FunnelOrderByWithRelationInput
 }
 
 export type TrainingRunWhereUniqueInput = Prisma.AtLeast<{
@@ -350,7 +350,7 @@ export type TrainingRunWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.TrainingRunWhereInput[]
   NOT?: Prisma.TrainingRunWhereInput | Prisma.TrainingRunWhereInput[]
   userId?: Prisma.StringFilter<"TrainingRun"> | string
-  topicId?: Prisma.StringFilter<"TrainingRun"> | string
+  funnelId?: Prisma.StringFilter<"TrainingRun"> | string
   status?: Prisma.EnumTrainingStatusFilter<"TrainingRun"> | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodFilter<"TrainingRun"> | $Enums.TrainingMethod
   version?: Prisma.IntFilter<"TrainingRun"> | number
@@ -366,13 +366,13 @@ export type TrainingRunWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"TrainingRun"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"TrainingRun"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  topic?: Prisma.XOR<Prisma.TopicScalarRelationFilter, Prisma.TopicWhereInput>
+  funnel?: Prisma.XOR<Prisma.FunnelScalarRelationFilter, Prisma.FunnelWhereInput>
 }, "id" | "modelName">
 
 export type TrainingRunOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  funnelId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   method?: Prisma.SortOrder
   modelName?: Prisma.SortOrder
@@ -401,7 +401,7 @@ export type TrainingRunScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TrainingRunScalarWhereWithAggregatesInput | Prisma.TrainingRunScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"TrainingRun"> | string
   userId?: Prisma.StringWithAggregatesFilter<"TrainingRun"> | string
-  topicId?: Prisma.StringWithAggregatesFilter<"TrainingRun"> | string
+  funnelId?: Prisma.StringWithAggregatesFilter<"TrainingRun"> | string
   status?: Prisma.EnumTrainingStatusWithAggregatesFilter<"TrainingRun"> | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodWithAggregatesFilter<"TrainingRun"> | $Enums.TrainingMethod
   modelName?: Prisma.StringWithAggregatesFilter<"TrainingRun"> | string
@@ -437,13 +437,13 @@ export type TrainingRunCreateInput = {
   updatedAt?: Date | string
   completedAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutTrainingRunsInput
-  topic: Prisma.TopicCreateNestedOneWithoutTrainingRunsInput
+  funnel: Prisma.FunnelCreateNestedOneWithoutTrainingRunsInput
 }
 
 export type TrainingRunUncheckedCreateInput = {
   id?: string
   userId: string
-  topicId: string
+  funnelId: string
   status?: $Enums.TrainingStatus
   method: $Enums.TrainingMethod
   modelName: string
@@ -479,13 +479,13 @@ export type TrainingRunUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutTrainingRunsNestedInput
-  topic?: Prisma.TopicUpdateOneRequiredWithoutTrainingRunsNestedInput
+  funnel?: Prisma.FunnelUpdateOneRequiredWithoutTrainingRunsNestedInput
 }
 
 export type TrainingRunUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.StringFieldUpdateOperationsInput | string
+  funnelId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTrainingStatusFieldUpdateOperationsInput | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodFieldUpdateOperationsInput | $Enums.TrainingMethod
   modelName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -506,7 +506,7 @@ export type TrainingRunUncheckedUpdateInput = {
 export type TrainingRunCreateManyInput = {
   id?: string
   userId: string
-  topicId: string
+  funnelId: string
   status?: $Enums.TrainingStatus
   method: $Enums.TrainingMethod
   modelName: string
@@ -546,7 +546,7 @@ export type TrainingRunUpdateManyMutationInput = {
 export type TrainingRunUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.StringFieldUpdateOperationsInput | string
+  funnelId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTrainingStatusFieldUpdateOperationsInput | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodFieldUpdateOperationsInput | $Enums.TrainingMethod
   modelName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -577,7 +577,7 @@ export type TrainingRunOrderByRelationAggregateInput = {
 export type TrainingRunCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  funnelId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   method?: Prisma.SortOrder
   modelName?: Prisma.SortOrder
@@ -603,7 +603,7 @@ export type TrainingRunAvgOrderByAggregateInput = {
 export type TrainingRunMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  funnelId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   method?: Prisma.SortOrder
   modelName?: Prisma.SortOrder
@@ -622,7 +622,7 @@ export type TrainingRunMaxOrderByAggregateInput = {
 export type TrainingRunMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  topicId?: Prisma.SortOrder
+  funnelId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   method?: Prisma.SortOrder
   modelName?: Prisma.SortOrder
@@ -685,45 +685,45 @@ export type TrainingRunUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.TrainingRunScalarWhereInput | Prisma.TrainingRunScalarWhereInput[]
 }
 
-export type TrainingRunCreateNestedManyWithoutTopicInput = {
-  create?: Prisma.XOR<Prisma.TrainingRunCreateWithoutTopicInput, Prisma.TrainingRunUncheckedCreateWithoutTopicInput> | Prisma.TrainingRunCreateWithoutTopicInput[] | Prisma.TrainingRunUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.TrainingRunCreateOrConnectWithoutTopicInput | Prisma.TrainingRunCreateOrConnectWithoutTopicInput[]
-  createMany?: Prisma.TrainingRunCreateManyTopicInputEnvelope
+export type TrainingRunCreateNestedManyWithoutFunnelInput = {
+  create?: Prisma.XOR<Prisma.TrainingRunCreateWithoutFunnelInput, Prisma.TrainingRunUncheckedCreateWithoutFunnelInput> | Prisma.TrainingRunCreateWithoutFunnelInput[] | Prisma.TrainingRunUncheckedCreateWithoutFunnelInput[]
+  connectOrCreate?: Prisma.TrainingRunCreateOrConnectWithoutFunnelInput | Prisma.TrainingRunCreateOrConnectWithoutFunnelInput[]
+  createMany?: Prisma.TrainingRunCreateManyFunnelInputEnvelope
   connect?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
 }
 
-export type TrainingRunUncheckedCreateNestedManyWithoutTopicInput = {
-  create?: Prisma.XOR<Prisma.TrainingRunCreateWithoutTopicInput, Prisma.TrainingRunUncheckedCreateWithoutTopicInput> | Prisma.TrainingRunCreateWithoutTopicInput[] | Prisma.TrainingRunUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.TrainingRunCreateOrConnectWithoutTopicInput | Prisma.TrainingRunCreateOrConnectWithoutTopicInput[]
-  createMany?: Prisma.TrainingRunCreateManyTopicInputEnvelope
+export type TrainingRunUncheckedCreateNestedManyWithoutFunnelInput = {
+  create?: Prisma.XOR<Prisma.TrainingRunCreateWithoutFunnelInput, Prisma.TrainingRunUncheckedCreateWithoutFunnelInput> | Prisma.TrainingRunCreateWithoutFunnelInput[] | Prisma.TrainingRunUncheckedCreateWithoutFunnelInput[]
+  connectOrCreate?: Prisma.TrainingRunCreateOrConnectWithoutFunnelInput | Prisma.TrainingRunCreateOrConnectWithoutFunnelInput[]
+  createMany?: Prisma.TrainingRunCreateManyFunnelInputEnvelope
   connect?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
 }
 
-export type TrainingRunUpdateManyWithoutTopicNestedInput = {
-  create?: Prisma.XOR<Prisma.TrainingRunCreateWithoutTopicInput, Prisma.TrainingRunUncheckedCreateWithoutTopicInput> | Prisma.TrainingRunCreateWithoutTopicInput[] | Prisma.TrainingRunUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.TrainingRunCreateOrConnectWithoutTopicInput | Prisma.TrainingRunCreateOrConnectWithoutTopicInput[]
-  upsert?: Prisma.TrainingRunUpsertWithWhereUniqueWithoutTopicInput | Prisma.TrainingRunUpsertWithWhereUniqueWithoutTopicInput[]
-  createMany?: Prisma.TrainingRunCreateManyTopicInputEnvelope
+export type TrainingRunUpdateManyWithoutFunnelNestedInput = {
+  create?: Prisma.XOR<Prisma.TrainingRunCreateWithoutFunnelInput, Prisma.TrainingRunUncheckedCreateWithoutFunnelInput> | Prisma.TrainingRunCreateWithoutFunnelInput[] | Prisma.TrainingRunUncheckedCreateWithoutFunnelInput[]
+  connectOrCreate?: Prisma.TrainingRunCreateOrConnectWithoutFunnelInput | Prisma.TrainingRunCreateOrConnectWithoutFunnelInput[]
+  upsert?: Prisma.TrainingRunUpsertWithWhereUniqueWithoutFunnelInput | Prisma.TrainingRunUpsertWithWhereUniqueWithoutFunnelInput[]
+  createMany?: Prisma.TrainingRunCreateManyFunnelInputEnvelope
   set?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
   disconnect?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
   delete?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
   connect?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
-  update?: Prisma.TrainingRunUpdateWithWhereUniqueWithoutTopicInput | Prisma.TrainingRunUpdateWithWhereUniqueWithoutTopicInput[]
-  updateMany?: Prisma.TrainingRunUpdateManyWithWhereWithoutTopicInput | Prisma.TrainingRunUpdateManyWithWhereWithoutTopicInput[]
+  update?: Prisma.TrainingRunUpdateWithWhereUniqueWithoutFunnelInput | Prisma.TrainingRunUpdateWithWhereUniqueWithoutFunnelInput[]
+  updateMany?: Prisma.TrainingRunUpdateManyWithWhereWithoutFunnelInput | Prisma.TrainingRunUpdateManyWithWhereWithoutFunnelInput[]
   deleteMany?: Prisma.TrainingRunScalarWhereInput | Prisma.TrainingRunScalarWhereInput[]
 }
 
-export type TrainingRunUncheckedUpdateManyWithoutTopicNestedInput = {
-  create?: Prisma.XOR<Prisma.TrainingRunCreateWithoutTopicInput, Prisma.TrainingRunUncheckedCreateWithoutTopicInput> | Prisma.TrainingRunCreateWithoutTopicInput[] | Prisma.TrainingRunUncheckedCreateWithoutTopicInput[]
-  connectOrCreate?: Prisma.TrainingRunCreateOrConnectWithoutTopicInput | Prisma.TrainingRunCreateOrConnectWithoutTopicInput[]
-  upsert?: Prisma.TrainingRunUpsertWithWhereUniqueWithoutTopicInput | Prisma.TrainingRunUpsertWithWhereUniqueWithoutTopicInput[]
-  createMany?: Prisma.TrainingRunCreateManyTopicInputEnvelope
+export type TrainingRunUncheckedUpdateManyWithoutFunnelNestedInput = {
+  create?: Prisma.XOR<Prisma.TrainingRunCreateWithoutFunnelInput, Prisma.TrainingRunUncheckedCreateWithoutFunnelInput> | Prisma.TrainingRunCreateWithoutFunnelInput[] | Prisma.TrainingRunUncheckedCreateWithoutFunnelInput[]
+  connectOrCreate?: Prisma.TrainingRunCreateOrConnectWithoutFunnelInput | Prisma.TrainingRunCreateOrConnectWithoutFunnelInput[]
+  upsert?: Prisma.TrainingRunUpsertWithWhereUniqueWithoutFunnelInput | Prisma.TrainingRunUpsertWithWhereUniqueWithoutFunnelInput[]
+  createMany?: Prisma.TrainingRunCreateManyFunnelInputEnvelope
   set?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
   disconnect?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
   delete?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
   connect?: Prisma.TrainingRunWhereUniqueInput | Prisma.TrainingRunWhereUniqueInput[]
-  update?: Prisma.TrainingRunUpdateWithWhereUniqueWithoutTopicInput | Prisma.TrainingRunUpdateWithWhereUniqueWithoutTopicInput[]
-  updateMany?: Prisma.TrainingRunUpdateManyWithWhereWithoutTopicInput | Prisma.TrainingRunUpdateManyWithWhereWithoutTopicInput[]
+  update?: Prisma.TrainingRunUpdateWithWhereUniqueWithoutFunnelInput | Prisma.TrainingRunUpdateWithWhereUniqueWithoutFunnelInput[]
+  updateMany?: Prisma.TrainingRunUpdateManyWithWhereWithoutFunnelInput | Prisma.TrainingRunUpdateManyWithWhereWithoutFunnelInput[]
   deleteMany?: Prisma.TrainingRunScalarWhereInput | Prisma.TrainingRunScalarWhereInput[]
 }
 
@@ -752,12 +752,12 @@ export type TrainingRunCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
-  topic: Prisma.TopicCreateNestedOneWithoutTrainingRunsInput
+  funnel: Prisma.FunnelCreateNestedOneWithoutTrainingRunsInput
 }
 
 export type TrainingRunUncheckedCreateWithoutUserInput = {
   id?: string
-  topicId: string
+  funnelId: string
   status?: $Enums.TrainingStatus
   method: $Enums.TrainingMethod
   modelName: string
@@ -807,7 +807,7 @@ export type TrainingRunScalarWhereInput = {
   NOT?: Prisma.TrainingRunScalarWhereInput | Prisma.TrainingRunScalarWhereInput[]
   id?: Prisma.StringFilter<"TrainingRun"> | string
   userId?: Prisma.StringFilter<"TrainingRun"> | string
-  topicId?: Prisma.StringFilter<"TrainingRun"> | string
+  funnelId?: Prisma.StringFilter<"TrainingRun"> | string
   status?: Prisma.EnumTrainingStatusFilter<"TrainingRun"> | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodFilter<"TrainingRun"> | $Enums.TrainingMethod
   modelName?: Prisma.StringFilter<"TrainingRun"> | string
@@ -825,7 +825,7 @@ export type TrainingRunScalarWhereInput = {
   completedAt?: Prisma.DateTimeNullableFilter<"TrainingRun"> | Date | string | null
 }
 
-export type TrainingRunCreateWithoutTopicInput = {
+export type TrainingRunCreateWithoutFunnelInput = {
   id?: string
   status?: $Enums.TrainingStatus
   method: $Enums.TrainingMethod
@@ -845,7 +845,7 @@ export type TrainingRunCreateWithoutTopicInput = {
   user: Prisma.UserCreateNestedOneWithoutTrainingRunsInput
 }
 
-export type TrainingRunUncheckedCreateWithoutTopicInput = {
+export type TrainingRunUncheckedCreateWithoutFunnelInput = {
   id?: string
   userId: string
   status?: $Enums.TrainingStatus
@@ -865,35 +865,35 @@ export type TrainingRunUncheckedCreateWithoutTopicInput = {
   completedAt?: Date | string | null
 }
 
-export type TrainingRunCreateOrConnectWithoutTopicInput = {
+export type TrainingRunCreateOrConnectWithoutFunnelInput = {
   where: Prisma.TrainingRunWhereUniqueInput
-  create: Prisma.XOR<Prisma.TrainingRunCreateWithoutTopicInput, Prisma.TrainingRunUncheckedCreateWithoutTopicInput>
+  create: Prisma.XOR<Prisma.TrainingRunCreateWithoutFunnelInput, Prisma.TrainingRunUncheckedCreateWithoutFunnelInput>
 }
 
-export type TrainingRunCreateManyTopicInputEnvelope = {
-  data: Prisma.TrainingRunCreateManyTopicInput | Prisma.TrainingRunCreateManyTopicInput[]
+export type TrainingRunCreateManyFunnelInputEnvelope = {
+  data: Prisma.TrainingRunCreateManyFunnelInput | Prisma.TrainingRunCreateManyFunnelInput[]
   skipDuplicates?: boolean
 }
 
-export type TrainingRunUpsertWithWhereUniqueWithoutTopicInput = {
+export type TrainingRunUpsertWithWhereUniqueWithoutFunnelInput = {
   where: Prisma.TrainingRunWhereUniqueInput
-  update: Prisma.XOR<Prisma.TrainingRunUpdateWithoutTopicInput, Prisma.TrainingRunUncheckedUpdateWithoutTopicInput>
-  create: Prisma.XOR<Prisma.TrainingRunCreateWithoutTopicInput, Prisma.TrainingRunUncheckedCreateWithoutTopicInput>
+  update: Prisma.XOR<Prisma.TrainingRunUpdateWithoutFunnelInput, Prisma.TrainingRunUncheckedUpdateWithoutFunnelInput>
+  create: Prisma.XOR<Prisma.TrainingRunCreateWithoutFunnelInput, Prisma.TrainingRunUncheckedCreateWithoutFunnelInput>
 }
 
-export type TrainingRunUpdateWithWhereUniqueWithoutTopicInput = {
+export type TrainingRunUpdateWithWhereUniqueWithoutFunnelInput = {
   where: Prisma.TrainingRunWhereUniqueInput
-  data: Prisma.XOR<Prisma.TrainingRunUpdateWithoutTopicInput, Prisma.TrainingRunUncheckedUpdateWithoutTopicInput>
+  data: Prisma.XOR<Prisma.TrainingRunUpdateWithoutFunnelInput, Prisma.TrainingRunUncheckedUpdateWithoutFunnelInput>
 }
 
-export type TrainingRunUpdateManyWithWhereWithoutTopicInput = {
+export type TrainingRunUpdateManyWithWhereWithoutFunnelInput = {
   where: Prisma.TrainingRunScalarWhereInput
-  data: Prisma.XOR<Prisma.TrainingRunUpdateManyMutationInput, Prisma.TrainingRunUncheckedUpdateManyWithoutTopicInput>
+  data: Prisma.XOR<Prisma.TrainingRunUpdateManyMutationInput, Prisma.TrainingRunUncheckedUpdateManyWithoutFunnelInput>
 }
 
 export type TrainingRunCreateManyUserInput = {
   id?: string
-  topicId: string
+  funnelId: string
   status?: $Enums.TrainingStatus
   method: $Enums.TrainingMethod
   modelName: string
@@ -928,12 +928,12 @@ export type TrainingRunUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  topic?: Prisma.TopicUpdateOneRequiredWithoutTrainingRunsNestedInput
+  funnel?: Prisma.FunnelUpdateOneRequiredWithoutTrainingRunsNestedInput
 }
 
 export type TrainingRunUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.StringFieldUpdateOperationsInput | string
+  funnelId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTrainingStatusFieldUpdateOperationsInput | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodFieldUpdateOperationsInput | $Enums.TrainingMethod
   modelName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -953,7 +953,7 @@ export type TrainingRunUncheckedUpdateWithoutUserInput = {
 
 export type TrainingRunUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  topicId?: Prisma.StringFieldUpdateOperationsInput | string
+  funnelId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTrainingStatusFieldUpdateOperationsInput | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodFieldUpdateOperationsInput | $Enums.TrainingMethod
   modelName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -971,7 +971,7 @@ export type TrainingRunUncheckedUpdateManyWithoutUserInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
-export type TrainingRunCreateManyTopicInput = {
+export type TrainingRunCreateManyFunnelInput = {
   id?: string
   userId: string
   status?: $Enums.TrainingStatus
@@ -991,7 +991,7 @@ export type TrainingRunCreateManyTopicInput = {
   completedAt?: Date | string | null
 }
 
-export type TrainingRunUpdateWithoutTopicInput = {
+export type TrainingRunUpdateWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTrainingStatusFieldUpdateOperationsInput | $Enums.TrainingStatus
   method?: Prisma.EnumTrainingMethodFieldUpdateOperationsInput | $Enums.TrainingMethod
@@ -1011,7 +1011,7 @@ export type TrainingRunUpdateWithoutTopicInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutTrainingRunsNestedInput
 }
 
-export type TrainingRunUncheckedUpdateWithoutTopicInput = {
+export type TrainingRunUncheckedUpdateWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTrainingStatusFieldUpdateOperationsInput | $Enums.TrainingStatus
@@ -1031,7 +1031,7 @@ export type TrainingRunUncheckedUpdateWithoutTopicInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
-export type TrainingRunUncheckedUpdateManyWithoutTopicInput = {
+export type TrainingRunUncheckedUpdateManyWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTrainingStatusFieldUpdateOperationsInput | $Enums.TrainingStatus
@@ -1056,7 +1056,7 @@ export type TrainingRunUncheckedUpdateManyWithoutTopicInput = {
 export type TrainingRunSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  topicId?: boolean
+  funnelId?: boolean
   status?: boolean
   method?: boolean
   modelName?: boolean
@@ -1073,13 +1073,13 @@ export type TrainingRunSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   updatedAt?: boolean
   completedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  funnel?: boolean | Prisma.FunnelDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["trainingRun"]>
 
 export type TrainingRunSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  topicId?: boolean
+  funnelId?: boolean
   status?: boolean
   method?: boolean
   modelName?: boolean
@@ -1096,13 +1096,13 @@ export type TrainingRunSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   updatedAt?: boolean
   completedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  funnel?: boolean | Prisma.FunnelDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["trainingRun"]>
 
 export type TrainingRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  topicId?: boolean
+  funnelId?: boolean
   status?: boolean
   method?: boolean
   modelName?: boolean
@@ -1119,13 +1119,13 @@ export type TrainingRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   updatedAt?: boolean
   completedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  funnel?: boolean | Prisma.FunnelDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["trainingRun"]>
 
 export type TrainingRunSelectScalar = {
   id?: boolean
   userId?: boolean
-  topicId?: boolean
+  funnelId?: boolean
   status?: boolean
   method?: boolean
   modelName?: boolean
@@ -1143,30 +1143,30 @@ export type TrainingRunSelectScalar = {
   completedAt?: boolean
 }
 
-export type TrainingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "topicId" | "status" | "method" | "modelName" | "version" | "checkpointPath" | "baseModel" | "config" | "metrics" | "datasetSize" | "webhookUrl" | "error" | "isActive" | "createdAt" | "updatedAt" | "completedAt", ExtArgs["result"]["trainingRun"]>
+export type TrainingRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "funnelId" | "status" | "method" | "modelName" | "version" | "checkpointPath" | "baseModel" | "config" | "metrics" | "datasetSize" | "webhookUrl" | "error" | "isActive" | "createdAt" | "updatedAt" | "completedAt", ExtArgs["result"]["trainingRun"]>
 export type TrainingRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  funnel?: boolean | Prisma.FunnelDefaultArgs<ExtArgs>
 }
 export type TrainingRunIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  funnel?: boolean | Prisma.FunnelDefaultArgs<ExtArgs>
 }
 export type TrainingRunIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  topic?: boolean | Prisma.TopicDefaultArgs<ExtArgs>
+  funnel?: boolean | Prisma.FunnelDefaultArgs<ExtArgs>
 }
 
 export type $TrainingRunPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TrainingRun"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
-    topic: Prisma.$TopicPayload<ExtArgs>
+    funnel: Prisma.$FunnelPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
-    topicId: string
+    funnelId: string
     status: $Enums.TrainingStatus
     method: $Enums.TrainingMethod
     modelName: string
@@ -1577,7 +1577,7 @@ readonly fields: TrainingRunFieldRefs;
 export interface Prisma__TrainingRunClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  topic<T extends Prisma.TopicDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TopicDefaultArgs<ExtArgs>>): Prisma.Prisma__TopicClient<runtime.Types.Result.GetResult<Prisma.$TopicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  funnel<T extends Prisma.FunnelDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FunnelDefaultArgs<ExtArgs>>): Prisma.Prisma__FunnelClient<runtime.Types.Result.GetResult<Prisma.$FunnelPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1609,7 +1609,7 @@ export interface Prisma__TrainingRunClient<T, Null = never, ExtArgs extends runt
 export interface TrainingRunFieldRefs {
   readonly id: Prisma.FieldRef<"TrainingRun", 'String'>
   readonly userId: Prisma.FieldRef<"TrainingRun", 'String'>
-  readonly topicId: Prisma.FieldRef<"TrainingRun", 'String'>
+  readonly funnelId: Prisma.FieldRef<"TrainingRun", 'String'>
   readonly status: Prisma.FieldRef<"TrainingRun", 'TrainingStatus'>
   readonly method: Prisma.FieldRef<"TrainingRun", 'TrainingMethod'>
   readonly modelName: Prisma.FieldRef<"TrainingRun", 'String'>

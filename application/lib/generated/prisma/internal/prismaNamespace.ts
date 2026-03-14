@@ -391,13 +391,12 @@ export const ModelName = {
   Video: 'Video',
   Channel: 'Channel',
   Review: 'Review',
-  Topic: 'Topic',
-  Criterion: 'Criterion',
-  CriterionFilter: 'CriterionFilter',
+  Funnel: 'Funnel',
+  ClassNode: 'ClassNode',
   GoldStandard: 'GoldStandard',
-  TopicKeyword: 'TopicKeyword',
-  TopicCreator: 'TopicCreator',
-  CriterionResult: 'CriterionResult',
+  FunnelKeyword: 'FunnelKeyword',
+  FunnelCreator: 'FunnelCreator',
+  ClassNodeResult: 'ClassNodeResult',
   TrainingRun: 'TrainingRun'
 } as const
 
@@ -414,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "topic" | "criterion" | "criterionFilter" | "goldStandard" | "topicKeyword" | "topicCreator" | "criterionResult" | "trainingRun"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "funnel" | "classNode" | "goldStandard" | "funnelKeyword" | "funnelCreator" | "classNodeResult" | "trainingRun"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -936,225 +935,151 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Topic: {
-      payload: Prisma.$TopicPayload<ExtArgs>
-      fields: Prisma.TopicFieldRefs
+    Funnel: {
+      payload: Prisma.$FunnelPayload<ExtArgs>
+      fields: Prisma.FunnelFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.TopicFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload> | null
+          args: Prisma.FunnelFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.TopicFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+          args: Prisma.FunnelFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>
         }
         findFirst: {
-          args: Prisma.TopicFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload> | null
+          args: Prisma.FunnelFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.TopicFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+          args: Prisma.FunnelFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>
         }
         findMany: {
-          args: Prisma.TopicFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>[]
+          args: Prisma.FunnelFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>[]
         }
         create: {
-          args: Prisma.TopicCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+          args: Prisma.FunnelCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>
         }
         createMany: {
-          args: Prisma.TopicCreateManyArgs<ExtArgs>
+          args: Prisma.FunnelCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.TopicCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>[]
+          args: Prisma.FunnelCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>[]
         }
         delete: {
-          args: Prisma.TopicDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+          args: Prisma.FunnelDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>
         }
         update: {
-          args: Prisma.TopicUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+          args: Prisma.FunnelUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>
         }
         deleteMany: {
-          args: Prisma.TopicDeleteManyArgs<ExtArgs>
+          args: Prisma.FunnelDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.TopicUpdateManyArgs<ExtArgs>
+          args: Prisma.FunnelUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.TopicUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>[]
+          args: Prisma.FunnelUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>[]
         }
         upsert: {
-          args: Prisma.TopicUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicPayload>
+          args: Prisma.FunnelUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelPayload>
         }
         aggregate: {
-          args: Prisma.TopicAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateTopic>
+          args: Prisma.FunnelAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFunnel>
         }
         groupBy: {
-          args: Prisma.TopicGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TopicGroupByOutputType>[]
+          args: Prisma.FunnelGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FunnelGroupByOutputType>[]
         }
         count: {
-          args: Prisma.TopicCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TopicCountAggregateOutputType> | number
+          args: Prisma.FunnelCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FunnelCountAggregateOutputType> | number
         }
       }
     }
-    Criterion: {
-      payload: Prisma.$CriterionPayload<ExtArgs>
-      fields: Prisma.CriterionFieldRefs
+    ClassNode: {
+      payload: Prisma.$ClassNodePayload<ExtArgs>
+      fields: Prisma.ClassNodeFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.CriterionFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload> | null
+          args: Prisma.ClassNodeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.CriterionFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>
+          args: Prisma.ClassNodeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>
         }
         findFirst: {
-          args: Prisma.CriterionFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload> | null
+          args: Prisma.ClassNodeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.CriterionFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>
+          args: Prisma.ClassNodeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>
         }
         findMany: {
-          args: Prisma.CriterionFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>[]
+          args: Prisma.ClassNodeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>[]
         }
         create: {
-          args: Prisma.CriterionCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>
+          args: Prisma.ClassNodeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>
         }
         createMany: {
-          args: Prisma.CriterionCreateManyArgs<ExtArgs>
+          args: Prisma.ClassNodeCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.CriterionCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>[]
+          args: Prisma.ClassNodeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>[]
         }
         delete: {
-          args: Prisma.CriterionDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>
+          args: Prisma.ClassNodeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>
         }
         update: {
-          args: Prisma.CriterionUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>
+          args: Prisma.ClassNodeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>
         }
         deleteMany: {
-          args: Prisma.CriterionDeleteManyArgs<ExtArgs>
+          args: Prisma.ClassNodeDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.CriterionUpdateManyArgs<ExtArgs>
+          args: Prisma.ClassNodeUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.CriterionUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>[]
+          args: Prisma.ClassNodeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>[]
         }
         upsert: {
-          args: Prisma.CriterionUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionPayload>
+          args: Prisma.ClassNodeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodePayload>
         }
         aggregate: {
-          args: Prisma.CriterionAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCriterion>
+          args: Prisma.ClassNodeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClassNode>
         }
         groupBy: {
-          args: Prisma.CriterionGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CriterionGroupByOutputType>[]
+          args: Prisma.ClassNodeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassNodeGroupByOutputType>[]
         }
         count: {
-          args: Prisma.CriterionCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CriterionCountAggregateOutputType> | number
-        }
-      }
-    }
-    CriterionFilter: {
-      payload: Prisma.$CriterionFilterPayload<ExtArgs>
-      fields: Prisma.CriterionFilterFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.CriterionFilterFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.CriterionFilterFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
-        }
-        findFirst: {
-          args: Prisma.CriterionFilterFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.CriterionFilterFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
-        }
-        findMany: {
-          args: Prisma.CriterionFilterFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>[]
-        }
-        create: {
-          args: Prisma.CriterionFilterCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
-        }
-        createMany: {
-          args: Prisma.CriterionFilterCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.CriterionFilterCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>[]
-        }
-        delete: {
-          args: Prisma.CriterionFilterDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
-        }
-        update: {
-          args: Prisma.CriterionFilterUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
-        }
-        deleteMany: {
-          args: Prisma.CriterionFilterDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.CriterionFilterUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.CriterionFilterUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>[]
-        }
-        upsert: {
-          args: Prisma.CriterionFilterUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionFilterPayload>
-        }
-        aggregate: {
-          args: Prisma.CriterionFilterAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCriterionFilter>
-        }
-        groupBy: {
-          args: Prisma.CriterionFilterGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CriterionFilterGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.CriterionFilterCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CriterionFilterCountAggregateOutputType> | number
+          args: Prisma.ClassNodeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassNodeCountAggregateOutputType> | number
         }
       }
     }
@@ -1232,225 +1157,225 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    TopicKeyword: {
-      payload: Prisma.$TopicKeywordPayload<ExtArgs>
-      fields: Prisma.TopicKeywordFieldRefs
+    FunnelKeyword: {
+      payload: Prisma.$FunnelKeywordPayload<ExtArgs>
+      fields: Prisma.FunnelKeywordFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.TopicKeywordFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload> | null
+          args: Prisma.FunnelKeywordFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.TopicKeywordFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>
+          args: Prisma.FunnelKeywordFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>
         }
         findFirst: {
-          args: Prisma.TopicKeywordFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload> | null
+          args: Prisma.FunnelKeywordFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.TopicKeywordFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>
+          args: Prisma.FunnelKeywordFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>
         }
         findMany: {
-          args: Prisma.TopicKeywordFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>[]
+          args: Prisma.FunnelKeywordFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>[]
         }
         create: {
-          args: Prisma.TopicKeywordCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>
+          args: Prisma.FunnelKeywordCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>
         }
         createMany: {
-          args: Prisma.TopicKeywordCreateManyArgs<ExtArgs>
+          args: Prisma.FunnelKeywordCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.TopicKeywordCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>[]
+          args: Prisma.FunnelKeywordCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>[]
         }
         delete: {
-          args: Prisma.TopicKeywordDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>
+          args: Prisma.FunnelKeywordDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>
         }
         update: {
-          args: Prisma.TopicKeywordUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>
+          args: Prisma.FunnelKeywordUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>
         }
         deleteMany: {
-          args: Prisma.TopicKeywordDeleteManyArgs<ExtArgs>
+          args: Prisma.FunnelKeywordDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.TopicKeywordUpdateManyArgs<ExtArgs>
+          args: Prisma.FunnelKeywordUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.TopicKeywordUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>[]
+          args: Prisma.FunnelKeywordUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>[]
         }
         upsert: {
-          args: Prisma.TopicKeywordUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicKeywordPayload>
+          args: Prisma.FunnelKeywordUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelKeywordPayload>
         }
         aggregate: {
-          args: Prisma.TopicKeywordAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateTopicKeyword>
+          args: Prisma.FunnelKeywordAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFunnelKeyword>
         }
         groupBy: {
-          args: Prisma.TopicKeywordGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TopicKeywordGroupByOutputType>[]
+          args: Prisma.FunnelKeywordGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FunnelKeywordGroupByOutputType>[]
         }
         count: {
-          args: Prisma.TopicKeywordCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TopicKeywordCountAggregateOutputType> | number
+          args: Prisma.FunnelKeywordCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FunnelKeywordCountAggregateOutputType> | number
         }
       }
     }
-    TopicCreator: {
-      payload: Prisma.$TopicCreatorPayload<ExtArgs>
-      fields: Prisma.TopicCreatorFieldRefs
+    FunnelCreator: {
+      payload: Prisma.$FunnelCreatorPayload<ExtArgs>
+      fields: Prisma.FunnelCreatorFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.TopicCreatorFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload> | null
+          args: Prisma.FunnelCreatorFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.TopicCreatorFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>
+          args: Prisma.FunnelCreatorFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>
         }
         findFirst: {
-          args: Prisma.TopicCreatorFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload> | null
+          args: Prisma.FunnelCreatorFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.TopicCreatorFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>
+          args: Prisma.FunnelCreatorFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>
         }
         findMany: {
-          args: Prisma.TopicCreatorFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>[]
+          args: Prisma.FunnelCreatorFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>[]
         }
         create: {
-          args: Prisma.TopicCreatorCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>
+          args: Prisma.FunnelCreatorCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>
         }
         createMany: {
-          args: Prisma.TopicCreatorCreateManyArgs<ExtArgs>
+          args: Prisma.FunnelCreatorCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.TopicCreatorCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>[]
+          args: Prisma.FunnelCreatorCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>[]
         }
         delete: {
-          args: Prisma.TopicCreatorDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>
+          args: Prisma.FunnelCreatorDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>
         }
         update: {
-          args: Prisma.TopicCreatorUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>
+          args: Prisma.FunnelCreatorUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>
         }
         deleteMany: {
-          args: Prisma.TopicCreatorDeleteManyArgs<ExtArgs>
+          args: Prisma.FunnelCreatorDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.TopicCreatorUpdateManyArgs<ExtArgs>
+          args: Prisma.FunnelCreatorUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.TopicCreatorUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>[]
+          args: Prisma.FunnelCreatorUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>[]
         }
         upsert: {
-          args: Prisma.TopicCreatorUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$TopicCreatorPayload>
+          args: Prisma.FunnelCreatorUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelCreatorPayload>
         }
         aggregate: {
-          args: Prisma.TopicCreatorAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateTopicCreator>
+          args: Prisma.FunnelCreatorAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFunnelCreator>
         }
         groupBy: {
-          args: Prisma.TopicCreatorGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TopicCreatorGroupByOutputType>[]
+          args: Prisma.FunnelCreatorGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FunnelCreatorGroupByOutputType>[]
         }
         count: {
-          args: Prisma.TopicCreatorCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.TopicCreatorCountAggregateOutputType> | number
+          args: Prisma.FunnelCreatorCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FunnelCreatorCountAggregateOutputType> | number
         }
       }
     }
-    CriterionResult: {
-      payload: Prisma.$CriterionResultPayload<ExtArgs>
-      fields: Prisma.CriterionResultFieldRefs
+    ClassNodeResult: {
+      payload: Prisma.$ClassNodeResultPayload<ExtArgs>
+      fields: Prisma.ClassNodeResultFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.CriterionResultFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload> | null
+          args: Prisma.ClassNodeResultFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.CriterionResultFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>
+          args: Prisma.ClassNodeResultFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>
         }
         findFirst: {
-          args: Prisma.CriterionResultFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload> | null
+          args: Prisma.ClassNodeResultFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.CriterionResultFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>
+          args: Prisma.ClassNodeResultFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>
         }
         findMany: {
-          args: Prisma.CriterionResultFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>[]
+          args: Prisma.ClassNodeResultFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>[]
         }
         create: {
-          args: Prisma.CriterionResultCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>
+          args: Prisma.ClassNodeResultCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>
         }
         createMany: {
-          args: Prisma.CriterionResultCreateManyArgs<ExtArgs>
+          args: Prisma.ClassNodeResultCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.CriterionResultCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>[]
+          args: Prisma.ClassNodeResultCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>[]
         }
         delete: {
-          args: Prisma.CriterionResultDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>
+          args: Prisma.ClassNodeResultDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>
         }
         update: {
-          args: Prisma.CriterionResultUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>
+          args: Prisma.ClassNodeResultUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>
         }
         deleteMany: {
-          args: Prisma.CriterionResultDeleteManyArgs<ExtArgs>
+          args: Prisma.ClassNodeResultDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.CriterionResultUpdateManyArgs<ExtArgs>
+          args: Prisma.ClassNodeResultUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.CriterionResultUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>[]
+          args: Prisma.ClassNodeResultUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>[]
         }
         upsert: {
-          args: Prisma.CriterionResultUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$CriterionResultPayload>
+          args: Prisma.ClassNodeResultUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeResultPayload>
         }
         aggregate: {
-          args: Prisma.CriterionResultAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCriterionResult>
+          args: Prisma.ClassNodeResultAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClassNodeResult>
         }
         groupBy: {
-          args: Prisma.CriterionResultGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CriterionResultGroupByOutputType>[]
+          args: Prisma.ClassNodeResultGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassNodeResultGroupByOutputType>[]
         }
         count: {
-          args: Prisma.CriterionResultCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.CriterionResultCountAggregateOutputType> | number
+          args: Prisma.ClassNodeResultCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassNodeResultCountAggregateOutputType> | number
         }
       }
     }
@@ -1662,7 +1587,7 @@ export const ReviewScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   videoId: 'videoId',
-  topicId: 'topicId',
+  funnelId: 'funnelId',
   rating: 'rating',
   content: 'content',
   createdAt: 'createdAt',
@@ -1672,7 +1597,7 @@ export const ReviewScalarFieldEnum = {
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
-export const TopicScalarFieldEnum = {
+export const FunnelScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
@@ -1680,42 +1605,28 @@ export const TopicScalarFieldEnum = {
   active: 'active',
   pipelineIntervalHours: 'pipelineIntervalHours',
   lastPipelineRunAt: 'lastPipelineRunAt',
-  parentId: 'parentId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type TopicScalarFieldEnum = (typeof TopicScalarFieldEnum)[keyof typeof TopicScalarFieldEnum]
+export type FunnelScalarFieldEnum = (typeof FunnelScalarFieldEnum)[keyof typeof FunnelScalarFieldEnum]
 
 
-export const CriterionScalarFieldEnum = {
+export const ClassNodeScalarFieldEnum = {
   id: 'id',
-  topicId: 'topicId',
-  condition: 'condition',
-  include: 'include',
-  level: 'level',
-  order: 'order',
+  description: 'description',
+  parentClassNodeId: 'parentClassNodeId',
+  funnelId: 'funnelId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type CriterionScalarFieldEnum = (typeof CriterionScalarFieldEnum)[keyof typeof CriterionScalarFieldEnum]
-
-
-export const CriterionFilterScalarFieldEnum = {
-  id: 'id',
-  topicId: 'topicId',
-  criterionId: 'criterionId',
-  requiredResult: 'requiredResult',
-  createdAt: 'createdAt'
-} as const
-
-export type CriterionFilterScalarFieldEnum = (typeof CriterionFilterScalarFieldEnum)[keyof typeof CriterionFilterScalarFieldEnum]
+export type ClassNodeScalarFieldEnum = (typeof ClassNodeScalarFieldEnum)[keyof typeof ClassNodeScalarFieldEnum]
 
 
 export const GoldStandardScalarFieldEnum = {
   id: 'id',
-  topicId: 'topicId',
+  classNodeId: 'classNodeId',
   videoUrl: 'videoUrl',
   title: 'title',
   isPositive: 'isPositive',
@@ -1727,20 +1638,20 @@ export const GoldStandardScalarFieldEnum = {
 export type GoldStandardScalarFieldEnum = (typeof GoldStandardScalarFieldEnum)[keyof typeof GoldStandardScalarFieldEnum]
 
 
-export const TopicKeywordScalarFieldEnum = {
+export const FunnelKeywordScalarFieldEnum = {
   id: 'id',
-  topicId: 'topicId',
+  funnelId: 'funnelId',
   keyword: 'keyword',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type TopicKeywordScalarFieldEnum = (typeof TopicKeywordScalarFieldEnum)[keyof typeof TopicKeywordScalarFieldEnum]
+export type FunnelKeywordScalarFieldEnum = (typeof FunnelKeywordScalarFieldEnum)[keyof typeof FunnelKeywordScalarFieldEnum]
 
 
-export const TopicCreatorScalarFieldEnum = {
+export const FunnelCreatorScalarFieldEnum = {
   id: 'id',
-  topicId: 'topicId',
+  funnelId: 'funnelId',
   channelId: 'channelId',
   channelUrl: 'channelUrl',
   channelName: 'channelName',
@@ -1749,27 +1660,28 @@ export const TopicCreatorScalarFieldEnum = {
   updatedAt: 'updatedAt'
 } as const
 
-export type TopicCreatorScalarFieldEnum = (typeof TopicCreatorScalarFieldEnum)[keyof typeof TopicCreatorScalarFieldEnum]
+export type FunnelCreatorScalarFieldEnum = (typeof FunnelCreatorScalarFieldEnum)[keyof typeof FunnelCreatorScalarFieldEnum]
 
 
-export const CriterionResultScalarFieldEnum = {
+export const ClassNodeResultScalarFieldEnum = {
   id: 'id',
   videoId: 'videoId',
-  criterionId: 'criterionId',
+  classNodeId: 'classNodeId',
   result: 'result',
   explanation: 'explanation',
   modelUsed: 'modelUsed',
+  confidence: 'confidence',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type CriterionResultScalarFieldEnum = (typeof CriterionResultScalarFieldEnum)[keyof typeof CriterionResultScalarFieldEnum]
+export type ClassNodeResultScalarFieldEnum = (typeof ClassNodeResultScalarFieldEnum)[keyof typeof ClassNodeResultScalarFieldEnum]
 
 
 export const TrainingRunScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  topicId: 'topicId',
+  funnelId: 'funnelId',
   status: 'status',
   method: 'method',
   modelName: 'modelName',
@@ -1901,16 +1813,16 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'CriterionResultValue'
+ * Reference to a field of type 'ClassNodeResultValue'
  */
-export type EnumCriterionResultValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CriterionResultValue'>
+export type EnumClassNodeResultValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClassNodeResultValue'>
     
 
 
 /**
- * Reference to a field of type 'CriterionResultValue[]'
+ * Reference to a field of type 'ClassNodeResultValue[]'
  */
-export type ListEnumCriterionResultValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CriterionResultValue[]'>
+export type ListEnumClassNodeResultValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClassNodeResultValue[]'>
     
 
 
@@ -2071,13 +1983,12 @@ export type GlobalOmitConfig = {
   video?: Prisma.VideoOmit
   channel?: Prisma.ChannelOmit
   review?: Prisma.ReviewOmit
-  topic?: Prisma.TopicOmit
-  criterion?: Prisma.CriterionOmit
-  criterionFilter?: Prisma.CriterionFilterOmit
+  funnel?: Prisma.FunnelOmit
+  classNode?: Prisma.ClassNodeOmit
   goldStandard?: Prisma.GoldStandardOmit
-  topicKeyword?: Prisma.TopicKeywordOmit
-  topicCreator?: Prisma.TopicCreatorOmit
-  criterionResult?: Prisma.CriterionResultOmit
+  funnelKeyword?: Prisma.FunnelKeywordOmit
+  funnelCreator?: Prisma.FunnelCreatorOmit
+  classNodeResult?: Prisma.ClassNodeResultOmit
   trainingRun?: Prisma.TrainingRunOmit
 }
 

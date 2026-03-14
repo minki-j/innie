@@ -20,15 +20,15 @@ from pydantic import BaseModel, Field
 from models._generated import (  # noqa: F401
     Account,
     Channel,
-    Criterion,
-    CriterionResult,
-    CriterionResultValue,
+    ClassNode,
+    ClassNodeResult,
+    ClassNodeResultValue,
+    Funnel,
+    FunnelCreator,
+    FunnelKeyword,
     GoldStandard,
     Review,
     Session,
-    Topic as TopicBase,
-    TopicCreator,
-    TopicKeyword,
     TrainingMethod,
     TrainingRun,
     TrainingStatus,
@@ -49,13 +49,20 @@ class GoldStandardWithContext(GoldStandard):
     video_description: str | None = Field(default=None)
 
 
-class Topic(TopicBase):
-    """Topic with its keywords, creators, criteria, and gold standards eagerly loaded."""
+class ClassNodeWithRelations(ClassNode):
+    """ClassNode with its children and gold standards loaded."""
 
-    keywords: list[TopicKeyword] = Field(default_factory=list)
-    creators: list[TopicCreator] = Field(default_factory=list)
-    criteria: list[Criterion] = Field(default_factory=list)
+    children: list[ClassNode] = Field(default_factory=list)
     gold_standards: list[GoldStandardWithContext] = Field(default_factory=list)
+
+
+class FunnelWithRelations(Funnel):
+    """Funnel with its keywords, creators, and full ClassNode tree."""
+
+    keywords: list[FunnelKeyword] = Field(default_factory=list)
+    creators: list[FunnelCreator] = Field(default_factory=list)
+    # Flat list of all ClassNodes in this funnel (BFS order, root nodes first)
+    class_nodes: list[ClassNodeWithRelations] = Field(default_factory=list)
 
 
 # ── Pipeline-specific models ─────────────────────────────────
@@ -80,11 +87,11 @@ class VideoData(BaseModel):
     summary: str | None = None
 
 
-class CriterionResultCreate(BaseModel):
-    """Data to insert into the CriterionResult table."""
+class ClassNodeResultCreate(BaseModel):
+    """Data to insert into the ClassNodeResult table."""
 
     video_id: str
-    criterion_id: str
-    result: CriterionResultValue
+    class_node_id: str
+    result: ClassNodeResultValue
     explanation: str | None = None
     model_used: str | None = None

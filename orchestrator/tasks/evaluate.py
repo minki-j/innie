@@ -1,7 +1,7 @@
 """
 LLM evaluation tasks using LangChain.
 
-Evaluates videos against topic criteria, generates video summaries,
+Evaluates videos against ClassNode descriptions, generates video summaries,
 and returns structured results.
 """
 
@@ -25,9 +25,9 @@ from config import (
     TRANSCRIPT_MAX_CHARS,
 )
 from models.schemas import (
-    Criterion,
-    CriterionResultCreate,
-    CriterionResultValue,
+    ClassNodeResultCreate,
+    ClassNodeResultValue,
+    ClassNodeWithRelations,
     GoldStandardWithContext,
     VideoData,
 )
@@ -38,12 +38,12 @@ logger = logging.getLogger(__name__)
 # ── Structured output schema ─────────────────────────────────
 
 
-class CriterionEvaluation(BaseModel):
-    """Structured output from the LLM for criterion evaluation."""
+class ClassNodeEvaluation(BaseModel):
+    """Structured output from the LLM for class node evaluation."""
 
     result: Literal["PASS", "FAIL", "CANNOT_TELL"] = Field(
         description=(
-            "PASS if the video clearly meets the criterion, "
+            "PASS if the video clearly belongs to this class, "
             "FAIL if it clearly does not, "
             "CANNOT_TELL if there is insufficient information to determine."
         )
@@ -99,13 +99,14 @@ def _get_llm(model_name: str | None = None) -> tuple[BaseChatModel, str]:
 
 # ── Evaluation prompt ─────────────────────────────────────────
 
+
 EVALUATION_SYSTEM_PROMPT = """
-You are a video content evaluator. Your job is to assess whether a YouTube video meets a specific criterion based on the video's metadata and transcript.
+You are a video content classifier. Your job is to assess whether a YouTube video belongs to a specific content class based on the video's metadata and transcript.
 
 You must respond with one of three results:
-- PASS: The video clearly meets the criterion.
-- FAIL: The video clearly does NOT meet the criterion.
-- CANNOT_TELL: There is not enough information to determine whether the video meets the criterion.
+- PASS: The video clearly belongs to this class.
+- FAIL: The video clearly does NOT belong to this class.
+- CANNOT_TELL: There is not enough information to determine whether the video belongs to this class.
 
 Be objective and base your assessment only on the provided information.
 """.strip()
@@ -131,11 +132,13 @@ EVALUATION_HUMAN_PROMPT = """
 
 ---
 
-## Criterion to Evaluate
-{condition}
+## Class to Evaluate
+
+{class_description}
+
 ---
 
-Evaluate whether this video meets the above criterion. Provide your result (PASS, FAIL, or CANNOT_TELL) and a brief explanation.
+Evaluate whether this video belongs to the above class. Provide your result (PASS, FAIL, or CANNOT_TELL) and a brief explanation.
 """.strip()
 
 EVALUATION_PROMPT = ChatPromptTemplate.from_messages(
@@ -169,25 +172,27 @@ FEW_SHOT_HUMAN_TEMPLATE = """
 
 ---
 
-## Criterion to Evaluate
-{condition}
+## Class to Evaluate
+
+{class_description}
+
 ---
 
-Evaluate whether this video meets the above criterion. Provide your result (PASS, FAIL, or CANNOT_TELL) and a brief explanation.
+Evaluate whether this video belongs to the above class. Provide your result (PASS, FAIL, or CANNOT_TELL) and a brief explanation.
 """.strip()
 
 
 def _build_few_shot_messages(
     examples: list[tuple[GoldStandardWithContext, VideoData]],
-    criterion: Criterion,
+    class_node: ClassNodeWithRelations,
     current_video_id: str,
 ) -> list[tuple[str, str]]:
     """
     Build few-shot human/AI message pairs from gold standard examples.
 
     Each pair consists of:
-    - Human message: video info (with summary instead of transcript) + criterion
-    - AI message: expected CriterionEvaluation JSON
+    - Human message: video info (with summary instead of transcript) + class description
+    - AI message: expected ClassNodeEvaluation JSON
 
     Filters out the current video being evaluated if it happens to be
     a gold standard itself.
@@ -195,11 +200,9 @@ def _build_few_shot_messages(
     messages: list[tuple[str, str]] = []
 
     for gs, video_data in examples:
-        # Skip the current video being evaluated
         if video_data.video_id == current_video_id:
             continue
 
-        # Build human message with concrete values
         summary_text = video_data.summary or gs.video_summary or "(No summary available)"
 
         human_msg = FEW_SHOT_HUMAN_TEMPLATE.format(
@@ -210,17 +213,16 @@ def _build_few_shot_messages(
             duration=str(video_data.duration_seconds),
             views=str(video_data.view_count),
             summary=summary_text,
-            condition=criterion.condition,
+            class_description=class_node.description,
         )
 
-        # Build AI message — derive result from gold standard polarity
         result = "PASS" if gs.is_positive else "FAIL"
         if gs.note:
             explanation = gs.note
         else:
             explanation = (
-                f"The video {'meets' if gs.is_positive else 'does not meet'} "
-                f"the criterion based on its content."
+                f"The video {'belongs to' if gs.is_positive else 'does not belong to'} "
+                f"this class based on its content."
             )
 
         ai_msg = json.dumps({"result": result, "explanation": explanation})
@@ -234,25 +236,23 @@ def _build_few_shot_messages(
 # ── Evaluation task ───────────────────────────────────────────
 
 
-@task(name="evaluate_criterion", retries=2, retry_delay_seconds=15)
-def evaluate_criterion(
+@task(name="evaluate_class_node", retries=2, retry_delay_seconds=15)
+def evaluate_class_node(
     video: VideoData,
-    criterion: Criterion,
+    class_node: ClassNodeWithRelations,
     model_name: str | None = None,
     few_shot_examples: list[tuple[GoldStandardWithContext, VideoData]] | None = None,
-) -> CriterionResultCreate:
+) -> ClassNodeResultCreate:
     """
-    Evaluate a single criterion against a video using an LLM.
+    Evaluate whether a video belongs to a given ClassNode using an LLM.
 
-    If few_shot_examples are provided, they are prepended as human/AI
-    turn pairs (derived from gold standard videos) before the actual
-    evaluation message, giving the model concrete examples.
+    If few_shot_examples are provided, they are prepended as human/AI turn pairs
+    (derived from gold standard videos) before the actual evaluation message.
 
-    Returns a CriterionResultCreate ready to be saved to the DB.
+    Returns a ClassNodeResultCreate ready to be saved to the DB.
     """
     llm, used_model = _get_llm(model_name)
 
-    # Truncate transcript if too long
     transcript_text = video.transcript or "(No transcript available)"
     if len(transcript_text) > TRANSCRIPT_MAX_CHARS:
         transcript_text = (
@@ -260,10 +260,9 @@ def evaluate_criterion(
             + "\n\n... [transcript truncated] ..."
         )
 
-    # Build prompt: system + optional few-shot pairs + human
     if few_shot_examples:
         few_shot_msgs = _build_few_shot_messages(
-            few_shot_examples, criterion, video.video_id,
+            few_shot_examples, class_node, video.video_id,
         )
         prompt_messages: list[tuple[str, str]] = [
             ("system", EVALUATION_SYSTEM_PROMPT),
@@ -274,31 +273,25 @@ def evaluate_criterion(
     else:
         prompt = EVALUATION_PROMPT
 
-    # Build the chain with structured output and a descriptive trace name
     chain = (
-        prompt | llm.with_structured_output(CriterionEvaluation)
-    ).with_config(run_name="criterion_evaluation_chain")
+        prompt | llm.with_structured_output(ClassNodeEvaluation)
+    ).with_config(run_name="class_node_evaluation_chain")
 
-    criterion_type_short = "INCLUDE" if criterion.include else "EXCLUDE"
-
-    # LangSmith tracing config: descriptive name, metadata, and tags
     langsmith_config = RunnableConfig(
-        run_name=f"eval | {video.title[:50]} | {criterion.condition[:40]}",
+        run_name=f"eval | {video.title[:50]} | {class_node.description[:40]}",
         metadata={
             "video_id": video.video_id,
             "video_title": video.title,
             "channel": video.channel_title,
-            "criterion_id": criterion.id,
-            "criterion_condition": criterion.condition,
-            "criterion_type": criterion_type_short,
-            "criterion_level": criterion.level,
+            "class_node_id": class_node.id,
+            "class_node_description": class_node.description,
             "model_name": used_model,
         },
-        tags=["evaluation", "video-pipeline", criterion_type_short, used_model],
+        tags=["evaluation", "video-pipeline", used_model],
     )
 
     try:
-        result: CriterionEvaluation = chain.invoke(
+        result: ClassNodeEvaluation = chain.invoke(
             {
                 "title": video.title,
                 "channel": video.channel_title,
@@ -307,29 +300,37 @@ def evaluate_criterion(
                 "duration": str(video.duration_seconds),
                 "views": str(video.view_count),
                 "transcript": transcript_text,
-                "condition": criterion.condition,
+                "class_description": class_node.description,
             },
             config=langsmith_config,
         )
 
-        return CriterionResultCreate(
+        class_node_result = ClassNodeResultCreate(
             video_id=video.video_id,
-            criterion_id=criterion.id,
-            result=CriterionResultValue(result.result),
+            class_node_id=class_node.id,
+            result=ClassNodeResultValue(result.result),
             explanation=result.explanation,
             model_used=used_model,
         )
+        logger.info(
+            "Evaluated class_node for video=%s class_node=%s result=%s model=%s",
+            video.video_id,
+            class_node.id,
+            result.result,
+            used_model,
+        )
+        return class_node_result
 
     except Exception:
         logger.exception(
-            "LLM evaluation failed for video=%s criterion=%s",
+            "LLM evaluation failed for video=%s class_node=%s",
             video.video_id,
-            criterion.id,
+            class_node.id,
         )
-        return CriterionResultCreate(
+        return ClassNodeResultCreate(
             video_id=video.video_id,
-            criterion_id=criterion.id,
-            result=CriterionResultValue.CANNOT_TELL,
+            class_node_id=class_node.id,
+            result=ClassNodeResultValue.CANNOT_TELL,
             explanation="Evaluation failed due to an error.",
             model_used=used_model,
         )
@@ -402,7 +403,6 @@ def generate_summary(
     """
     llm, used_model = _get_llm(model_name)
 
-    # Truncate transcript if too long
     transcript_text = video.transcript or "(No transcript available)"
     if len(transcript_text) > TRANSCRIPT_MAX_CHARS:
         transcript_text = (
