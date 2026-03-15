@@ -85,10 +85,11 @@ model Video {
   transcript       String?  @db.Text
   summary          String?  @db.Text
 
-  reviews          Review[]
-  funnels           Funnel[]
-  channel          Channel?          @relation(fields: [channelId], references: [id])
-  classNodeResults ClassNodeResult[]
+  reviews                Review[]
+  funnels                Funnel[]
+  channel                Channel?               @relation(fields: [channelId], references: [id])
+  classNodeResults       ClassNodeResult[]
+  classNodeModelVerdicts ClassNodeModelVerdict[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -146,6 +147,9 @@ model Funnel {
   pipelineIntervalHours Int       @default(6)
   lastPipelineRunAt     DateTime?
 
+  maxVideosPerKeyword Int @default(20)
+  maxVideosPerCreator Int @default(30)
+
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   keywords         FunnelKeyword[]
   creators         FunnelCreator[]
@@ -164,8 +168,9 @@ model Funnel {
 }
 
 model ClassNode {
-  id        String  @id @default(cuid())
-  description String  @db.Text
+  id          String  @id @default(cuid())
+  title       String  @default("")
+  description String? @db.Text
 
   parentClassNodeId  String?
   parentClassNode    ClassNode?  @relation("ParentClassNode", fields: [parentClassNodeId], references: [id])
@@ -180,8 +185,9 @@ model ClassNode {
   funnelId  String?
   funnel    Funnel?     @relation("FunnelClassNodes", fields: [funnelId], references: [id], onDelete: Cascade)
 
-  results   ClassNodeResult[] @relation("ClassNodeResults")
-  goldStandards GoldStandard[] @relation("GoldStandardClassNode")
+  results                ClassNodeResult[]      @relation("ClassNodeResults")
+  goldStandards          GoldStandard[]         @relation("GoldStandardClassNode")
+  classNodeModelVerdicts ClassNodeModelVerdict[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -241,6 +247,18 @@ model FunnelCreator {
   @@index([funnelId])
 }
 
+// ─── LLM Registry ────────────────────────────────────────────
+
+model LLM {
+  id       String @id // model API identifier, e.g. "gpt-4o", "claude-sonnet-4-6"
+  provider String // "openai" | "anthropic"
+
+  classNodeModelVerdicts ClassNodeModelVerdict[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // ─── Criterion Results (Pipeline Output) ─────────────────────
 
 enum ClassNodeResultValue {
@@ -254,12 +272,12 @@ model ClassNodeResult {
   videoId     String
   classNodeId String
   result      ClassNodeResultValue
+  confidence  Float
   explanation String?              @db.Text
-  modelUsed   String? // e.g. "gpt-4o", "claude-sonnet-4-20250514"
-  confidence  Int? // 0-100
 
   video     Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
   classNode ClassNode @relation("ClassNodeResults", fields: [classNodeId], references: [id], onDelete: Cascade)
+  classNodeModelVerdicts ClassNodeModelVerdict[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -267,6 +285,30 @@ model ClassNodeResult {
   @@unique([videoId, classNodeId])
   @@index([videoId])
   @@index([classNodeId])
+}
+
+model ClassNodeModelVerdict {
+  id                String          @id @default(cuid())
+  videoId           String
+  classNodeId       String
+  classNodeResultId String
+  llmId             String
+  rationale         String          @db.Text
+  verdict           Boolean
+
+  video           Video           @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  classNode       ClassNode       @relation(fields: [classNodeId], references: [id], onDelete: Cascade)
+  classNodeResult ClassNodeResult @relation(fields: [classNodeResultId], references: [id], onDelete: Cascade)
+  llm             LLM             @relation(fields: [llmId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([videoId, classNodeId, llmId])
+  @@index([videoId])
+  @@index([classNodeId])
+  @@index([classNodeResultId])
+  @@index([llmId])
 }
 
 // ─── Training (Lab Server) ───────────────────────────────────

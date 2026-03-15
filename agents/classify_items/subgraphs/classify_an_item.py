@@ -1,7 +1,10 @@
 from pydantic import BaseModel, Field, create_model
 from typing import Annotated, Any
+import asyncio
 import operator
+import re
 
+from langchain_core.messages import HumanMessage
 from langchain_core.prompts import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
@@ -15,8 +18,8 @@ from langgraph.config import get_stream_writer
 from agents.llm_factory import LLMFactory, AIModel
 from agents.state import (
     ItemState,
-    ConfidenceLevel,
     NodeAndConfidence,
+    NodeVerdict,
     ClassifyItemsOverallState,
     ClassificationReturnState,
 )
@@ -25,7 +28,7 @@ from agents.utils import (
     format_single_item,
     has_children_nodes,
     get_model_count_dict,
-    choose_top_node_ids_from_classification_results,
+    filter_nodes_by_majority_threshold,
     abbreviate_node_ids,
 )
 
@@ -125,37 +128,46 @@ Important Notes!
         important_notes=important_notes,
     )
 
-    # Dynamically create field definitions for the ValidateScheduleResponse class
-    children_node_labels = [
-        node.label
-        for node in state.nodes
-        if node.parent_node_id == state.parent_node_id
+    # Dynamically create Schema where each child node ID maps to RationaleAndVerdict
+    children_nodes = [
+        node
+        for node in abbreviated_nodes
+        if node.parent_node_id == abbreviated_parent_node_id
     ]
-    fields = {str(label): (ConfidenceLevel) for label in children_node_labels}
 
-    JudgeForEachNode = create_model("JudgeForEachNode", **fields, __base__=BaseModel)  # type: ignore
-
-    class FinalJudge(BaseModel):
+    class RationaleAndVerdict(BaseModel):
         rationale: str = Field(
-            description="Think carefully and holistically which nodes are the most appropriate for the item. You can choose more than one node if you think the item belongs to multiple nodes. If there is no node that the item belongs to, return empty string."
+            description="Think carefully whether the item belongs to this node or not."
         )
-        node_labels: list[str] = Field(
-            description="The labels of the nodes that the item is classified as. If the item doesn't belong to any of the children nodes, return empty list."
-        )
-        node_ids: list[str] = Field(
-            description="The ids of the nodes that the item is classified as. If the item doesn't belong to any of the children nodes, return empty list."
+        verdict: bool = Field(
+            description="True if the item belongs to this node, False otherwise."
         )
 
-    class Schema(BaseModel):
-        does_belong_to_each_node: list[JudgeForEachNode] = Field(  # type: ignore
-            description="Examine each child node one by one, judging whether the item belongs to the node or not."
-        )
-        final_judge: FinalJudge = Field(
-            description="The final judge for the item. If the item doesn't belong to any of the children nodes, return empty list."
-        )
+    # Anthropic requires property keys matching ^[a-zA-Z0-9_.-]{1,64}$
+    # Sanitize labels into valid schema keys and keep a reverse mapping.
+    def _sanitize_key(label: str) -> str:
+        key = re.sub(r"[^a-zA-Z0-9_.\-]", "_", label)
+        if key and key[0].isdigit():
+            key = "_" + key
+        return key[:64] or "_"
+
+    # Build key → node mapping (deduplicate in case two labels sanitize identically)
+    key_to_node: dict[str, Any] = {}
+    for node in children_nodes:
+        key = _sanitize_key(node.label)
+        # Append index suffix to avoid collisions
+        base_key = key
+        i = 1
+        while key in key_to_node:
+            key = f"{base_key[:62]}_{i}"
+            i += 1
+        key_to_node[key] = node
+
+    fields = {key: (RationaleAndVerdict, ...) for key in key_to_node}
+    Schema = create_model("Schema", **fields, __base__=BaseModel)  # type: ignore
 
     llm = LLMFactory()
-    classification_result: Schema = await llm.ainvoke(
+    classification_result: Schema = await llm.ainvoke(  # type: ignore
         model=state.model,
         prompts=input_messages,
         output_schema=Schema,
@@ -164,64 +176,78 @@ Important Notes!
     if classification_result is None:
         return Command(goto=aggregate_item_classification.__name__)
 
-    # Sometimes, the model returns a wrong node_id for a node_label.
-    # Check if the node_ids and node_labels are consistent with each other.
+    # Collect per-node verdicts and map IDs back to originals
     correct_node_ids = []
-    correct_node_labels = []
-    for node_id, node_label in zip(
-        classification_result.final_judge.node_ids,
-        classification_result.final_judge.node_labels,
-    ):
-        label_with_the_node_id = next(
-            (node.label for node in abbreviated_nodes if node.id == node_id), None
-        )
-        id_with_the_node_label = next(
-            (node.id for node in abbreviated_nodes if node.label == node_label), None
-        )
-
-        if label_with_the_node_id is None or node_label != label_with_the_node_id:
-            # The generated node id is incorrect
-            if id_with_the_node_label is None:
-                print(
-                    "[Correct node_id]  No matching node id and label: ",
-                    node_id,
-                    node_label,
+    node_verdicts = []
+    for key, child_node in key_to_node.items():
+        node_result: RationaleAndVerdict = getattr(classification_result, key, None)
+        if node_result is not None:
+            original_id = abbreviated_id_to_original_map[child_node.id]
+            node_verdicts.append(
+                NodeVerdict(
+                    model=state.model,
+                    node_id=original_id,
+                    node_label=child_node.label,
+                    rationale=node_result.rationale,
+                    verdict=node_result.verdict,
                 )
-                # the generated node label doesn't match with any node label
-                continue
-            else:
-                print(
-                    f"[Correct node_id] ({node_label}) {node_id} -> {id_with_the_node_label}"
-                )
-                # if the generated node id is incorrect, but we found a node with the generated label, we use the node id of that node
-                correct_node_ids.append(id_with_the_node_label)
-                correct_node_labels.append(node_label)
-        else:
-            # The node id is correct and matches with the node label
-            correct_node_ids.append(node_id)
-            correct_node_labels.append(node_label)
+            )
+            if node_result.verdict:
+                correct_node_ids.append(original_id)
 
-    correct_node_ids = [
-        abbreviated_id_to_original_map[node_id] for node_id in correct_node_ids
-    ]
+    class ClassificationResult(BaseModel):
+        node_ids: list[str]
+        verdicts: list[NodeVerdict]
 
     return {
         "classification_results": [
-            FinalJudge(
-                rationale=classification_result.final_judge.rationale,
-                node_labels=correct_node_labels,
-                node_ids=correct_node_ids,
-            )
+            ClassificationResult(node_ids=correct_node_ids, verdicts=node_verdicts)
         ],
     }
 
 
-def aggregate_item_classification(state: ClassifySubGraphState):
-    writer = get_stream_writer()
-    selected_node_and_confidence_score = (
-        choose_top_node_ids_from_classification_results(
-            state.classification_results, state.majority_threshold
+async def _summarize_rationales(
+    rationales: list[str],
+    state: ClassifySubGraphState,
+) -> str | None:
+    if not rationales:
+        return None
+    rationale_text = "\n".join(f"- {r}" for r in rationales)
+    prompt = HumanMessage(
+        content=(
+            "You are given a set of rationales from different AI models explaining why a content item "
+            "belongs (or doesn't belong) to a classification node.\n\n"
+            f"Rationales:\n{rationale_text}\n\n"
+            "Write a single concise 1-2 sentence explanation summarizing why this item belongs to this node."
         )
+    )
+    llm = LLMFactory()
+    result = await llm.ainvoke(
+        model=state.models[0],
+        prompts=[prompt],
+    )
+    if result is None:
+        return None
+    return result.content if hasattr(result, "content") else str(result)
+
+
+async def aggregate_item_classification(state: ClassifySubGraphState):
+    writer = get_stream_writer()
+    selected_node_and_confidence_score = filter_nodes_by_majority_threshold(
+        state.classification_results, state.majority_threshold
+    )
+
+    all_verdicts = [v for r in state.classification_results for v in r.verdicts]
+
+    # Concurrently generate explanation summaries for all winning nodes
+    explanations = await asyncio.gather(
+        *[
+            _summarize_rationales(
+                rationales=[v.rationale for v in all_verdicts if v.node_id == node_id],
+                state=state,
+            )
+            for node_id, _ in selected_node_and_confidence_score
+        ]
     )
 
     new_parent_node_ids = [
@@ -246,9 +272,16 @@ def aggregate_item_classification(state: ClassifySubGraphState):
         id=state.current_item.id,
         content=state.current_item.content,
         classified_as=[
-            NodeAndConfidence(node_id=node_id, confidence_score=confidence_score)
-            for node_id, confidence_score in selected_node_and_confidence_score
+            NodeAndConfidence(
+                node_id=node_id,
+                confidence_score=confidence_score,
+                explanation=explanation,
+            )
+            for (node_id, confidence_score), explanation in zip(
+                selected_node_and_confidence_score, explanations
+            )
         ],
+        verdicts=all_verdicts,
     )
 
     return Command(

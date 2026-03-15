@@ -20,12 +20,31 @@ class PrefectClient {
     this.apiKey = PREFECT_API_KEY;
   }
 
+  private async getDeploymentId(
+    flowName: string,
+    deploymentName: string,
+  ): Promise<string> {
+    const url = `${this.apiUrl}/deployments/name/${flowName}/${deploymentName}`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${this.apiKey}` },
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        `Prefect deployment lookup error (${response.status}): ${body}`,
+      );
+    }
+    const data = (await response.json()) as { id: string };
+    return data.id;
+  }
+
   async createFlowRun(
     flowName: string,
     deploymentName: string,
     parameters?: Record<string, unknown>,
   ): Promise<FlowRunResponse> {
-    const url = `${this.apiUrl}/deployments/name/${flowName}/${deploymentName}/create_flow_run`;
+    const deploymentId = await this.getDeploymentId(flowName, deploymentName);
+    const url = `${this.apiUrl}/deployments/${deploymentId}/create_flow_run`;
 
     const response = await fetch(url, {
       method: "POST",

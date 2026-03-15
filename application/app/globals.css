@@ -19,7 +19,12 @@
   }
 }
 
+html {
+  overscroll-behavior: none;
+}
+
 body {
+  overscroll-behavior: none;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
@@ -29,4 +34,8 @@ input,
 textarea,
 select {
   color: #171717;
+}
+
+button:not(:disabled) {
+  cursor: pointer !important;
 }

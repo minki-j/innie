@@ -63,7 +63,9 @@ export const ModelName = {
   GoldStandard: 'GoldStandard',
   FunnelKeyword: 'FunnelKeyword',
   FunnelCreator: 'FunnelCreator',
+  LLM: 'LLM',
   ClassNodeResult: 'ClassNodeResult',
+  ClassNodeModelVerdict: 'ClassNodeModelVerdict',
   TrainingRun: 'TrainingRun'
 } as const
 
@@ -205,6 +207,7 @@ export type FunnelScalarFieldEnum = (typeof FunnelScalarFieldEnum)[keyof typeof 
 
 export const ClassNodeScalarFieldEnum = {
   id: 'id',
+  title: 'title',
   description: 'description',
   parentClassNodeId: 'parentClassNodeId',
   funnelId: 'funnelId',
@@ -254,19 +257,43 @@ export const FunnelCreatorScalarFieldEnum = {
 export type FunnelCreatorScalarFieldEnum = (typeof FunnelCreatorScalarFieldEnum)[keyof typeof FunnelCreatorScalarFieldEnum]
 
 
+export const LLMScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LLMScalarFieldEnum = (typeof LLMScalarFieldEnum)[keyof typeof LLMScalarFieldEnum]
+
+
 export const ClassNodeResultScalarFieldEnum = {
   id: 'id',
   videoId: 'videoId',
   classNodeId: 'classNodeId',
   result: 'result',
-  explanation: 'explanation',
-  modelUsed: 'modelUsed',
   confidence: 'confidence',
+  explanation: 'explanation',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type ClassNodeResultScalarFieldEnum = (typeof ClassNodeResultScalarFieldEnum)[keyof typeof ClassNodeResultScalarFieldEnum]
+
+
+export const ClassNodeModelVerdictScalarFieldEnum = {
+  id: 'id',
+  videoId: 'videoId',
+  classNodeId: 'classNodeId',
+  classNodeResultId: 'classNodeResultId',
+  llmId: 'llmId',
+  rationale: 'rationale',
+  verdict: 'verdict',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClassNodeModelVerdictScalarFieldEnum = (typeof ClassNodeModelVerdictScalarFieldEnum)[keyof typeof ClassNodeModelVerdictScalarFieldEnum]
 
 
 export const TrainingRunScalarFieldEnum = {

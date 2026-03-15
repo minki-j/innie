@@ -112,10 +112,11 @@ export interface PaginatedVideosResult {
 
 export async function getVideosPaginated(options: {
   funnelIds?: string[];
+  classNodeIds?: string[];
   cursor?: string | null;
   limit: number;
 }): Promise<PaginatedVideosResult> {
-  const { funnelIds, limit } = options;
+  const { funnelIds, classNodeIds, limit } = options;
   const cursorData = options.cursor ? decodeCursor(options.cursor) : null;
 
   interface CollectedItem {
@@ -137,6 +138,14 @@ export async function getVideosPaginated(options: {
 
     if (funnelIds && funnelIds.length > 0) {
       where.funnels = { some: { id: { in: funnelIds } } };
+    }
+
+    if (classNodeIds && classNodeIds.length > 0) {
+      where.AND = classNodeIds.map((id) => ({
+        classNodeResults: {
+          some: { classNodeId: id, result: "PASS" },
+        },
+      }));
     }
 
     if (dbCursorUpdatedAt && dbCursorId) {

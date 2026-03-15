@@ -11,28 +11,42 @@ uv sync
 
 ## Commands
 
-**Run the pipeline:**
+**Run the pipeline directly (no Prefect server needed):**
 
 ```bash
 uv run pipeline
 ```
 
-**Deploy flows to Prefect:**
+**Local Prefect server + flow (all-in-one script):**
+
+```bash
+uv run serve-local
+```
+
+This starts the Prefect server at `http://127.0.0.1:4200`, waits for it to be ready, then serves `video_pipeline` as a deployment. Both processes shut down together on Ctrl+C.
+
+Make sure `application/.env` has these for the Next.js app to trigger it:
+
+```
+PREFECT_API_URL=http://127.0.0.1:4200/api
+PREFECT_API_KEY=ignore
+```
+
+> **Note:** If your shell is logged into Prefect Cloud, always set `PREFECT_API_URL=http://127.0.0.1:4200/api` before running any `prefect` commands, otherwise the CLI will hit Prefect Cloud instead of the local server.
+
+**Deploy flows to Prefect Cloud:**
+
 ```bash
 uv run prefect deploy --all
 ```
 
-**Sync dependencies and env vars to the Prefect deployment:**
+**Sync dependencies and env vars to the Prefect Cloud deployment:**
+
 ```bash
 uv run sync-prefect
 ```
 
 Run this after deploying to push pip packages (from `pyproject.toml`) and environment variables (from `.env` files) to the managed work pool as `job_variables`.
-
-**Generate flow diagram**
-```bash
-uv run generate_flow_diagram --flow {flow_name}
-```
 
 **Regenerate Pydantic models from Prisma schema:**
 
@@ -41,6 +55,12 @@ uv run generate-models
 ```
 
 Run this after any changes to `application/prisma/schema.prisma` to keep the Python models in sync.
+
+**Generate flow diagram:**
+
+```bash
+uv run generate_flow_diagram --flow {flow_name}
+```
 
 ## Environment Variables
 

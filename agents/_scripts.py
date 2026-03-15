@@ -2,4 +2,4 @@ import subprocess
 
 
 def dev():
-    subprocess.run(["langgraph", "dev", "--no-browser", "--no-reload"], check=True)
+    subprocess.run(["langgraph", "dev", "--no-browser"], check=True)  # "--no-reload"

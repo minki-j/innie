@@ -30,6 +30,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             },
           },
         },
+        classNodeModelVerdicts: {
+          select: {
+            llmId: true,
+            verdict: true,
+            rationale: true,
+            llm: { select: { provider: true } },
+          },
+        },
       },
     });
 
@@ -47,10 +55,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         results: {
           id: string;
           classNodeId: string;
-          description: string;
+          title: string;
+          description: string | null;
           result: string;
           explanation: string | null;
-          confidence: number | null;
+          confidence: number;
+          modelVerdicts: { llmId: string; provider: string; verdict: boolean; rationale: string }[];
         }[];
       }
     > = {};
@@ -70,10 +80,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       grouped[funnelId].results.push({
         id: r.id,
         classNodeId: r.classNodeId,
+        title: r.classNode.title,
         description: r.classNode.description,
         result: r.result,
         explanation: r.explanation,
         confidence: r.confidence,
+        modelVerdicts: r.classNodeModelVerdicts.map((v) => ({
+          llmId: v.llmId,
+          provider: v.llm.provider,
+          verdict: v.verdict,
+          rationale: v.rationale,
+        })),
       });
     }
 

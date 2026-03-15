@@ -71,9 +71,10 @@ function SkeletonGrid({ count }: { count: number }) {
 
 interface VideoGridProps {
   selectedFunnelIds: string[];
+  selectedClassNodeIds?: string[];
 }
 
-export function VideoGrid({ selectedFunnelIds }: VideoGridProps) {
+export function VideoGrid({ selectedFunnelIds, selectedClassNodeIds = [] }: VideoGridProps) {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,6 +115,7 @@ export function VideoGrid({ selectedFunnelIds }: VideoGridProps) {
         if (pageCursor) params.set('cursor', pageCursor);
         params.set('limit', String(limit));
         selectedFunnelIds.forEach((id) => params.append('funnel', id));
+        selectedClassNodeIds.forEach((id) => params.append('classNode', id));
 
         const res = await fetch(`/api/videos?${params}`, {
           signal: controller.signal,
@@ -137,7 +139,7 @@ export function VideoGrid({ selectedFunnelIds }: VideoGridProps) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedFunnelIds.join(',')],
+    [selectedFunnelIds.join(','), selectedClassNodeIds.join(',')],
   );
 
   // ── Initial fetch (fires once pageSize is known) ───────────

@@ -22,6 +22,8 @@ interface FunnelPanelsProps {
   active: boolean;
   pipelineIntervalHours: number;
   lastPipelineRunAt: string | null;
+  maxVideosPerKeyword: number;
+  maxVideosPerCreator: number;
   keywords: FunnelKeyword[];
   creators: FunnelCreator[];
 }
@@ -40,11 +42,30 @@ export function FunnelPanels({
   active,
   pipelineIntervalHours,
   lastPipelineRunAt,
+  maxVideosPerKeyword,
+  maxVideosPerCreator,
   keywords,
   creators,
 }: FunnelPanelsProps) {
   return (
     <div className="space-y-8">
+      <div>
+        <SectionHeader
+          title="Pipeline"
+          description="Control when and how the video discovery pipeline runs."
+        />
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <FunnelPipelineSettings
+            funnelId={funnelId}
+            initialActive={active}
+            initialIntervalHours={pipelineIntervalHours}
+            lastPipelineRunAt={lastPipelineRunAt}
+            initialMaxVideosPerKeyword={maxVideosPerKeyword}
+            initialMaxVideosPerCreator={maxVideosPerCreator}
+          />
+        </div>
+      </div>
+
       <div>
         <SectionHeader
           title="Keywords"
@@ -62,21 +83,6 @@ export function FunnelPanels({
         />
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <CreatorsEditor funnelId={funnelId} initialCreators={creators} />
-        </div>
-      </div>
-
-      <div>
-        <SectionHeader
-          title="Pipeline"
-          description="Control when and how the video discovery pipeline runs."
-        />
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <FunnelPipelineSettings
-            funnelId={funnelId}
-            initialActive={active}
-            initialIntervalHours={pipelineIntervalHours}
-            lastPipelineRunAt={lastPipelineRunAt}
-          />
         </div>
       </div>
     </div>

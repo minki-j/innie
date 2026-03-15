@@ -17,30 +17,49 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIModel(Enum):
-    O1_MINI = "o1-mini"
-    O1 = "o1"
-    O1_PRO = "o1-pro"
-    O3_MINI = "o3-mini"
-    O3 = "o3"
-    O3_PRO = "o3-pro"
-    O4_MINI = "o4-mini"
-    GPT_5 = "gpt-5-2025-08-07"
-    GPT_5_MINI = "gpt-5-mini-2025-08-07"
-    GPT_5_NANO = "gpt-5-nano-2025-08-07"
+    # GPT-5.4 — Latest frontier (high → low intelligence)
+    GPT_5_4_PRO = "gpt-5.4-pro"  # Maximum performance variant
+    GPT_5_4 = "gpt-5.4"  # Flagship for agentic, coding, professional work
+    GPT_5_MINI = "gpt-5-mini"  # Near-frontier, cost-efficient, low latency
+    GPT_5_NANO = "gpt-5-nano"  # Fastest, most cost-efficient GPT-5
 
-    GPT_4O_MINI = "gpt-4o-mini"
-    GPT_4O = "gpt-4o"
-    GPT_4_1 = "gpt-4.1"
-    GPT_4_1_NANO = "gpt-4.1-nano"
+    # GPT-5.x — Previous versions (high → low intelligence)
+    GPT_5_2_PRO = "gpt-5.2-pro"  # Previous pro, smarter and more precise
+    GPT_5_2 = "gpt-5.2"  # Previous frontier for professional work
+    GPT_5_1 = "gpt-5.1"  # Best for coding and agentic tasks
+    GPT_5_PRO = "gpt-5-pro"  # GPT-5 with smarter and more precise responses
+    GPT_5 = "gpt-5"  # Intelligent reasoning, configurable effort
+
+    # O-series — Reasoning models (high → low intelligence)
+    O3_PRO = "o3-pro"  # o3 with more compute
+    O3 = "o3"  # Reasoning for complex tasks
+    O4_MINI = "o4-mini"  # Fast, cost-efficient reasoning
+    O3_MINI = "o3-mini"  # Small alternative to o3
+    O1_PRO = "o1-pro"  # o1 with more compute
+    O1 = "o1"  # Previous full o-series reasoning model
+
+    # GPT-4.x — Previous generation (high → low intelligence)
+    GPT_4_1 = "gpt-4.1"  # Smartest non-reasoning GPT-4 model
+    GPT_4_1_MINI = "gpt-4.1-mini"  # Smaller, faster GPT-4.1
+    GPT_4_1_NANO = "gpt-4.1-nano"  # Fastest, most cost-efficient GPT-4.1
+    GPT_4O = "gpt-4o"  # Fast, intelligent, flexible
+    GPT_4O_MINI = "gpt-4o-mini"  # Fast, affordable for focused tasks
 
 
 class AnthropicModel(Enum):
-    CLAUDE_HAIKU_3_5 = "claude-3-5-haiku-latest"
-    CLAUDE_SONNET_3_5 = "claude-3-5-sonnet-latest"
-    CLAUDE_SONNET_3_7 = "claude-3-7-sonnet-latest"
-    CLAUDE_SONNET_4 = "claude-sonnet-4-0"
-    CLAUDE_OPUS_4 = "claude-opus-4-0"
-    CLAUDE_OPUS_4_1 = "claude-opus-4-1"
+    # Claude 4.6 — Latest (high → low intelligence)
+    CLAUDE_OPUS_4_6 = "claude-opus-4-6"  # Most intelligent, 1M context, 128k output
+    CLAUDE_SONNET_4_6 = "claude-sonnet-4-6"  # Balanced speed + intelligence, 1M context
+
+    # Claude 4.5 — Previous versions (high → low intelligence)
+    CLAUDE_OPUS_4_5 = "claude-opus-4-5"  # High intelligence, 200k context
+    CLAUDE_SONNET_4_5 = "claude-sonnet-4-5"  # Balanced, 1M context
+    CLAUDE_HAIKU_4_5 = "claude-haiku-4-5"  # Fastest, near-frontier, 200k context
+
+    # Claude 4.0 / 4.1 — Older versions (high → low intelligence)
+    CLAUDE_OPUS_4_1 = "claude-opus-4-1"  # 200k context
+    CLAUDE_OPUS_4 = "claude-opus-4-0"  # 200k context
+    CLAUDE_SONNET_4 = "claude-sonnet-4-0"  # 1M context (with beta header)
 
 
 AIModel = Union[OpenAIModel, AnthropicModel]
@@ -103,23 +122,6 @@ class LLMFactory:
         else:
             raise ValueError(f"Model {model} (type: {type(model)}) is not supported")
 
-    def _get_available_structured_output_method(
-        self, model: AIModel
-    ) -> Literal["json_mode", "function_calling", "json_schema"]:
-        """
-        As of 2025 July, OpenAI recent models all support 'structured_output' which is json_schema in LangChain's terminology.
-        Anthropic models don't support any structured output methods but function calling.
-
-        "json_mode" was used from OpenAI before structured_output(json_schema) was introduced. Now it's better to use json_schema.
-
-        """
-        if isinstance(model, OpenAIModel):
-            return "json_schema"  # TODO: need to use json_schema with a new schema converter
-        elif isinstance(model, AnthropicModel):
-            return "function_calling"
-        else:
-            raise ValueError(f"Unknown model type: {type(model)}")
-
     async def ainvoke(
         self,
         prompts: list[BaseMessage],
@@ -146,13 +148,10 @@ class LLMFactory:
 
         # Apply structured output if schema is provided
         if output_schema:
-            if method is None:
-                method = self._get_available_structured_output_method(model)
-            llm = llm.with_structured_output(
-                schema=output_schema,
-                method=method,
-                include_raw=True,
-            )
+            structured_output_kwargs: dict[str, Any] = {"include_raw": True}
+            if method is not None:
+                structured_output_kwargs["method"] = method
+            llm = llm.with_structured_output(schema=output_schema, **structured_output_kwargs)
         elif tools:
             llm = llm.bind_tools(tools)
 
@@ -161,14 +160,8 @@ class LLMFactory:
             for fallback_model in fallback_models:
                 fallback_client = self._init_llm_client(fallback_model, temperature)
                 if output_schema:
-                    if method is None:
-                        method = self._get_available_structured_output_method(
-                            fallback_model
-                        )
                     fallback_client = fallback_client.with_structured_output(
-                        schema=output_schema,
-                        method=method,
-                        include_raw=True,
+                        schema=output_schema, **structured_output_kwargs
                     )
                 elif tools:
                     fallback_client = fallback_client.bind_tools(tools)
@@ -357,7 +350,7 @@ class LLMFactory:
         messages: list[BaseMessage],
         output_schema: Type[T],
         temperature: float = 0.7,
-        method: Literal["json_mode", "function_calling"] = "function_calling",
+        method: Optional[Literal["json_mode", "function_calling", "json_schema"]] = None,
         max_retries: int = 3,
         base_delay: float = 1.0,
     ) -> list[T]:
@@ -449,19 +442,23 @@ def get_max_output_token_for_model(model: AIModel) -> int:
     if isinstance(model, OpenAIModel):
         return 10000
     elif isinstance(model, AnthropicModel):
-        # Based on official Anthropic documentation
-        if model == AnthropicModel.CLAUDE_OPUS_4_1:
+        # Based on official Anthropic documentation (as of March 2026)
+        if model == AnthropicModel.CLAUDE_OPUS_4_6:
+            return 128000  # claude-opus-4-6 (128k)
+        elif model == AnthropicModel.CLAUDE_SONNET_4_6:
+            return 64000  # claude-sonnet-4-6 (64k)
+        elif model == AnthropicModel.CLAUDE_HAIKU_4_5:
+            return 64000  # claude-haiku-4-5-20251001 (64k)
+        elif model == AnthropicModel.CLAUDE_SONNET_4_5:
+            return 64000  # claude-sonnet-4-5-20250929 (64k)
+        elif model == AnthropicModel.CLAUDE_OPUS_4_5:
+            return 64000  # claude-opus-4-5-20251101 (64k)
+        elif model == AnthropicModel.CLAUDE_OPUS_4_1:
             return 32000  # claude-opus-4-1-20250805
+        elif model == AnthropicModel.CLAUDE_SONNET_4:
+            return 64000  # claude-sonnet-4-20250514 (64k)
         elif model == AnthropicModel.CLAUDE_OPUS_4:
             return 32000  # claude-opus-4-20250514
-        elif model == AnthropicModel.CLAUDE_SONNET_4:
-            return 64000  # claude-sonnet-4-20250514
-        elif model == AnthropicModel.CLAUDE_SONNET_3_7:
-            return 64000  # claude-3-7-sonnet-20250219
-        elif model == AnthropicModel.CLAUDE_SONNET_3_5:
-            return 8192  # claude-3-5-sonnet-20241022 (upgraded version)
-        elif model == AnthropicModel.CLAUDE_HAIKU_3_5:
-            return 8192  # claude-3-5-haiku-20241022
         else:
             raise ValueError(f"Unknown Anthropic model: {model}")
     else:

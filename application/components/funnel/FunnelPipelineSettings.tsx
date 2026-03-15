@@ -7,6 +7,8 @@ interface FunnelPipelineSettingsProps {
   initialActive: boolean;
   initialIntervalHours: number;
   lastPipelineRunAt: string | null;
+  initialMaxVideosPerKeyword: number;
+  initialMaxVideosPerCreator: number;
 }
 
 const INTERVAL_OPTIONS = [
@@ -25,11 +27,17 @@ export function FunnelPipelineSettings({
   initialActive,
   initialIntervalHours,
   lastPipelineRunAt,
+  initialMaxVideosPerKeyword,
+  initialMaxVideosPerCreator,
 }: FunnelPipelineSettingsProps) {
   const [active, setActive] = useState(initialActive);
   const [intervalHours, setIntervalHours] = useState(initialIntervalHours);
+  const [maxVideosPerKeyword, setMaxVideosPerKeyword] = useState(initialMaxVideosPerKeyword);
+  const [maxVideosPerCreator, setMaxVideosPerCreator] = useState(initialMaxVideosPerCreator);
   const [isTogglingActive, setIsTogglingActive] = useState(false);
   const [isSavingInterval, setIsSavingInterval] = useState(false);
+  const [isSavingLimits, setIsSavingLimits] = useState(false);
+  const [savedLimits, setSavedLimits] = useState(false);
   const [isTriggering, setIsTriggering] = useState(false);
   const [triggerResult, setTriggerResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [savedInterval, setSavedInterval] = useState(false);
@@ -73,6 +81,27 @@ export function FunnelPipelineSettings({
       console.error('Failed to save interval:', error);
     } finally {
       setIsSavingInterval(false);
+    }
+  };
+
+  const handleSaveLimits = async (keyword: number, creator: number) => {
+    if (isSavingLimits) return;
+    setIsSavingLimits(true);
+    setSavedLimits(false);
+    try {
+      const res = await fetch(`/api/funnels/${funnelId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxVideosPerKeyword: keyword, maxVideosPerCreator: creator }),
+      });
+      if (res.ok) {
+        setSavedLimits(true);
+        setTimeout(() => setSavedLimits(false), 2000);
+      }
+    } catch (error) {
+      console.error('Failed to save video limits:', error);
+    } finally {
+      setIsSavingLimits(false);
     }
   };
 
@@ -160,6 +189,43 @@ export function FunnelPipelineSettings({
           </select>
           {savedInterval && <span className="text-sm text-green-600">Saved</span>}
           {isSavingInterval && <span className="text-sm text-gray-400">Saving...</span>}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Video Limits</label>
+        <p className="text-xs text-gray-500 mb-3">Max videos fetched per keyword search and per creator channel each pipeline run.</p>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label htmlFor="max-videos-keyword" className="text-xs text-gray-500 whitespace-nowrap">Per keyword</label>
+            <input
+              id="max-videos-keyword"
+              type="number"
+              min={1}
+              max={200}
+              value={maxVideosPerKeyword}
+              onChange={(e) => setMaxVideosPerKeyword(Math.max(1, Math.min(200, Number(e.target.value))))}
+              onBlur={() => handleSaveLimits(maxVideosPerKeyword, maxVideosPerCreator)}
+              disabled={isSavingLimits}
+              className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:opacity-50"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="max-videos-creator" className="text-xs text-gray-500 whitespace-nowrap">Per creator</label>
+            <input
+              id="max-videos-creator"
+              type="number"
+              min={1}
+              max={200}
+              value={maxVideosPerCreator}
+              onChange={(e) => setMaxVideosPerCreator(Math.max(1, Math.min(200, Number(e.target.value))))}
+              onBlur={() => handleSaveLimits(maxVideosPerKeyword, maxVideosPerCreator)}
+              disabled={isSavingLimits}
+              className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:opacity-50"
+            />
+          </div>
+          {savedLimits && <span className="text-sm text-green-600">Saved</span>}
+          {isSavingLimits && <span className="text-sm text-gray-400">Saving...</span>}
         </div>
       </div>
 

@@ -63,14 +63,22 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { description } = body;
+    const { title, description } = body;
+
+    if (title !== undefined && (typeof title !== "string" || title.trim().length === 0)) {
+      return NextResponse.json(
+        { error: "title cannot be empty" },
+        { status: 400 },
+      );
+    }
 
     if (
       description !== undefined &&
+      description !== null &&
       (typeof description !== "string" || description.trim().length === 0)
     ) {
       return NextResponse.json(
-        { error: "description cannot be empty" },
+        { error: "description cannot be empty string" },
         { status: 400 },
       );
     }
@@ -78,7 +86,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const classNode = await prisma.classNode.update({
       where: { id: classNodeId },
       data: {
-        ...(description !== undefined && { description: description.trim() }),
+        ...(title !== undefined && { title: title.trim() }),
+        ...(description !== undefined && { description: description === null ? null : description.trim() }),
       },
     });
 

@@ -6,11 +6,13 @@ export async function GET(request: NextRequest) {
   const cursor = searchParams.get("cursor");
   const limitParam = parseInt(searchParams.get("limit") ?? "24", 10);
   const funnelIds = searchParams.getAll("funnel").filter(Boolean);
+  const classNodeIds = searchParams.getAll("classNode").filter(Boolean);
 
   const limit = Math.min(Math.max(limitParam, 1), 100);
 
   const result = await getVideosPaginated({
     funnelIds: funnelIds.length > 0 ? funnelIds : undefined,
+    classNodeIds: classNodeIds.length > 0 ? classNodeIds : undefined,
     cursor: cursor || null,
     limit,
   });

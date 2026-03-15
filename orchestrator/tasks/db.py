@@ -18,6 +18,7 @@ from prefect import task
 
 from config import DATABASE_URL
 from models.schemas import (
+    ClassNodeModelVerdictCreate,
     ClassNodeResultCreate,
     ClassNodeWithRelations,
     FunnelCreator,
@@ -153,7 +154,7 @@ def _load_funnel_class_nodes(cur: Any, funnel_id: str) -> list[ClassNodeWithRela
     """
     cur.execute(
         """
-        SELECT id, description, "parentClassNodeId", "funnelId",
+        SELECT id, title, description, "parentClassNodeId", "funnelId",
                "createdAt", "updatedAt"
         FROM "ClassNode"
         WHERE "funnelId" = %s
@@ -231,6 +232,7 @@ def get_active_funnels() -> list[FunnelWithRelations]:
                 """
                 SELECT id, name, description, "userId", active,
                        "pipelineIntervalHours", "lastPipelineRunAt",
+                       "maxVideosPerKeyword", "maxVideosPerCreator",
                        "createdAt", "updatedAt"
                 FROM "Funnel"
                 WHERE active = true
@@ -264,6 +266,7 @@ def get_funnel_by_id(funnel_id: str) -> FunnelWithRelations | None:
                 """
                 SELECT id, name, description, "userId", active,
                        "pipelineIntervalHours", "lastPipelineRunAt",
+                       "maxVideosPerKeyword", "maxVideosPerCreator",
                        "createdAt", "updatedAt"
                 FROM "Funnel" WHERE id = %s
                 """,
@@ -618,8 +621,8 @@ def link_video_to_funnel(video_id: str, funnel_id: str) -> None:
 
 
 @task(name="save_class_node_result", retries=2, retry_delay_seconds=5)
-def save_class_node_result(result: ClassNodeResultCreate) -> None:
-    """Insert or update a ClassNodeResult."""
+def save_class_node_result(result: ClassNodeResultCreate) -> str:
+    """Insert or update a ClassNodeResult. Returns the row id."""
     now = datetime.now(timezone.utc)
     result_id = _generate_cuid()
 
@@ -628,26 +631,28 @@ def save_class_node_result(result: ClassNodeResultCreate) -> None:
             cur.execute(
                 """
                 INSERT INTO "ClassNodeResult" (
-                    id, "videoId", "classNodeId", result, explanation,
-                    "modelUsed", "createdAt", "updatedAt"
+                    id, "videoId", "classNodeId", result, confidence, explanation,
+                    "createdAt", "updatedAt"
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT ("videoId", "classNodeId") DO UPDATE SET
                     result = EXCLUDED.result,
+                    confidence = EXCLUDED.confidence,
                     explanation = EXCLUDED.explanation,
-                    "modelUsed" = EXCLUDED."modelUsed",
                     "updatedAt" = EXCLUDED."updatedAt"
+                RETURNING id
                 """,
                 (
                     result_id,
                     result.video_id,
                     result.class_node_id,
                     result.result.value,
+                    result.confidence_score,
                     result.explanation,
-                    result.model_used,
                     now,
                     now,
                 ),
             )
+            returned_id = cur.fetchone()[0]
             conn.commit()
     logger.info(
         "Saved ClassNodeResult: video=%s class_node=%s result=%s",
@@ -655,6 +660,77 @@ def save_class_node_result(result: ClassNodeResultCreate) -> None:
         result.class_node_id,
         result.result.value,
     )
+    return returned_id
+
+
+@task(name="ensure_llms_exist", retries=2, retry_delay_seconds=5)
+def ensure_llms_exist(llm_ids: list[str]) -> None:
+    """Upsert LLM rows for all model IDs, deriving provider from the model name."""
+    if not llm_ids:
+        return
+    now = datetime.now(timezone.utc)
+    rows = [
+        (
+            llm_id,
+            "anthropic" if "claude" in llm_id.lower() else "openai",
+            now,
+            now,
+        )
+        for llm_id in llm_ids
+    ]
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            psycopg2.extras.execute_values(
+                cur,
+                """
+                INSERT INTO "LLM" (id, provider, "createdAt", "updatedAt")
+                VALUES %s
+                ON CONFLICT (id) DO NOTHING
+                """,
+                rows,
+            )
+            conn.commit()
+    logger.info("Ensured %d LLM row(s): %s", len(llm_ids), llm_ids)
+
+
+@task(name="save_class_node_model_verdicts", retries=2, retry_delay_seconds=5)
+def save_class_node_model_verdicts(verdicts: list[ClassNodeModelVerdictCreate]) -> None:
+    """Batch-insert ClassNodeModelVerdict rows."""
+    if not verdicts:
+        return
+    now = datetime.now(timezone.utc)
+    rows = [
+        (
+            _generate_cuid(),
+            v.video_id,
+            v.class_node_id,
+            v.class_node_result_id,
+            v.llm_id,
+            v.rationale,
+            v.verdict,
+            now,
+            now,
+        )
+        for v in verdicts
+    ]
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            psycopg2.extras.execute_values(
+                cur,
+                """
+                INSERT INTO "ClassNodeModelVerdict" (
+                    id, "videoId", "classNodeId", "classNodeResultId",
+                    "llmId", rationale, verdict, "createdAt", "updatedAt"
+                ) VALUES %s
+                ON CONFLICT ("videoId", "classNodeId", "llmId") DO UPDATE SET
+                    rationale = EXCLUDED.rationale,
+                    verdict = EXCLUDED.verdict,
+                    "updatedAt" = EXCLUDED."updatedAt"
+                """,
+                rows,
+            )
+            conn.commit()
+    logger.info("Saved %d ClassNodeModelVerdict rows", len(verdicts))
 
 
 @task(name="update_funnel_last_run", retries=2, retry_delay_seconds=5)

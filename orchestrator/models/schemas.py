@@ -21,12 +21,14 @@ from models._generated import (  # noqa: F401
     Account,
     Channel,
     ClassNode,
+    ClassNodeModelVerdict,
     ClassNodeResult,
     ClassNodeResultValue,
     Funnel,
     FunnelCreator,
     FunnelKeyword,
     GoldStandard,
+    LLM,
     Review,
     Session,
     TrainingMethod,
@@ -93,5 +95,16 @@ class ClassNodeResultCreate(BaseModel):
     video_id: str
     class_node_id: str
     result: ClassNodeResultValue
+    confidence_score: float
     explanation: str | None = None
-    model_used: str | None = None
+
+
+class ClassNodeModelVerdictCreate(BaseModel):
+    """Data to insert into the ClassNodeModelVerdict table."""
+
+    video_id: str
+    class_node_id: str
+    class_node_result_id: str
+    llm_id: str
+    rationale: str
+    verdict: bool

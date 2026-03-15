@@ -29,27 +29,30 @@ from config import (
     LANGGRAPH_API_URL,
 )
 from models.schemas import (
+    ClassNodeModelVerdictCreate,
+    ClassNodeResultCreate,
+    ClassNodeResultValue,
     ClassNodeWithRelations,
     FunnelWithRelations,
-    GoldStandardWithContext,
     VideoData,
 )
 from tasks.db import (
     class_node_result_exists,
     delete_stale_class_node_results,
+    ensure_llms_exist,
     get_active_funnels,
     get_funnel_by_id,
     get_funnel_video_ids,
-    get_gold_standard_video_data,
     get_video_data,
     get_videos_for_funnel,
     link_video_to_funnel,
+    save_class_node_model_verdicts,
     save_class_node_result,
     save_video,
     update_funnel_last_run,
     video_exists,
 )
-from tasks.evaluate import evaluate_class_node, generate_summary
+from tasks.evaluate import generate_summary
 from tasks.youtube import (
     fetch_creator_videos,
     fetch_transcript,
@@ -77,6 +80,7 @@ def _build_item_content(video: VideoData) -> str:
 
 def _extract_video_id_from_url(url: str) -> str | None:
     import re
+
     m = re.search(
         r"(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]{11})",
         url,
@@ -84,22 +88,93 @@ def _extract_video_id_from_url(url: str) -> str | None:
     return m.group(1) if m else None
 
 
+def _save_results_for_video(
+    video_id: str,
+    data: dict,
+    logger: Any,
+    skip_existing: bool = False,
+) -> None:
+    """Save ClassNodeResult + ClassNodeModelVerdict rows for a single video."""
+    pass_node_ids = {nd["node_id"] for nd in data["classified_as"]}
+    all_verdict_node_ids = {v["node_id"] for v in data["verdicts"]}
+    fail_node_ids = all_verdict_node_ids - pass_node_ids
+
+    # Ensure all referenced LLM rows exist before inserting verdicts
+    unique_llm_ids = list({v["model"] for v in data["verdicts"]})
+    if unique_llm_ids:
+        ensure_llms_exist(unique_llm_ids)
+
+    def _save_node(
+        class_node_id: str, result_value: ClassNodeResultValue, node_data: dict | None
+    ) -> None:
+        if skip_existing and class_node_result_exists(video_id, class_node_id):
+            return
+        node_verdict_list = [
+            v for v in data["verdicts"] if v["node_id"] == class_node_id
+        ]
+        pass_votes = sum(1 for v in node_verdict_list if v["verdict"])
+        confidence_score = (
+            node_data.get("confidence_score", 1.0)
+            if node_data
+            else (pass_votes / len(node_verdict_list) if node_verdict_list else 0.0)
+        )
+        try:
+            result_id = save_class_node_result(
+                ClassNodeResultCreate(
+                    video_id=video_id,
+                    class_node_id=class_node_id,
+                    result=result_value,
+                    confidence_score=confidence_score,
+                    explanation=node_data.get("explanation") if node_data else None,
+                )
+            )
+            if node_verdict_list:
+                save_class_node_model_verdicts(
+                    [
+                        ClassNodeModelVerdictCreate(
+                            video_id=video_id,
+                            class_node_id=class_node_id,
+                            class_node_result_id=result_id,
+                            llm_id=v["model"],
+                            rationale=v["rationale"],
+                            verdict=v["verdict"],
+                        )
+                        for v in node_verdict_list
+                    ]
+                )
+        except Exception:
+            logger.exception(
+                "Failed to save ClassNodeResult: video=%s class_node=%s",
+                video_id,
+                class_node_id,
+            )
+
+    for node_data in data["classified_as"]:
+        _save_node(node_data["node_id"], ClassNodeResultValue.PASS, node_data)
+
+    for node_id in fail_node_ids:
+        _save_node(node_id, ClassNodeResultValue.FAIL, None)
+
+
 def _classify_videos_via_langgraph(
     funnel: FunnelWithRelations,
     class_nodes: list[ClassNodeWithRelations],
     videos: list[VideoData],
     logger: Any,
-) -> dict[str, list[str]]:
+) -> dict[str, dict]:
     """
     Call the deployed classify_items LangGraph agent.
 
-    Returns a mapping of video_id → list[class_node_id] indicating which
-    ClassNodes each video was classified into.
+    Returns a mapping of video_id → {
+        "classified_as": list of {node_id, confidence_score, explanation},
+        "verdicts":      list of {node_id, model, rationale, verdict},
+    }
 
     The graph is called with:
       - taxonomy = funnel metadata
-      - root_node_id = first root ClassNode's id (parentClassNodeId is None)
-      - nodes = full ClassNode list as ClassNodeState objects
+      - root_node_id = the agent's synthetic root node ID (agents/state.py ROOT_NODE_ID)
+      - nodes = full ClassNode list as ClassNodeState objects, where top-level nodes
+                point to the synthetic root as their parent
       - items = all videos as ItemState objects
     """
     from langgraph_sdk import get_sync_client
@@ -115,15 +190,10 @@ def _classify_videos_via_langgraph(
         logger.info("No videos to classify for funnel '%s'", funnel.name)
         return {}
 
-    # Find root class nodes (no parent) to use as starting points
-    root_nodes = [n for n in class_nodes if n.parent_class_node_id is None]
-    if not root_nodes:
-        logger.warning("Funnel '%s' has no root ClassNodes", funnel.name)
-        return {}
-
-    # Use the first root node as the LangGraph entry point
-    # (single-root tree assumption; multi-root funnels are uncommon)
-    root_node_id = root_nodes[0].id
+    # The agent always maintains a synthetic root node with this hardcoded ID
+    # (defined as ROOT_NODE_ID in agents/state.py). Classification starts at this
+    # root, so top-level class nodes must declare it as their parent_node_id.
+    ROOT_NODE_ID = "root"
 
     nodes = []
     for cn in class_nodes:
@@ -131,23 +201,26 @@ def _classify_videos_via_langgraph(
         for gs in cn.gold_standards:
             vid_id = _extract_video_id_from_url(gs.video_url)
             if vid_id:
-                few_shot_items.append({
-                    "item_id": vid_id,
-                    "confidence_score": 1.0,
-                    "is_verified": True,
-                    "used_as_few_shot_example": True,
-                })
+                few_shot_items.append(
+                    {
+                        "item_id": vid_id,
+                        "confidence_score": 1.0,
+                        "is_verified": True,
+                        "used_as_few_shot_example": True,
+                    }
+                )
 
-        # Use first line of description as a short label
-        label = cn.description.split("\n")[0][:80]
-
-        nodes.append({
-            "id": cn.id,
-            "parent_node_id": cn.parent_class_node_id or "",
-            "label": label,
-            "description": cn.description,
-            "items": few_shot_items,
-        })
+        nodes.append(
+            {
+                "id": cn.id,
+                # Top-level class nodes (no DB parent) must point to the agent's
+                # synthetic root so the agent can find them as children of root.
+                "parent_node_id": cn.parent_class_node_id or ROOT_NODE_ID,
+                "label": cn.title or cn.id,
+                "description": cn.description or "",
+                "items": few_shot_items,
+            }
+        )
 
     items = [
         {
@@ -169,7 +242,7 @@ def _classify_videos_via_langgraph(
         "total_invocations": CLASSIFY_TOTAL_INVOCATIONS,
         "majority_threshold": CLASSIFY_MAJORITY_THRESHOLD,
         "is_for_single_batch": True,
-        "root_node_id": root_node_id,
+        "root_node_id": ROOT_NODE_ID,
         "nodes": nodes,
         "items": items,
     }
@@ -198,17 +271,24 @@ def _classify_videos_via_langgraph(
 
     class_node_ids = {cn.id for cn in class_nodes}
 
-    result: dict[str, list[str]] = {}
+    result: dict[str, dict] = {}
     for item in classified_items:
         video_id = item["id"]
-        classified_as = item.get("classified_as") or []
-        node_ids = [
-            c["node_id"]
-            for c in classified_as
+        classified_as = [
+            c
+            for c in (item.get("classified_as") or [])
             if c["node_id"] in class_node_ids
         ]
-        if node_ids:
-            result[video_id] = node_ids
+        # Include all verdicts (PASS and FAIL) for nodes in this funnel
+        verdicts = [
+            v for v in (item.get("verdicts") or []) if v["node_id"] in class_node_ids
+        ]
+        if not classified_as and not verdicts:
+            continue
+        result[video_id] = {
+            "classified_as": classified_as,
+            "verdicts": verdicts,
+        }
 
     logger.info(
         "LangGraph classified %d/%d videos into class nodes",
@@ -230,7 +310,9 @@ def discover_videos(funnel: FunnelWithRelations) -> list[str]:
     discovered: set[str] = set()
 
     for kw in funnel.keywords:
-        video_ids = search_videos_by_keyword(kw.keyword)
+        video_ids = search_videos_by_keyword(
+            kw.keyword, max_results=funnel.max_videos_per_keyword
+        )
         discovered.update(video_ids)
         logger.info("Keyword '%s': found %d videos", kw.keyword, len(video_ids))
 
@@ -239,6 +321,7 @@ def discover_videos(funnel: FunnelWithRelations) -> list[str]:
             channel_id=creator.channel_id,
             channel_url=creator.channel_url,
             months_back=creator.scrape_months_back,
+            max_results=funnel.max_videos_per_creator,
         )
         discovered.update(video_ids)
         logger.info(
@@ -382,40 +465,9 @@ def _process_funnel(
             update_funnel_last_run(funnel.id)
         return
 
-    # ── 4. Save ClassNodeResults ──────────────────────────────
-    class_node_map = {cn.id: cn for cn in funnel.class_nodes}
-
-    for video_id, class_node_ids in classification_map.items():
-        video_data = get_video_data(video_id)
-        if video_data is None:
-            continue
-
-        for class_node_id in class_node_ids:
-            class_node = class_node_map.get(class_node_id)
-            if class_node is None:
-                continue
-
-            if class_node_result_exists(video_id, class_node_id):
-                continue
-
-            few_shot = get_gold_standard_video_data(
-                class_node_id=class_node_id,
-                funnel_id=funnel.id,
-            )
-            try:
-                result = evaluate_class_node(
-                    video=video_data,
-                    class_node=class_node,
-                    model_name=model_name,
-                    few_shot_examples=few_shot,
-                )
-                save_class_node_result(result)
-            except Exception:
-                logger.exception(
-                    "ClassNode eval failed: video=%s class_node=%s",
-                    video_id,
-                    class_node_id,
-                )
+    # ── 4. Save ClassNodeResults and per-model verdicts ───────
+    for video_id, data in classification_map.items():
+        _save_results_for_video(video_id, data, logger, skip_existing=True)
 
     if update_last_run:
         update_funnel_last_run(funnel.id)
@@ -463,13 +515,12 @@ def video_pipeline(
 def re_evaluate_videos(
     funnel_id: str,
     video_ids: list[str],
-    model_name: str | None = None,
 ) -> None:
     """
-    Re-evaluate selected videos against a funnel's current ClassNodes.
+    Re-classify selected videos against a funnel's current ClassNodes via LangGraph.
 
-    Does NOT discover new videos or call the LangGraph classifier.
-    Just re-runs ClassNode evaluation with upsert, then cleans up orphaned results.
+    Does NOT discover new videos. Runs LangGraph classification, saves results,
+    then cleans up orphaned results.
     """
     logger = get_run_logger()
     logger.info("Re-evaluating %d videos for funnel %s", len(video_ids), funnel_id)
@@ -484,31 +535,25 @@ def re_evaluate_videos(
         delete_stale_class_node_results(video_ids, funnel_id)
         return
 
-    class_node_map = {cn.id: cn for cn in funnel.class_nodes}
+    videos = [v for vid in video_ids if (v := get_video_data(vid)) is not None]
+    missing = set(video_ids) - {v.video_id for v in videos}
+    for vid in missing:
+        logger.warning("Video %s not found in DB, skipping", vid)
 
-    for video_id in video_ids:
-        video_data = get_video_data(video_id)
-        if video_data is None:
-            logger.warning("Video %s not found in DB, skipping", video_id)
-            continue
+    try:
+        classification_map = _classify_videos_via_langgraph(
+            funnel=funnel,
+            class_nodes=funnel.class_nodes,
+            videos=videos,
+            logger=logger,
+        )
+    except Exception:
+        logger.exception("LangGraph classification failed for funnel '%s'", funnel.name)
+        delete_stale_class_node_results(video_ids, funnel_id)
+        return
 
-        for class_node in funnel.class_nodes:
-            few_shot = get_gold_standard_video_data(
-                class_node_id=class_node.id,
-                funnel_id=funnel_id,
-            )
-            try:
-                result = evaluate_class_node(
-                    video=video_data,
-                    class_node=class_node,
-                    model_name=model_name,
-                    few_shot_examples=few_shot,
-                )
-                save_class_node_result(result)
-            except Exception:
-                logger.exception(
-                    "Failed to evaluate video=%s class_node=%s", video_id, class_node.id
-                )
+    for video_id, data in classification_map.items():
+        _save_results_for_video(video_id, data, logger, skip_existing=False)
 
     delete_stale_class_node_results(video_ids, funnel_id)
 

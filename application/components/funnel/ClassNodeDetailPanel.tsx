@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface VideoItem {
   id: string;
@@ -15,21 +15,89 @@ interface VideoItem {
 interface Props {
   classNodeId: string;
   funnelId: string;
-  initialDescription: string;
+  initialTitle: string;
+  initialDescription: string | null;
   onClose: () => void;
 }
 
-export function ClassNodeDetailPanel({ classNodeId, funnelId, initialDescription, onClose }: Props) {
-  const [description, setDescription] = useState(initialDescription);
-  const [editingDesc, setEditingDesc] = useState(false);
-  const [savingDesc, setSavingDesc] = useState(false);
+export function ClassNodeDetailPanel({
+  classNodeId,
+  funnelId,
+  initialTitle,
+  initialDescription,
+  onClose,
+}: Props) {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
+  const [title, setTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription ?? '');
+  const [savedTitle, setSavedTitle] = useState(initialTitle);
+  const [savedDescription, setSavedDescription] = useState(initialDescription ?? '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+
   useEffect(() => {
-    setDescription(initialDescription);
-  }, [classNodeId, initialDescription]);
+    setTitle(initialTitle);
+    setSavedTitle(initialTitle);
+    setDescription(initialDescription ?? '');
+    setSavedDescription(initialDescription ?? '');
+  }, [initialTitle, initialDescription]);
+
+  useEffect(() => {
+    const textarea = descriptionRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [description]);
+
+  const saveFields = useCallback(async (newTitle: string, newDesc: string) => {
+    if (!newTitle.trim() || isSaving) return;
+    const titleChanged = newTitle.trim() !== savedTitle.trim();
+    const descChanged = (newDesc.trim() || null) !== (savedDescription.trim() || null);
+    if (!titleChanged && !descChanged) return;
+
+    setIsSaving(true);
+    setSaved(false);
+    try {
+      const updates: Record<string, string | null> = {};
+      if (titleChanged) updates.title = newTitle.trim();
+      if (descChanged) updates.description = newDesc.trim() || null;
+
+      const res = await fetch(`/api/class-nodes/${classNodeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        setSavedTitle(newTitle.trim());
+        setSavedDescription(newDesc.trim());
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+        window.dispatchEvent(
+          new CustomEvent('class-node-updated', {
+            detail: { classNodeId, funnelId, title: newTitle.trim(), description: newDesc.trim() || null },
+          }),
+        );
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }, [classNodeId, funnelId, isSaving, savedTitle, savedDescription]);
+
+  const handleBlur = () => {
+    saveFields(title, description);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      descriptionRef.current?.focus();
+    }
+  };
 
   useEffect(() => {
     setLoadingVideos(true);
@@ -38,28 +106,6 @@ export function ClassNodeDetailPanel({ classNodeId, funnelId, initialDescription
       .then((data) => { setVideos(data); setLoadingVideos(false); })
       .catch(() => setLoadingVideos(false));
   }, [classNodeId]);
-
-  const handleSaveDesc = async () => {
-    if (!description.trim() || savingDesc) return;
-    setSavingDesc(true);
-    try {
-      const res = await fetch(`/api/class-nodes/${classNodeId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: description.trim() }),
-      });
-      if (res.ok) {
-        setEditingDesc(false);
-        window.dispatchEvent(
-          new CustomEvent('class-node-updated', {
-            detail: { classNodeId, funnelId, description: description.trim() },
-          }),
-        );
-      }
-    } finally {
-      setSavingDesc(false);
-    }
-  };
 
   const handleDelete = async () => {
     if (!confirm('Delete this class node? This cannot be undone.')) return;
@@ -78,8 +124,9 @@ export function ClassNodeDetailPanel({ classNodeId, funnelId, initialDescription
 
   return (
     <div className="flex flex-col h-full bg-white">
+      {/* Header bar */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">
-        <span className="text-sm text-gray-400">Class node</span>
+        <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Class node</span>
         <div className="flex items-center gap-2">
           <button
             onClick={handleDelete}
@@ -103,54 +150,36 @@ export function ClassNodeDetailPanel({ classNodeId, funnelId, initialDescription
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
-        {/* Description */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-gray-800">Description</h3>
-            {!editingDesc && (
-              <button
-                onClick={() => setEditingDesc(true)}
-                className="text-xs text-blue-600 hover:text-blue-700"
-              >
-                Edit
-              </button>
-            )}
+      <div className="flex-1 overflow-y-auto">
+        {/* Title + Description */}
+        <div className="px-5 pt-5 pb-4 border-b border-gray-100 space-y-2">
+          <div className="flex items-center gap-3">
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={handleBlur}
+              onKeyDown={handleTitleKeyDown}
+              placeholder="Node title…"
+              className="text-xl font-bold tracking-tight text-gray-900 bg-transparent border-0 outline-none w-full py-1 placeholder:text-gray-300 focus:ring-0 rounded-lg transition-colors hover:bg-gray-50 focus:bg-gray-50 cursor-pointer focus:cursor-text px-2"
+            />
+            {isSaving && <span className="text-xs text-gray-400 flex-shrink-0">Saving...</span>}
+            {saved && <span className="text-xs text-green-500 flex-shrink-0">Saved</span>}
           </div>
-
-          {editingDesc ? (
-            <div className="space-y-2">
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                autoFocus
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setEditingDesc(false); setDescription(initialDescription); }}
-                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-lg hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveDesc}
-                  disabled={savingDesc || !description.trim()}
-                  className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-700 leading-relaxed">{description || 'No description.'}</p>
-          )}
+          <textarea
+            ref={descriptionRef}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            onBlur={handleBlur}
+            placeholder="Add a description of what this node classifies…"
+            rows={1}
+            className="text-sm text-gray-400 bg-transparent border-0 outline-none w-full py-1.5 placeholder:text-gray-300 focus:ring-0 rounded-lg transition-colors resize-none overflow-hidden leading-relaxed hover:bg-gray-50 focus:bg-gray-50 cursor-pointer focus:cursor-text px-2"
+          />
         </div>
 
         {/* Videos */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+        <div className="px-5 py-5">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
             Videos passing this node{!loadingVideos && ` (${videos.length})`}
           </h3>
 

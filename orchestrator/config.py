@@ -42,20 +42,18 @@ DEFAULT_LLM_MODEL: str = os.environ.get("DEFAULT_LLM_MODEL")
 
 # ── LangGraph (classify_items agent) ─────────────────────────
 
-LANGGRAPH_API_URL: str = os.environ.get("LANGGRAPH_API_URL", "http://localhost:2024")
+LANGGRAPH_API_URL: str = os.environ.get("LANGGRAPH_API_URL")
 LANGGRAPH_API_KEY: str | None = os.environ.get("LANGGRAPH_API_KEY")
 
 # Models used for multi-model voting in classify_items_graph.
 # Comma-separated list of model values from agents/llm_factory.py AIModel enum.
 # e.g. "gpt-4o,claude-3-5-sonnet-latest"
 CLASSIFY_MODELS: list[str] = [
-    m.strip()
-    for m in os.environ.get("CLASSIFY_MODELS", "gpt-4o").split(",")
-    if m.strip()
+    m.strip() for m in os.environ.get("CLASSIFY_MODELS").split(",") if m.strip()
 ]
-CLASSIFY_TOTAL_INVOCATIONS: int = int(os.environ.get("CLASSIFY_TOTAL_INVOCATIONS", "3"))
+CLASSIFY_TOTAL_INVOCATIONS: int = int(os.environ.get("CLASSIFY_TOTAL_INVOCATIONS"))
 CLASSIFY_MAJORITY_THRESHOLD: float = float(
-    os.environ.get("CLASSIFY_MAJORITY_THRESHOLD", "0.5")
+    os.environ.get("CLASSIFY_MAJORITY_THRESHOLD")
 )
 
 # ── YouTube Scraping ─────────────────────────────────────────

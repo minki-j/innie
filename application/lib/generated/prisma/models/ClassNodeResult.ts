@@ -39,9 +39,8 @@ export type ClassNodeResultMinAggregateOutputType = {
   videoId: string | null
   classNodeId: string | null
   result: $Enums.ClassNodeResultValue | null
-  explanation: string | null
-  modelUsed: string | null
   confidence: number | null
+  explanation: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -51,9 +50,8 @@ export type ClassNodeResultMaxAggregateOutputType = {
   videoId: string | null
   classNodeId: string | null
   result: $Enums.ClassNodeResultValue | null
-  explanation: string | null
-  modelUsed: string | null
   confidence: number | null
+  explanation: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -63,9 +61,8 @@ export type ClassNodeResultCountAggregateOutputType = {
   videoId: number
   classNodeId: number
   result: number
-  explanation: number
-  modelUsed: number
   confidence: number
+  explanation: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -85,9 +82,8 @@ export type ClassNodeResultMinAggregateInputType = {
   videoId?: true
   classNodeId?: true
   result?: true
-  explanation?: true
-  modelUsed?: true
   confidence?: true
+  explanation?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -97,9 +93,8 @@ export type ClassNodeResultMaxAggregateInputType = {
   videoId?: true
   classNodeId?: true
   result?: true
-  explanation?: true
-  modelUsed?: true
   confidence?: true
+  explanation?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -109,9 +104,8 @@ export type ClassNodeResultCountAggregateInputType = {
   videoId?: true
   classNodeId?: true
   result?: true
-  explanation?: true
-  modelUsed?: true
   confidence?: true
+  explanation?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -208,9 +202,8 @@ export type ClassNodeResultGroupByOutputType = {
   videoId: string
   classNodeId: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation: string | null
-  modelUsed: string | null
-  confidence: number | null
   createdAt: Date
   updatedAt: Date
   _count: ClassNodeResultCountAggregateOutputType | null
@@ -243,13 +236,13 @@ export type ClassNodeResultWhereInput = {
   videoId?: Prisma.StringFilter<"ClassNodeResult"> | string
   classNodeId?: Prisma.StringFilter<"ClassNodeResult"> | string
   result?: Prisma.EnumClassNodeResultValueFilter<"ClassNodeResult"> | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFilter<"ClassNodeResult"> | number
   explanation?: Prisma.StringNullableFilter<"ClassNodeResult"> | string | null
-  modelUsed?: Prisma.StringNullableFilter<"ClassNodeResult"> | string | null
-  confidence?: Prisma.IntNullableFilter<"ClassNodeResult"> | number | null
   createdAt?: Prisma.DateTimeFilter<"ClassNodeResult"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassNodeResult"> | Date | string
   video?: Prisma.XOR<Prisma.VideoScalarRelationFilter, Prisma.VideoWhereInput>
   classNode?: Prisma.XOR<Prisma.ClassNodeScalarRelationFilter, Prisma.ClassNodeWhereInput>
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictListRelationFilter
 }
 
 export type ClassNodeResultOrderByWithRelationInput = {
@@ -257,13 +250,13 @@ export type ClassNodeResultOrderByWithRelationInput = {
   videoId?: Prisma.SortOrder
   classNodeId?: Prisma.SortOrder
   result?: Prisma.SortOrder
+  confidence?: Prisma.SortOrder
   explanation?: Prisma.SortOrderInput | Prisma.SortOrder
-  modelUsed?: Prisma.SortOrderInput | Prisma.SortOrder
-  confidence?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   video?: Prisma.VideoOrderByWithRelationInput
   classNode?: Prisma.ClassNodeOrderByWithRelationInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictOrderByRelationAggregateInput
 }
 
 export type ClassNodeResultWhereUniqueInput = Prisma.AtLeast<{
@@ -275,13 +268,13 @@ export type ClassNodeResultWhereUniqueInput = Prisma.AtLeast<{
   videoId?: Prisma.StringFilter<"ClassNodeResult"> | string
   classNodeId?: Prisma.StringFilter<"ClassNodeResult"> | string
   result?: Prisma.EnumClassNodeResultValueFilter<"ClassNodeResult"> | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFilter<"ClassNodeResult"> | number
   explanation?: Prisma.StringNullableFilter<"ClassNodeResult"> | string | null
-  modelUsed?: Prisma.StringNullableFilter<"ClassNodeResult"> | string | null
-  confidence?: Prisma.IntNullableFilter<"ClassNodeResult"> | number | null
   createdAt?: Prisma.DateTimeFilter<"ClassNodeResult"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassNodeResult"> | Date | string
   video?: Prisma.XOR<Prisma.VideoScalarRelationFilter, Prisma.VideoWhereInput>
   classNode?: Prisma.XOR<Prisma.ClassNodeScalarRelationFilter, Prisma.ClassNodeWhereInput>
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictListRelationFilter
 }, "id" | "videoId_classNodeId">
 
 export type ClassNodeResultOrderByWithAggregationInput = {
@@ -289,9 +282,8 @@ export type ClassNodeResultOrderByWithAggregationInput = {
   videoId?: Prisma.SortOrder
   classNodeId?: Prisma.SortOrder
   result?: Prisma.SortOrder
+  confidence?: Prisma.SortOrder
   explanation?: Prisma.SortOrderInput | Prisma.SortOrder
-  modelUsed?: Prisma.SortOrderInput | Prisma.SortOrder
-  confidence?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ClassNodeResultCountOrderByAggregateInput
@@ -309,9 +301,8 @@ export type ClassNodeResultScalarWhereWithAggregatesInput = {
   videoId?: Prisma.StringWithAggregatesFilter<"ClassNodeResult"> | string
   classNodeId?: Prisma.StringWithAggregatesFilter<"ClassNodeResult"> | string
   result?: Prisma.EnumClassNodeResultValueWithAggregatesFilter<"ClassNodeResult"> | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatWithAggregatesFilter<"ClassNodeResult"> | number
   explanation?: Prisma.StringNullableWithAggregatesFilter<"ClassNodeResult"> | string | null
-  modelUsed?: Prisma.StringNullableWithAggregatesFilter<"ClassNodeResult"> | string | null
-  confidence?: Prisma.IntNullableWithAggregatesFilter<"ClassNodeResult"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClassNodeResult"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ClassNodeResult"> | Date | string
 }
@@ -319,13 +310,13 @@ export type ClassNodeResultScalarWhereWithAggregatesInput = {
 export type ClassNodeResultCreateInput = {
   id?: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   video: Prisma.VideoCreateNestedOneWithoutClassNodeResultsInput
   classNode: Prisma.ClassNodeCreateNestedOneWithoutResultsInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeResultInput
 }
 
 export type ClassNodeResultUncheckedCreateInput = {
@@ -333,23 +324,23 @@ export type ClassNodeResultUncheckedCreateInput = {
   videoId: string
   classNodeId: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeResultInput
 }
 
 export type ClassNodeResultUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   video?: Prisma.VideoUpdateOneRequiredWithoutClassNodeResultsNestedInput
   classNode?: Prisma.ClassNodeUpdateOneRequiredWithoutResultsNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeResultNestedInput
 }
 
 export type ClassNodeResultUncheckedUpdateInput = {
@@ -357,11 +348,11 @@ export type ClassNodeResultUncheckedUpdateInput = {
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
   classNodeId?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeResultNestedInput
 }
 
 export type ClassNodeResultCreateManyInput = {
@@ -369,9 +360,8 @@ export type ClassNodeResultCreateManyInput = {
   videoId: string
   classNodeId: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -379,9 +369,8 @@ export type ClassNodeResultCreateManyInput = {
 export type ClassNodeResultUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -391,9 +380,8 @@ export type ClassNodeResultUncheckedUpdateManyInput = {
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
   classNodeId?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -418,9 +406,8 @@ export type ClassNodeResultCountOrderByAggregateInput = {
   videoId?: Prisma.SortOrder
   classNodeId?: Prisma.SortOrder
   result?: Prisma.SortOrder
-  explanation?: Prisma.SortOrder
-  modelUsed?: Prisma.SortOrder
   confidence?: Prisma.SortOrder
+  explanation?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -434,9 +421,8 @@ export type ClassNodeResultMaxOrderByAggregateInput = {
   videoId?: Prisma.SortOrder
   classNodeId?: Prisma.SortOrder
   result?: Prisma.SortOrder
-  explanation?: Prisma.SortOrder
-  modelUsed?: Prisma.SortOrder
   confidence?: Prisma.SortOrder
+  explanation?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -446,15 +432,19 @@ export type ClassNodeResultMinOrderByAggregateInput = {
   videoId?: Prisma.SortOrder
   classNodeId?: Prisma.SortOrder
   result?: Prisma.SortOrder
-  explanation?: Prisma.SortOrder
-  modelUsed?: Prisma.SortOrder
   confidence?: Prisma.SortOrder
+  explanation?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type ClassNodeResultSumOrderByAggregateInput = {
   confidence?: Prisma.SortOrder
+}
+
+export type ClassNodeResultScalarRelationFilter = {
+  is?: Prisma.ClassNodeResultWhereInput
+  isNot?: Prisma.ClassNodeResultWhereInput
 }
 
 export type ClassNodeResultCreateNestedManyWithoutVideoInput = {
@@ -545,26 +535,48 @@ export type EnumClassNodeResultValueFieldUpdateOperationsInput = {
   set?: $Enums.ClassNodeResultValue
 }
 
+export type FloatFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type ClassNodeResultCreateNestedOneWithoutClassNodeModelVerdictsInput = {
+  create?: Prisma.XOR<Prisma.ClassNodeResultCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeResultUncheckedCreateWithoutClassNodeModelVerdictsInput>
+  connectOrCreate?: Prisma.ClassNodeResultCreateOrConnectWithoutClassNodeModelVerdictsInput
+  connect?: Prisma.ClassNodeResultWhereUniqueInput
+}
+
+export type ClassNodeResultUpdateOneRequiredWithoutClassNodeModelVerdictsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassNodeResultCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeResultUncheckedCreateWithoutClassNodeModelVerdictsInput>
+  connectOrCreate?: Prisma.ClassNodeResultCreateOrConnectWithoutClassNodeModelVerdictsInput
+  upsert?: Prisma.ClassNodeResultUpsertWithoutClassNodeModelVerdictsInput
+  connect?: Prisma.ClassNodeResultWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClassNodeResultUpdateToOneWithWhereWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeResultUpdateWithoutClassNodeModelVerdictsInput>, Prisma.ClassNodeResultUncheckedUpdateWithoutClassNodeModelVerdictsInput>
+}
+
 export type ClassNodeResultCreateWithoutVideoInput = {
   id?: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   classNode: Prisma.ClassNodeCreateNestedOneWithoutResultsInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeResultInput
 }
 
 export type ClassNodeResultUncheckedCreateWithoutVideoInput = {
   id?: string
   classNodeId: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeResultInput
 }
 
 export type ClassNodeResultCreateOrConnectWithoutVideoInput = {
@@ -601,9 +613,8 @@ export type ClassNodeResultScalarWhereInput = {
   videoId?: Prisma.StringFilter<"ClassNodeResult"> | string
   classNodeId?: Prisma.StringFilter<"ClassNodeResult"> | string
   result?: Prisma.EnumClassNodeResultValueFilter<"ClassNodeResult"> | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFilter<"ClassNodeResult"> | number
   explanation?: Prisma.StringNullableFilter<"ClassNodeResult"> | string | null
-  modelUsed?: Prisma.StringNullableFilter<"ClassNodeResult"> | string | null
-  confidence?: Prisma.IntNullableFilter<"ClassNodeResult"> | number | null
   createdAt?: Prisma.DateTimeFilter<"ClassNodeResult"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassNodeResult"> | Date | string
 }
@@ -611,23 +622,23 @@ export type ClassNodeResultScalarWhereInput = {
 export type ClassNodeResultCreateWithoutClassNodeInput = {
   id?: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   video: Prisma.VideoCreateNestedOneWithoutClassNodeResultsInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeResultInput
 }
 
 export type ClassNodeResultUncheckedCreateWithoutClassNodeInput = {
   id?: string
   videoId: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeResultInput
 }
 
 export type ClassNodeResultCreateOrConnectWithoutClassNodeInput = {
@@ -656,13 +667,72 @@ export type ClassNodeResultUpdateManyWithWhereWithoutClassNodeInput = {
   data: Prisma.XOR<Prisma.ClassNodeResultUpdateManyMutationInput, Prisma.ClassNodeResultUncheckedUpdateManyWithoutClassNodeInput>
 }
 
+export type ClassNodeResultCreateWithoutClassNodeModelVerdictsInput = {
+  id?: string
+  result: $Enums.ClassNodeResultValue
+  confidence: number
+  explanation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  video: Prisma.VideoCreateNestedOneWithoutClassNodeResultsInput
+  classNode: Prisma.ClassNodeCreateNestedOneWithoutResultsInput
+}
+
+export type ClassNodeResultUncheckedCreateWithoutClassNodeModelVerdictsInput = {
+  id?: string
+  videoId: string
+  classNodeId: string
+  result: $Enums.ClassNodeResultValue
+  confidence: number
+  explanation?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClassNodeResultCreateOrConnectWithoutClassNodeModelVerdictsInput = {
+  where: Prisma.ClassNodeResultWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClassNodeResultCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeResultUncheckedCreateWithoutClassNodeModelVerdictsInput>
+}
+
+export type ClassNodeResultUpsertWithoutClassNodeModelVerdictsInput = {
+  update: Prisma.XOR<Prisma.ClassNodeResultUpdateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeResultUncheckedUpdateWithoutClassNodeModelVerdictsInput>
+  create: Prisma.XOR<Prisma.ClassNodeResultCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeResultUncheckedCreateWithoutClassNodeModelVerdictsInput>
+  where?: Prisma.ClassNodeResultWhereInput
+}
+
+export type ClassNodeResultUpdateToOneWithWhereWithoutClassNodeModelVerdictsInput = {
+  where?: Prisma.ClassNodeResultWhereInput
+  data: Prisma.XOR<Prisma.ClassNodeResultUpdateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeResultUncheckedUpdateWithoutClassNodeModelVerdictsInput>
+}
+
+export type ClassNodeResultUpdateWithoutClassNodeModelVerdictsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
+  explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  video?: Prisma.VideoUpdateOneRequiredWithoutClassNodeResultsNestedInput
+  classNode?: Prisma.ClassNodeUpdateOneRequiredWithoutResultsNestedInput
+}
+
+export type ClassNodeResultUncheckedUpdateWithoutClassNodeModelVerdictsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  videoId?: Prisma.StringFieldUpdateOperationsInput | string
+  classNodeId?: Prisma.StringFieldUpdateOperationsInput | string
+  result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
+  explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type ClassNodeResultCreateManyVideoInput = {
   id?: string
   classNodeId: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -670,32 +740,31 @@ export type ClassNodeResultCreateManyVideoInput = {
 export type ClassNodeResultUpdateWithoutVideoInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   classNode?: Prisma.ClassNodeUpdateOneRequiredWithoutResultsNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeResultNestedInput
 }
 
 export type ClassNodeResultUncheckedUpdateWithoutVideoInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   classNodeId?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeResultNestedInput
 }
 
 export type ClassNodeResultUncheckedUpdateManyWithoutVideoInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   classNodeId?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -704,9 +773,8 @@ export type ClassNodeResultCreateManyClassNodeInput = {
   id?: string
   videoId: string
   result: $Enums.ClassNodeResultValue
+  confidence: number
   explanation?: string | null
-  modelUsed?: string | null
-  confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -714,36 +782,64 @@ export type ClassNodeResultCreateManyClassNodeInput = {
 export type ClassNodeResultUpdateWithoutClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   video?: Prisma.VideoUpdateOneRequiredWithoutClassNodeResultsNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeResultNestedInput
 }
 
 export type ClassNodeResultUncheckedUpdateWithoutClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeResultNestedInput
 }
 
 export type ClassNodeResultUncheckedUpdateManyWithoutClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   videoId?: Prisma.StringFieldUpdateOperationsInput | string
   result?: Prisma.EnumClassNodeResultValueFieldUpdateOperationsInput | $Enums.ClassNodeResultValue
+  confidence?: Prisma.FloatFieldUpdateOperationsInput | number
   explanation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  modelUsed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  confidence?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type ClassNodeResultCountOutputType
+ */
+
+export type ClassNodeResultCountOutputType = {
+  classNodeModelVerdicts: number
+}
+
+export type ClassNodeResultCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  classNodeModelVerdicts?: boolean | ClassNodeResultCountOutputTypeCountClassNodeModelVerdictsArgs
+}
+
+/**
+ * ClassNodeResultCountOutputType without action
+ */
+export type ClassNodeResultCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassNodeResultCountOutputType
+   */
+  select?: Prisma.ClassNodeResultCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ClassNodeResultCountOutputType without action
+ */
+export type ClassNodeResultCountOutputTypeCountClassNodeModelVerdictsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassNodeModelVerdictWhereInput
+}
 
 
 export type ClassNodeResultSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -751,13 +847,14 @@ export type ClassNodeResultSelect<ExtArgs extends runtime.Types.Extensions.Inter
   videoId?: boolean
   classNodeId?: boolean
   result?: boolean
-  explanation?: boolean
-  modelUsed?: boolean
   confidence?: boolean
+  explanation?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
   classNode?: boolean | Prisma.ClassNodeDefaultArgs<ExtArgs>
+  classNodeModelVerdicts?: boolean | Prisma.ClassNodeResult$classNodeModelVerdictsArgs<ExtArgs>
+  _count?: boolean | Prisma.ClassNodeResultCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classNodeResult"]>
 
 export type ClassNodeResultSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -765,9 +862,8 @@ export type ClassNodeResultSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   videoId?: boolean
   classNodeId?: boolean
   result?: boolean
-  explanation?: boolean
-  modelUsed?: boolean
   confidence?: boolean
+  explanation?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
@@ -779,9 +875,8 @@ export type ClassNodeResultSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   videoId?: boolean
   classNodeId?: boolean
   result?: boolean
-  explanation?: boolean
-  modelUsed?: boolean
   confidence?: boolean
+  explanation?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
@@ -793,17 +888,18 @@ export type ClassNodeResultSelectScalar = {
   videoId?: boolean
   classNodeId?: boolean
   result?: boolean
-  explanation?: boolean
-  modelUsed?: boolean
   confidence?: boolean
+  explanation?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClassNodeResultOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "videoId" | "classNodeId" | "result" | "explanation" | "modelUsed" | "confidence" | "createdAt" | "updatedAt", ExtArgs["result"]["classNodeResult"]>
+export type ClassNodeResultOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "videoId" | "classNodeId" | "result" | "confidence" | "explanation" | "createdAt" | "updatedAt", ExtArgs["result"]["classNodeResult"]>
 export type ClassNodeResultInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
   classNode?: boolean | Prisma.ClassNodeDefaultArgs<ExtArgs>
+  classNodeModelVerdicts?: boolean | Prisma.ClassNodeResult$classNodeModelVerdictsArgs<ExtArgs>
+  _count?: boolean | Prisma.ClassNodeResultCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClassNodeResultIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   video?: boolean | Prisma.VideoDefaultArgs<ExtArgs>
@@ -819,15 +915,15 @@ export type $ClassNodeResultPayload<ExtArgs extends runtime.Types.Extensions.Int
   objects: {
     video: Prisma.$VideoPayload<ExtArgs>
     classNode: Prisma.$ClassNodePayload<ExtArgs>
+    classNodeModelVerdicts: Prisma.$ClassNodeModelVerdictPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     videoId: string
     classNodeId: string
     result: $Enums.ClassNodeResultValue
+    confidence: number
     explanation: string | null
-    modelUsed: string | null
-    confidence: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["classNodeResult"]>
@@ -1226,6 +1322,7 @@ export interface Prisma__ClassNodeResultClient<T, Null = never, ExtArgs extends 
   readonly [Symbol.toStringTag]: "PrismaPromise"
   video<T extends Prisma.VideoDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VideoDefaultArgs<ExtArgs>>): Prisma.Prisma__VideoClient<runtime.Types.Result.GetResult<Prisma.$VideoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   classNode<T extends Prisma.ClassNodeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassNodeDefaultArgs<ExtArgs>>): Prisma.Prisma__ClassNodeClient<runtime.Types.Result.GetResult<Prisma.$ClassNodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  classNodeModelVerdicts<T extends Prisma.ClassNodeResult$classNodeModelVerdictsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassNodeResult$classNodeModelVerdictsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassNodeModelVerdictPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1259,9 +1356,8 @@ export interface ClassNodeResultFieldRefs {
   readonly videoId: Prisma.FieldRef<"ClassNodeResult", 'String'>
   readonly classNodeId: Prisma.FieldRef<"ClassNodeResult", 'String'>
   readonly result: Prisma.FieldRef<"ClassNodeResult", 'ClassNodeResultValue'>
+  readonly confidence: Prisma.FieldRef<"ClassNodeResult", 'Float'>
   readonly explanation: Prisma.FieldRef<"ClassNodeResult", 'String'>
-  readonly modelUsed: Prisma.FieldRef<"ClassNodeResult", 'String'>
-  readonly confidence: Prisma.FieldRef<"ClassNodeResult", 'Int'>
   readonly createdAt: Prisma.FieldRef<"ClassNodeResult", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ClassNodeResult", 'DateTime'>
 }
@@ -1657,6 +1753,30 @@ export type ClassNodeResultDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many ClassNodeResults to delete.
    */
   limit?: number
+}
+
+/**
+ * ClassNodeResult.classNodeModelVerdicts
+ */
+export type ClassNodeResult$classNodeModelVerdictsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassNodeModelVerdict
+   */
+  select?: Prisma.ClassNodeModelVerdictSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassNodeModelVerdict
+   */
+  omit?: Prisma.ClassNodeModelVerdictOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassNodeModelVerdictInclude<ExtArgs> | null
+  where?: Prisma.ClassNodeModelVerdictWhereInput
+  orderBy?: Prisma.ClassNodeModelVerdictOrderByWithRelationInput | Prisma.ClassNodeModelVerdictOrderByWithRelationInput[]
+  cursor?: Prisma.ClassNodeModelVerdictWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassNodeModelVerdictScalarFieldEnum | Prisma.ClassNodeModelVerdictScalarFieldEnum[]
 }
 
 /**

@@ -6,7 +6,7 @@ from langgraph.graph import add_messages
 from langchain_core.messages import BaseMessage
 from agents.llm_factory import AIModel
 
-ROOT_NODE_ID = "6889fa6ca166114297756152"
+ROOT_NODE_ID = "root"
 
 
 # ===========================================
@@ -23,11 +23,20 @@ class Taxonomy(BaseModel):
 class NodeAndConfidence(BaseModel):
     node_id: str
     confidence_score: float
+    explanation: str | None = None
 
 
 class ClassifiedAs(NodeAndConfidence):
     is_verified: bool = Field(default=False)
     used_as_few_shot_example: bool = Field(default=False)
+
+
+class NodeVerdict(BaseModel):
+    model: str
+    node_id: str
+    node_label: str
+    rationale: str
+    verdict: bool
 
 
 # ItemState uses NodeAndConfidence instead of ClassifiedAs because this model is used as a schema for structured output of the LLM; is_verified and used_as_few_shot_example are not part of the LLM output.
@@ -38,6 +47,7 @@ class ItemState(BaseModel):
         default_factory=list,
         description="A list of tuples containing node IDs and their confidence scores.",
     )
+    verdicts: list["NodeVerdict"] = Field(default_factory=list)
 
 
 class Example(BaseModel):
@@ -111,6 +121,11 @@ def node_reducer(
     if not isinstance(new, list):
         new = [new]
 
+    new = [ClassNodeState(**node) if isinstance(node, dict) else node for node in new]
+    original = [
+        ClassNodeState(**node) if isinstance(node, dict) else node for node in original
+    ]
+
     if any(node.id == "REPLACE_ALL" for node in new):
         return [root_node] + [node for node in new if node.id != "REPLACE_ALL"]
 
@@ -142,6 +157,11 @@ def item_reducer(original: list[ItemState], new: list[ItemState] | ItemState | N
     if not isinstance(new, list):
         new = [new]
 
+    new = [ItemState(**item) if isinstance(item, dict) else item for item in new]
+    original = [
+        ItemState(**item) if isinstance(item, dict) else item for item in original
+    ]
+
     if any(item.id == "REPLACE_ALL" for item in new):
         return [item for item in new if item.id != "REPLACE_ALL"]
 
@@ -154,6 +174,9 @@ def item_reducer(original: list[ItemState], new: list[ItemState] | ItemState | N
                 break
 
         if existing_item_index is not None:
+            # Extend verdicts from the new item
+            if new_item.verdicts:
+                original[existing_item_index].verdicts.extend(new_item.verdicts)
             # Append new node_ids to existing item
             if not new_item.classified_as:
                 continue
@@ -226,7 +249,7 @@ class ClassifyItemsOverallState(BaseModel):
     models: list[AIModel]
     batch_size: int = Field(default=3, gt=0)
     total_invocations: int
-    majority_threshold: float
+    majority_threshold: float  # equal to or greater than (threhold <= score)
 
     # Configurations
     use_human_in_the_loop: bool = Field(default=False)

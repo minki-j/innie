@@ -67,7 +67,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { name, description, active, pipelineIntervalHours } = body;
+    const { name, description, active, pipelineIntervalHours, maxVideosPerKeyword, maxVideosPerCreator } = body;
 
     const funnel = await prisma.funnel.update({
       where: { id: funnelId },
@@ -79,6 +79,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ...(active !== undefined && { active: Boolean(active) }),
         ...(pipelineIntervalHours !== undefined && {
           pipelineIntervalHours: Math.max(1, Math.min(168, Number(pipelineIntervalHours))),
+        }),
+        ...(maxVideosPerKeyword !== undefined && {
+          maxVideosPerKeyword: Math.max(1, Math.min(200, Number(maxVideosPerKeyword))),
+        }),
+        ...(maxVideosPerCreator !== undefined && {
+          maxVideosPerCreator: Math.max(1, Math.min(200, Number(maxVideosPerCreator))),
         }),
       },
     });

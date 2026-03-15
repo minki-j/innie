@@ -26,6 +26,7 @@ export type AggregateClassNode = {
 
 export type ClassNodeMinAggregateOutputType = {
   id: string | null
+  title: string | null
   description: string | null
   parentClassNodeId: string | null
   funnelId: string | null
@@ -35,6 +36,7 @@ export type ClassNodeMinAggregateOutputType = {
 
 export type ClassNodeMaxAggregateOutputType = {
   id: string | null
+  title: string | null
   description: string | null
   parentClassNodeId: string | null
   funnelId: string | null
@@ -44,6 +46,7 @@ export type ClassNodeMaxAggregateOutputType = {
 
 export type ClassNodeCountAggregateOutputType = {
   id: number
+  title: number
   description: number
   parentClassNodeId: number
   funnelId: number
@@ -55,6 +58,7 @@ export type ClassNodeCountAggregateOutputType = {
 
 export type ClassNodeMinAggregateInputType = {
   id?: true
+  title?: true
   description?: true
   parentClassNodeId?: true
   funnelId?: true
@@ -64,6 +68,7 @@ export type ClassNodeMinAggregateInputType = {
 
 export type ClassNodeMaxAggregateInputType = {
   id?: true
+  title?: true
   description?: true
   parentClassNodeId?: true
   funnelId?: true
@@ -73,6 +78,7 @@ export type ClassNodeMaxAggregateInputType = {
 
 export type ClassNodeCountAggregateInputType = {
   id?: true
+  title?: true
   description?: true
   parentClassNodeId?: true
   funnelId?: true
@@ -155,7 +161,8 @@ export type ClassNodeGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 
 export type ClassNodeGroupByOutputType = {
   id: string
-  description: string
+  title: string
+  description: string | null
   parentClassNodeId: string | null
   funnelId: string | null
   createdAt: Date
@@ -185,7 +192,8 @@ export type ClassNodeWhereInput = {
   OR?: Prisma.ClassNodeWhereInput[]
   NOT?: Prisma.ClassNodeWhereInput | Prisma.ClassNodeWhereInput[]
   id?: Prisma.StringFilter<"ClassNode"> | string
-  description?: Prisma.StringFilter<"ClassNode"> | string
+  title?: Prisma.StringFilter<"ClassNode"> | string
+  description?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   parentClassNodeId?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   funnelId?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ClassNode"> | Date | string
@@ -195,11 +203,13 @@ export type ClassNodeWhereInput = {
   funnel?: Prisma.XOR<Prisma.FunnelNullableScalarRelationFilter, Prisma.FunnelWhereInput> | null
   results?: Prisma.ClassNodeResultListRelationFilter
   goldStandards?: Prisma.GoldStandardListRelationFilter
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictListRelationFilter
 }
 
 export type ClassNodeOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  description?: Prisma.SortOrder
+  title?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   parentClassNodeId?: Prisma.SortOrderInput | Prisma.SortOrder
   funnelId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -209,6 +219,7 @@ export type ClassNodeOrderByWithRelationInput = {
   funnel?: Prisma.FunnelOrderByWithRelationInput
   results?: Prisma.ClassNodeResultOrderByRelationAggregateInput
   goldStandards?: Prisma.GoldStandardOrderByRelationAggregateInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictOrderByRelationAggregateInput
 }
 
 export type ClassNodeWhereUniqueInput = Prisma.AtLeast<{
@@ -216,7 +227,8 @@ export type ClassNodeWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.ClassNodeWhereInput | Prisma.ClassNodeWhereInput[]
   OR?: Prisma.ClassNodeWhereInput[]
   NOT?: Prisma.ClassNodeWhereInput | Prisma.ClassNodeWhereInput[]
-  description?: Prisma.StringFilter<"ClassNode"> | string
+  title?: Prisma.StringFilter<"ClassNode"> | string
+  description?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   parentClassNodeId?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   funnelId?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ClassNode"> | Date | string
@@ -226,11 +238,13 @@ export type ClassNodeWhereUniqueInput = Prisma.AtLeast<{
   funnel?: Prisma.XOR<Prisma.FunnelNullableScalarRelationFilter, Prisma.FunnelWhereInput> | null
   results?: Prisma.ClassNodeResultListRelationFilter
   goldStandards?: Prisma.GoldStandardListRelationFilter
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictListRelationFilter
 }, "id">
 
 export type ClassNodeOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  description?: Prisma.SortOrder
+  title?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   parentClassNodeId?: Prisma.SortOrderInput | Prisma.SortOrder
   funnelId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -245,7 +259,8 @@ export type ClassNodeScalarWhereWithAggregatesInput = {
   OR?: Prisma.ClassNodeScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ClassNodeScalarWhereWithAggregatesInput | Prisma.ClassNodeScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"ClassNode"> | string
-  description?: Prisma.StringWithAggregatesFilter<"ClassNode"> | string
+  title?: Prisma.StringWithAggregatesFilter<"ClassNode"> | string
+  description?: Prisma.StringNullableWithAggregatesFilter<"ClassNode"> | string | null
   parentClassNodeId?: Prisma.StringNullableWithAggregatesFilter<"ClassNode"> | string | null
   funnelId?: Prisma.StringNullableWithAggregatesFilter<"ClassNode"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClassNode"> | Date | string
@@ -254,7 +269,8 @@ export type ClassNodeScalarWhereWithAggregatesInput = {
 
 export type ClassNodeCreateInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parentClassNode?: Prisma.ClassNodeCreateNestedOneWithoutChildrenClassNodesInput
@@ -262,11 +278,13 @@ export type ClassNodeCreateInput = {
   funnel?: Prisma.FunnelCreateNestedOneWithoutClassNodesInput
   results?: Prisma.ClassNodeResultCreateNestedManyWithoutClassNodeInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeUncheckedCreateInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   parentClassNodeId?: string | null
   funnelId?: string | null
   createdAt?: Date | string
@@ -274,11 +292,13 @@ export type ClassNodeUncheckedCreateInput = {
   childrenClassNodes?: Prisma.ClassNodeUncheckedCreateNestedManyWithoutParentClassNodeInput
   results?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutClassNodeInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parentClassNode?: Prisma.ClassNodeUpdateOneWithoutChildrenClassNodesNestedInput
@@ -286,11 +306,13 @@ export type ClassNodeUpdateInput = {
   funnel?: Prisma.FunnelUpdateOneWithoutClassNodesNestedInput
   results?: Prisma.ClassNodeResultUpdateManyWithoutClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentClassNodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -298,11 +320,13 @@ export type ClassNodeUncheckedUpdateInput = {
   childrenClassNodes?: Prisma.ClassNodeUncheckedUpdateManyWithoutParentClassNodeNestedInput
   results?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeCreateManyInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   parentClassNodeId?: string | null
   funnelId?: string | null
   createdAt?: Date | string
@@ -311,14 +335,16 @@ export type ClassNodeCreateManyInput = {
 
 export type ClassNodeUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ClassNodeUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentClassNodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -342,6 +368,7 @@ export type ClassNodeNullableScalarRelationFilter = {
 
 export type ClassNodeCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   parentClassNodeId?: Prisma.SortOrder
   funnelId?: Prisma.SortOrder
@@ -351,6 +378,7 @@ export type ClassNodeCountOrderByAggregateInput = {
 
 export type ClassNodeMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   parentClassNodeId?: Prisma.SortOrder
   funnelId?: Prisma.SortOrder
@@ -360,6 +388,7 @@ export type ClassNodeMaxOrderByAggregateInput = {
 
 export type ClassNodeMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   parentClassNodeId?: Prisma.SortOrder
   funnelId?: Prisma.SortOrder
@@ -500,26 +529,44 @@ export type ClassNodeUpdateOneRequiredWithoutResultsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClassNodeUpdateToOneWithWhereWithoutResultsInput, Prisma.ClassNodeUpdateWithoutResultsInput>, Prisma.ClassNodeUncheckedUpdateWithoutResultsInput>
 }
 
+export type ClassNodeCreateNestedOneWithoutClassNodeModelVerdictsInput = {
+  create?: Prisma.XOR<Prisma.ClassNodeCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeUncheckedCreateWithoutClassNodeModelVerdictsInput>
+  connectOrCreate?: Prisma.ClassNodeCreateOrConnectWithoutClassNodeModelVerdictsInput
+  connect?: Prisma.ClassNodeWhereUniqueInput
+}
+
+export type ClassNodeUpdateOneRequiredWithoutClassNodeModelVerdictsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassNodeCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeUncheckedCreateWithoutClassNodeModelVerdictsInput>
+  connectOrCreate?: Prisma.ClassNodeCreateOrConnectWithoutClassNodeModelVerdictsInput
+  upsert?: Prisma.ClassNodeUpsertWithoutClassNodeModelVerdictsInput
+  connect?: Prisma.ClassNodeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClassNodeUpdateToOneWithWhereWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeUpdateWithoutClassNodeModelVerdictsInput>, Prisma.ClassNodeUncheckedUpdateWithoutClassNodeModelVerdictsInput>
+}
+
 export type ClassNodeCreateWithoutFunnelInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parentClassNode?: Prisma.ClassNodeCreateNestedOneWithoutChildrenClassNodesInput
   childrenClassNodes?: Prisma.ClassNodeCreateNestedManyWithoutParentClassNodeInput
   results?: Prisma.ClassNodeResultCreateNestedManyWithoutClassNodeInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeUncheckedCreateWithoutFunnelInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   parentClassNodeId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   childrenClassNodes?: Prisma.ClassNodeUncheckedCreateNestedManyWithoutParentClassNodeInput
   results?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutClassNodeInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeCreateOrConnectWithoutFunnelInput = {
@@ -553,7 +600,8 @@ export type ClassNodeScalarWhereInput = {
   OR?: Prisma.ClassNodeScalarWhereInput[]
   NOT?: Prisma.ClassNodeScalarWhereInput | Prisma.ClassNodeScalarWhereInput[]
   id?: Prisma.StringFilter<"ClassNode"> | string
-  description?: Prisma.StringFilter<"ClassNode"> | string
+  title?: Prisma.StringFilter<"ClassNode"> | string
+  description?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   parentClassNodeId?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   funnelId?: Prisma.StringNullableFilter<"ClassNode"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ClassNode"> | Date | string
@@ -562,24 +610,28 @@ export type ClassNodeScalarWhereInput = {
 
 export type ClassNodeCreateWithoutChildrenClassNodesInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parentClassNode?: Prisma.ClassNodeCreateNestedOneWithoutChildrenClassNodesInput
   funnel?: Prisma.FunnelCreateNestedOneWithoutClassNodesInput
   results?: Prisma.ClassNodeResultCreateNestedManyWithoutClassNodeInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeUncheckedCreateWithoutChildrenClassNodesInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   parentClassNodeId?: string | null
   funnelId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   results?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutClassNodeInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeCreateOrConnectWithoutChildrenClassNodesInput = {
@@ -589,24 +641,28 @@ export type ClassNodeCreateOrConnectWithoutChildrenClassNodesInput = {
 
 export type ClassNodeCreateWithoutParentClassNodeInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   childrenClassNodes?: Prisma.ClassNodeCreateNestedManyWithoutParentClassNodeInput
   funnel?: Prisma.FunnelCreateNestedOneWithoutClassNodesInput
   results?: Prisma.ClassNodeResultCreateNestedManyWithoutClassNodeInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeUncheckedCreateWithoutParentClassNodeInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   funnelId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   childrenClassNodes?: Prisma.ClassNodeUncheckedCreateNestedManyWithoutParentClassNodeInput
   results?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutClassNodeInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeCreateOrConnectWithoutParentClassNodeInput = {
@@ -632,24 +688,28 @@ export type ClassNodeUpdateToOneWithWhereWithoutChildrenClassNodesInput = {
 
 export type ClassNodeUpdateWithoutChildrenClassNodesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parentClassNode?: Prisma.ClassNodeUpdateOneWithoutChildrenClassNodesNestedInput
   funnel?: Prisma.FunnelUpdateOneWithoutClassNodesNestedInput
   results?: Prisma.ClassNodeResultUpdateManyWithoutClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUncheckedUpdateWithoutChildrenClassNodesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentClassNodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   results?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUpsertWithWhereUniqueWithoutParentClassNodeInput = {
@@ -670,24 +730,28 @@ export type ClassNodeUpdateManyWithWhereWithoutParentClassNodeInput = {
 
 export type ClassNodeCreateWithoutGoldStandardsInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parentClassNode?: Prisma.ClassNodeCreateNestedOneWithoutChildrenClassNodesInput
   childrenClassNodes?: Prisma.ClassNodeCreateNestedManyWithoutParentClassNodeInput
   funnel?: Prisma.FunnelCreateNestedOneWithoutClassNodesInput
   results?: Prisma.ClassNodeResultCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeUncheckedCreateWithoutGoldStandardsInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   parentClassNodeId?: string | null
   funnelId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   childrenClassNodes?: Prisma.ClassNodeUncheckedCreateNestedManyWithoutParentClassNodeInput
   results?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeCreateOrConnectWithoutGoldStandardsInput = {
@@ -708,46 +772,54 @@ export type ClassNodeUpdateToOneWithWhereWithoutGoldStandardsInput = {
 
 export type ClassNodeUpdateWithoutGoldStandardsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parentClassNode?: Prisma.ClassNodeUpdateOneWithoutChildrenClassNodesNestedInput
   childrenClassNodes?: Prisma.ClassNodeUpdateManyWithoutParentClassNodeNestedInput
   funnel?: Prisma.FunnelUpdateOneWithoutClassNodesNestedInput
   results?: Prisma.ClassNodeResultUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUncheckedUpdateWithoutGoldStandardsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentClassNodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   childrenClassNodes?: Prisma.ClassNodeUncheckedUpdateManyWithoutParentClassNodeNestedInput
   results?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeCreateWithoutResultsInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   parentClassNode?: Prisma.ClassNodeCreateNestedOneWithoutChildrenClassNodesInput
   childrenClassNodes?: Prisma.ClassNodeCreateNestedManyWithoutParentClassNodeInput
   funnel?: Prisma.FunnelCreateNestedOneWithoutClassNodesInput
   goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeUncheckedCreateWithoutResultsInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   parentClassNodeId?: string | null
   funnelId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   childrenClassNodes?: Prisma.ClassNodeUncheckedCreateNestedManyWithoutParentClassNodeInput
   goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutClassNodeInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedCreateNestedManyWithoutClassNodeInput
 }
 
 export type ClassNodeCreateOrConnectWithoutResultsInput = {
@@ -768,29 +840,102 @@ export type ClassNodeUpdateToOneWithWhereWithoutResultsInput = {
 
 export type ClassNodeUpdateWithoutResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parentClassNode?: Prisma.ClassNodeUpdateOneWithoutChildrenClassNodesNestedInput
   childrenClassNodes?: Prisma.ClassNodeUpdateManyWithoutParentClassNodeNestedInput
   funnel?: Prisma.FunnelUpdateOneWithoutClassNodesNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUncheckedUpdateWithoutResultsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentClassNodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   childrenClassNodes?: Prisma.ClassNodeUncheckedUpdateManyWithoutParentClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeNestedInput
+}
+
+export type ClassNodeCreateWithoutClassNodeModelVerdictsInput = {
+  id?: string
+  title?: string
+  description?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parentClassNode?: Prisma.ClassNodeCreateNestedOneWithoutChildrenClassNodesInput
+  childrenClassNodes?: Prisma.ClassNodeCreateNestedManyWithoutParentClassNodeInput
+  funnel?: Prisma.FunnelCreateNestedOneWithoutClassNodesInput
+  results?: Prisma.ClassNodeResultCreateNestedManyWithoutClassNodeInput
+  goldStandards?: Prisma.GoldStandardCreateNestedManyWithoutClassNodeInput
+}
+
+export type ClassNodeUncheckedCreateWithoutClassNodeModelVerdictsInput = {
+  id?: string
+  title?: string
+  description?: string | null
+  parentClassNodeId?: string | null
+  funnelId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  childrenClassNodes?: Prisma.ClassNodeUncheckedCreateNestedManyWithoutParentClassNodeInput
+  results?: Prisma.ClassNodeResultUncheckedCreateNestedManyWithoutClassNodeInput
+  goldStandards?: Prisma.GoldStandardUncheckedCreateNestedManyWithoutClassNodeInput
+}
+
+export type ClassNodeCreateOrConnectWithoutClassNodeModelVerdictsInput = {
+  where: Prisma.ClassNodeWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClassNodeCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeUncheckedCreateWithoutClassNodeModelVerdictsInput>
+}
+
+export type ClassNodeUpsertWithoutClassNodeModelVerdictsInput = {
+  update: Prisma.XOR<Prisma.ClassNodeUpdateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeUncheckedUpdateWithoutClassNodeModelVerdictsInput>
+  create: Prisma.XOR<Prisma.ClassNodeCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeUncheckedCreateWithoutClassNodeModelVerdictsInput>
+  where?: Prisma.ClassNodeWhereInput
+}
+
+export type ClassNodeUpdateToOneWithWhereWithoutClassNodeModelVerdictsInput = {
+  where?: Prisma.ClassNodeWhereInput
+  data: Prisma.XOR<Prisma.ClassNodeUpdateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeUncheckedUpdateWithoutClassNodeModelVerdictsInput>
+}
+
+export type ClassNodeUpdateWithoutClassNodeModelVerdictsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parentClassNode?: Prisma.ClassNodeUpdateOneWithoutChildrenClassNodesNestedInput
+  childrenClassNodes?: Prisma.ClassNodeUpdateManyWithoutParentClassNodeNestedInput
+  funnel?: Prisma.FunnelUpdateOneWithoutClassNodesNestedInput
+  results?: Prisma.ClassNodeResultUpdateManyWithoutClassNodeNestedInput
+  goldStandards?: Prisma.GoldStandardUpdateManyWithoutClassNodeNestedInput
+}
+
+export type ClassNodeUncheckedUpdateWithoutClassNodeModelVerdictsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentClassNodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  childrenClassNodes?: Prisma.ClassNodeUncheckedUpdateManyWithoutParentClassNodeNestedInput
+  results?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutClassNodeNestedInput
+  goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeCreateManyFunnelInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   parentClassNodeId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -798,29 +943,34 @@ export type ClassNodeCreateManyFunnelInput = {
 
 export type ClassNodeUpdateWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parentClassNode?: Prisma.ClassNodeUpdateOneWithoutChildrenClassNodesNestedInput
   childrenClassNodes?: Prisma.ClassNodeUpdateManyWithoutParentClassNodeNestedInput
   results?: Prisma.ClassNodeResultUpdateManyWithoutClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUncheckedUpdateWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentClassNodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   childrenClassNodes?: Prisma.ClassNodeUncheckedUpdateManyWithoutParentClassNodeNestedInput
   results?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUncheckedUpdateManyWithoutFunnelInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentClassNodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -828,7 +978,8 @@ export type ClassNodeUncheckedUpdateManyWithoutFunnelInput = {
 
 export type ClassNodeCreateManyParentClassNodeInput = {
   id?: string
-  description: string
+  title?: string
+  description?: string | null
   funnelId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -836,29 +987,34 @@ export type ClassNodeCreateManyParentClassNodeInput = {
 
 export type ClassNodeUpdateWithoutParentClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   childrenClassNodes?: Prisma.ClassNodeUpdateManyWithoutParentClassNodeNestedInput
   funnel?: Prisma.FunnelUpdateOneWithoutClassNodesNestedInput
   results?: Prisma.ClassNodeResultUpdateManyWithoutClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUncheckedUpdateWithoutParentClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   childrenClassNodes?: Prisma.ClassNodeUncheckedUpdateManyWithoutParentClassNodeNestedInput
   results?: Prisma.ClassNodeResultUncheckedUpdateManyWithoutClassNodeNestedInput
   goldStandards?: Prisma.GoldStandardUncheckedUpdateManyWithoutClassNodeNestedInput
+  classNodeModelVerdicts?: Prisma.ClassNodeModelVerdictUncheckedUpdateManyWithoutClassNodeNestedInput
 }
 
 export type ClassNodeUncheckedUpdateManyWithoutParentClassNodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   funnelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -873,12 +1029,14 @@ export type ClassNodeCountOutputType = {
   childrenClassNodes: number
   results: number
   goldStandards: number
+  classNodeModelVerdicts: number
 }
 
 export type ClassNodeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   childrenClassNodes?: boolean | ClassNodeCountOutputTypeCountChildrenClassNodesArgs
   results?: boolean | ClassNodeCountOutputTypeCountResultsArgs
   goldStandards?: boolean | ClassNodeCountOutputTypeCountGoldStandardsArgs
+  classNodeModelVerdicts?: boolean | ClassNodeCountOutputTypeCountClassNodeModelVerdictsArgs
 }
 
 /**
@@ -912,9 +1070,17 @@ export type ClassNodeCountOutputTypeCountGoldStandardsArgs<ExtArgs extends runti
   where?: Prisma.GoldStandardWhereInput
 }
 
+/**
+ * ClassNodeCountOutputType without action
+ */
+export type ClassNodeCountOutputTypeCountClassNodeModelVerdictsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassNodeModelVerdictWhereInput
+}
+
 
 export type ClassNodeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  title?: boolean
   description?: boolean
   parentClassNodeId?: boolean
   funnelId?: boolean
@@ -925,11 +1091,13 @@ export type ClassNodeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   funnel?: boolean | Prisma.ClassNode$funnelArgs<ExtArgs>
   results?: boolean | Prisma.ClassNode$resultsArgs<ExtArgs>
   goldStandards?: boolean | Prisma.ClassNode$goldStandardsArgs<ExtArgs>
+  classNodeModelVerdicts?: boolean | Prisma.ClassNode$classNodeModelVerdictsArgs<ExtArgs>
   _count?: boolean | Prisma.ClassNodeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["classNode"]>
 
 export type ClassNodeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  title?: boolean
   description?: boolean
   parentClassNodeId?: boolean
   funnelId?: boolean
@@ -941,6 +1109,7 @@ export type ClassNodeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
 
 export type ClassNodeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  title?: boolean
   description?: boolean
   parentClassNodeId?: boolean
   funnelId?: boolean
@@ -952,6 +1121,7 @@ export type ClassNodeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
 
 export type ClassNodeSelectScalar = {
   id?: boolean
+  title?: boolean
   description?: boolean
   parentClassNodeId?: boolean
   funnelId?: boolean
@@ -959,13 +1129,14 @@ export type ClassNodeSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClassNodeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "description" | "parentClassNodeId" | "funnelId" | "createdAt" | "updatedAt", ExtArgs["result"]["classNode"]>
+export type ClassNodeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "parentClassNodeId" | "funnelId" | "createdAt" | "updatedAt", ExtArgs["result"]["classNode"]>
 export type ClassNodeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parentClassNode?: boolean | Prisma.ClassNode$parentClassNodeArgs<ExtArgs>
   childrenClassNodes?: boolean | Prisma.ClassNode$childrenClassNodesArgs<ExtArgs>
   funnel?: boolean | Prisma.ClassNode$funnelArgs<ExtArgs>
   results?: boolean | Prisma.ClassNode$resultsArgs<ExtArgs>
   goldStandards?: boolean | Prisma.ClassNode$goldStandardsArgs<ExtArgs>
+  classNodeModelVerdicts?: boolean | Prisma.ClassNode$classNodeModelVerdictsArgs<ExtArgs>
   _count?: boolean | Prisma.ClassNodeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClassNodeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -985,10 +1156,12 @@ export type $ClassNodePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     funnel: Prisma.$FunnelPayload<ExtArgs> | null
     results: Prisma.$ClassNodeResultPayload<ExtArgs>[]
     goldStandards: Prisma.$GoldStandardPayload<ExtArgs>[]
+    classNodeModelVerdicts: Prisma.$ClassNodeModelVerdictPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    description: string
+    title: string
+    description: string | null
     parentClassNodeId: string | null
     funnelId: string | null
     createdAt: Date
@@ -1392,6 +1565,7 @@ export interface Prisma__ClassNodeClient<T, Null = never, ExtArgs extends runtim
   funnel<T extends Prisma.ClassNode$funnelArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassNode$funnelArgs<ExtArgs>>): Prisma.Prisma__FunnelClient<runtime.Types.Result.GetResult<Prisma.$FunnelPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   results<T extends Prisma.ClassNode$resultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassNode$resultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassNodeResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   goldStandards<T extends Prisma.ClassNode$goldStandardsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassNode$goldStandardsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GoldStandardPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  classNodeModelVerdicts<T extends Prisma.ClassNode$classNodeModelVerdictsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassNode$classNodeModelVerdictsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassNodeModelVerdictPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1422,6 +1596,7 @@ export interface Prisma__ClassNodeClient<T, Null = never, ExtArgs extends runtim
  */
 export interface ClassNodeFieldRefs {
   readonly id: Prisma.FieldRef<"ClassNode", 'String'>
+  readonly title: Prisma.FieldRef<"ClassNode", 'String'>
   readonly description: Prisma.FieldRef<"ClassNode", 'String'>
   readonly parentClassNodeId: Prisma.FieldRef<"ClassNode", 'String'>
   readonly funnelId: Prisma.FieldRef<"ClassNode", 'String'>
@@ -1930,6 +2105,30 @@ export type ClassNode$goldStandardsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.GoldStandardScalarFieldEnum | Prisma.GoldStandardScalarFieldEnum[]
+}
+
+/**
+ * ClassNode.classNodeModelVerdicts
+ */
+export type ClassNode$classNodeModelVerdictsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassNodeModelVerdict
+   */
+  select?: Prisma.ClassNodeModelVerdictSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassNodeModelVerdict
+   */
+  omit?: Prisma.ClassNodeModelVerdictOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassNodeModelVerdictInclude<ExtArgs> | null
+  where?: Prisma.ClassNodeModelVerdictWhereInput
+  orderBy?: Prisma.ClassNodeModelVerdictOrderByWithRelationInput | Prisma.ClassNodeModelVerdictOrderByWithRelationInput[]
+  cursor?: Prisma.ClassNodeModelVerdictWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassNodeModelVerdictScalarFieldEnum | Prisma.ClassNodeModelVerdictScalarFieldEnum[]
 }
 
 /**

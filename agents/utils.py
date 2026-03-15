@@ -74,6 +74,7 @@ def restore_abbreviated_node_ids(
             node.id = new_short_id_to_long_id_map[node.id]
         else:
             import uuid
+
             new_node_id = uuid.uuid4().hex
             new_short_id_to_long_id_map[node.id] = new_node_id
             node.id = new_node_id
@@ -85,6 +86,7 @@ def restore_abbreviated_node_ids(
                 node.parent_node_id = new_short_id_to_long_id_map[node.parent_node_id]
             else:
                 import uuid
+
                 new_parent_node_id = uuid.uuid4().hex
                 new_short_id_to_long_id_map[node.parent_node_id] = new_parent_node_id
                 node.parent_node_id = new_parent_node_id
@@ -299,7 +301,7 @@ def get_model_count_dict(
     return model_call_count_map
 
 
-def choose_top_node_ids_from_classification_results(
+def filter_nodes_by_majority_threshold(
     classification_results: list[Any], majority_threshold: float
 ) -> list[tuple[str, float]]:
     """
@@ -329,7 +331,9 @@ def choose_top_node_ids_from_classification_results(
     )
 
     total_classifications = len(classification_results)
-    min_count = int(total_classifications * majority_threshold + 0.5)  # round up
+    min_count = int(total_classifications * majority_threshold - 0.5)
+    # -0.5 for rounding down to make it inclusive
+    # Example: when total classifications is 4 and majority_threshold is 0.75, min_count should be 3
 
     # Filter nodes based on thresholds
     selected_node_and_confidence_score = []

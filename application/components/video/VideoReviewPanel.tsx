@@ -14,13 +14,22 @@ interface VideoReviewPanelProps {
 
 type Rating = 'dislike' | 'neutral' | 'like' | null;
 
+interface ModelVerdict {
+  llmId: string;
+  provider: string;
+  verdict: boolean;
+  rationale: string;
+}
+
 interface ClassNodeResultItem {
   id: string;
   classNodeId: string;
-  description: string;
+  title: string;
+  description: string | null;
   result: 'PASS' | 'FAIL' | 'CANNOT_TELL';
   explanation: string | null;
-  confidence: number | null;
+  confidence: number;
+  modelVerdicts: ModelVerdict[];
 }
 
 interface ClassNodeResultEdit {
@@ -92,6 +101,63 @@ function ResultBadge({
   );
 }
 
+// ─── Model Verdict Modal ──────────────────────────────────────
+
+function ModelVerdictModal({
+  item,
+  onClose,
+}: {
+  item: ClassNodeResultItem;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-0.5">Model verdicts</p>
+            <h3 className="text-sm font-semibold text-gray-800 leading-snug">{item.title}</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="ml-4 shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="overflow-y-auto divide-y divide-gray-100">
+          {item.modelVerdicts.map((v, i) => (
+            <div key={i} className="px-5 py-3.5">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className={cn(
+                  'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full',
+                  v.verdict
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700',
+                )}>
+                  {v.verdict ? '✓ PASS' : '✗ FAIL'}
+                </span>
+                <span className="text-xs text-gray-500 font-mono">{v.llmId}</span>
+                <span className="text-xs text-gray-400 capitalize">{v.provider}</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">{v.rationale}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Class Node Results Section ───────────────────────────────
 
 function ClassNodeResults({
@@ -106,6 +172,8 @@ function ClassNodeResults({
   onEditExplanation: (id: string, explanation: string) => void;
 }) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [detailModal, setDetailModal] = useState<ClassNodeResultItem | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
@@ -122,73 +190,106 @@ function ClassNodeResults({
     return 'PASS';
   };
 
+  const passResults = results.filter((r) => r.result === 'PASS');
+  const nonPassResults = results.filter((r) => r.result !== 'PASS');
+  const visibleResults = showAll ? results : passResults;
+
   if (results.length === 0) {
     return <div className="text-sm text-gray-400 italic py-2">No evaluation results yet.</div>;
   }
 
   return (
-    <div className="space-y-2">
-      {results.map((r) => {
-        const isExpanded = expandedIds.has(r.id);
-        const edit = edits.get(r.id);
-        const currentResult = edit?.result ?? r.result;
-        const verdictChanged = edit !== undefined && edit.result !== r.result;
-        const currentExplanation = verdictChanged ? (edit.explanation ?? '') : (edit?.explanation ?? r.explanation ?? '');
+    <>
+      <div className="space-y-2">
+        {visibleResults.map((r) => {
+          const isExpanded = expandedIds.has(r.id);
+          const edit = edits.get(r.id);
+          const currentResult = edit?.result ?? r.result;
+          const verdictChanged = edit !== undefined && edit.result !== r.result;
+          const currentExplanation = verdictChanged ? (edit.explanation ?? '') : (edit?.explanation ?? r.explanation ?? '');
 
-        return (
-          <div key={r.id} className="rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => toggleExpanded(r.id)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleExpanded(r.id); } }}
-              className="w-full flex items-start gap-2.5 px-3 py-2.5 text-left cursor-pointer hover:bg-gray-100 transition-colors"
-            >
-              <div className="shrink-0 mt-0.5">
-                <ResultBadge
-                  result={currentResult}
-                  onToggle={() => onEditResult(r.id, cycleResult(currentResult))}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-800 leading-snug">{r.description}</p>
-                {r.confidence !== null && (
-                  <span className="text-xs text-gray-400">Confidence: {r.confidence}%</span>
-                )}
-              </div>
-              <svg
-                className={cn('w-4 h-4 text-gray-400 shrink-0 mt-0.5 transition-transform duration-200', isExpanded && 'rotate-180')}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}
+          return (
+            <div key={r.id} className="rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleExpanded(r.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleExpanded(r.id); } }}
+                className="w-full flex items-start gap-2.5 px-3 py-2.5 text-left cursor-pointer hover:bg-gray-100 transition-colors"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-              </svg>
-            </div>
-            {isExpanded && (
-              <div className="px-3 pb-3 pt-0 border-t border-gray-200 bg-white">
-                {verdictChanged ? (
-                  <textarea
-                    value={currentExplanation}
-                    onChange={(e) => {
-                      onEditExplanation(r.id, e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${e.target.scrollHeight}px`;
-                    }}
-                    ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }}
-                    placeholder="Why do you disagree with the original verdict?"
-                    rows={2}
-                    className="w-full mt-2.5 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-sm text-gray-700 placeholder:text-gray-400 resize-none overflow-hidden focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-colors"
+                <div className="shrink-0 mt-0.5">
+                  <ResultBadge
+                    result={currentResult}
+                    onToggle={() => onEditResult(r.id, cycleResult(currentResult))}
                   />
-                ) : (
-                  <p className="mt-2.5 text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-                    {currentExplanation || <span className="italic text-gray-400">No explanation provided.</span>}
-                  </p>
-                )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-800 leading-snug">{r.title}</p>
+                  <span className="text-xs text-gray-400">{Math.round(r.confidence * 100)}%</span>
+                </div>
+                <svg
+                  className={cn('w-4 h-4 text-gray-400 shrink-0 mt-0.5 transition-transform duration-200', isExpanded && 'rotate-180')}
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
               </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+              {isExpanded && (
+                <div className="px-3 pb-3 pt-0 border-t border-gray-200 bg-white">
+                  {verdictChanged ? (
+                    <textarea
+                      value={currentExplanation}
+                      onChange={(e) => {
+                        onEditExplanation(r.id, e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = `${e.target.scrollHeight}px`;
+                      }}
+                      ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }}
+                      placeholder="Why do you disagree with the original verdict?"
+                      rows={2}
+                      className="w-full mt-2.5 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-sm text-gray-700 placeholder:text-gray-400 resize-none overflow-hidden focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-colors"
+                    />
+                  ) : (
+                    <div className="mt-2.5">
+                      <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                        {currentExplanation || <span className="italic text-gray-400">No explanation provided.</span>}
+                      </p>
+                      {r.modelVerdicts.length > 0 && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDetailModal(r); }}
+                          className="mt-1.5 text-xs text-blue-500 hover:text-blue-700 underline underline-offset-2 transition-colors"
+                        >
+                          see detail
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {nonPassResults.length > 0 && (
+        <button
+          onClick={() => setShowAll((v) => !v)}
+          className="mt-2 flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg
+            className={cn('w-3.5 h-3.5 transition-transform duration-200', showAll && 'rotate-180')}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+          {showAll
+            ? 'Hide non-passing nodes'
+            : `Show ${nonPassResults.length} non-passing node${nonPassResults.length > 1 ? 's' : ''}`}
+        </button>
+      )}
+      {detailModal && (
+        <ModelVerdictModal item={detailModal} onClose={() => setDetailModal(null)} />
+      )}
+    </>
   );
 }
 
@@ -482,8 +583,8 @@ export function VideoReviewPanel({ videoId, funnels }: VideoReviewPanelProps) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-5 sticky top-20">
         <div className="text-center py-8 text-gray-400">
-          <p className="text-sm font-medium text-gray-500">No funnels</p>
-          <p className="text-xs text-gray-400 mt-1">This video hasn&apos;t been classified under any funnel yet.</p>
+          <p className="text-sm font-medium text-gray-500">No topics</p>
+          <p className="text-xs text-gray-400 mt-1">This video hasn&apos;t been classified under any topic yet.</p>
         </div>
       </div>
     );
@@ -495,7 +596,7 @@ export function VideoReviewPanel({ videoId, funnels }: VideoReviewPanelProps) {
     <div className="bg-white border border-gray-200 rounded-xl">
       {/* Funnel Tabs */}
       <div className="border-b border-gray-200 bg-gray-50 px-4 pt-4 pb-0">
-        <div className="flex gap-1 overflow-x-auto scrollbar-none -mb-px">
+        <div className="flex gap-1 overflow-x-auto overscroll-none scrollbar-none -mb-px">
           {funnels.map((funnel) => {
             const isActive = funnel.id === selectedFunnelId;
             return (

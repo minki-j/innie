@@ -12,7 +12,8 @@ interface GoldStandard {
 
 interface ClassNode {
   id: string;
-  description: string;
+  title: string;
+  description: string | null;
   parentClassNodeId: string | null;
   funnelId: string | null;
   goldStandards: GoldStandard[];
@@ -51,7 +52,7 @@ interface NodeRowProps {
 function NodeRow({ node, depth, funnelId, onRefresh }: NodeRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [editingDesc, setEditingDesc] = useState(false);
-  const [description, setDescription] = useState(node.description);
+  const [description, setDescription] = useState(node.title);
   const [isSaving, setIsSaving] = useState(false);
   const [addingGold, setAddingGold] = useState(false);
   const [newGoldUrl, setNewGoldUrl] = useState('');
@@ -67,7 +68,7 @@ function NodeRow({ node, depth, funnelId, onRefresh }: NodeRowProps) {
       const res = await fetch(`/api/class-nodes/${node.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: description.trim() }),
+        body: JSON.stringify({ title: description.trim() }),
       });
       if (res.ok) {
         setEditingDesc(false);
@@ -98,7 +99,7 @@ function NodeRow({ node, depth, funnelId, onRefresh }: NodeRowProps) {
       const res = await fetch(`/api/funnels/${funnelId}/class-nodes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: 'New class node', parentClassNodeId: node.id }),
+        body: JSON.stringify({ title: 'New class node', parentClassNodeId: node.id }),
       });
       if (res.ok) {
         setExpanded(true);
@@ -191,7 +192,7 @@ function NodeRow({ node, depth, funnelId, onRefresh }: NodeRowProps) {
                   Save
                 </button>
                 <button
-                  onClick={() => { setEditingDesc(false); setDescription(node.description); }}
+                  onClick={() => { setEditingDesc(false); setDescription(node.title); }}
                   className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200"
                 >
                   Cancel
@@ -199,7 +200,7 @@ function NodeRow({ node, depth, funnelId, onRefresh }: NodeRowProps) {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-800 leading-snug">{node.description}</p>
+            <p className="text-sm text-gray-800 leading-snug">{node.title}</p>
           )}
           <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
             {node._count.results > 0 && <span>{node._count.results} results</span>}
@@ -379,7 +380,7 @@ export function ClassNodeTreeEditor({ funnelId }: ClassNodeTreeEditorProps) {
 
   useEffect(() => {
     fetchNodes();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [funnelId]);
 
   const handleAddRoot = async () => {
@@ -387,7 +388,7 @@ export function ClassNodeTreeEditor({ funnelId }: ClassNodeTreeEditorProps) {
       const res = await fetch(`/api/funnels/${funnelId}/class-nodes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: 'New class node' }),
+        body: JSON.stringify({ title: 'New class node' }),
       });
       if (res.ok) fetchNodes();
     } catch (err) {

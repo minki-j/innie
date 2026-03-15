@@ -396,7 +396,9 @@ export const ModelName = {
   GoldStandard: 'GoldStandard',
   FunnelKeyword: 'FunnelKeyword',
   FunnelCreator: 'FunnelCreator',
+  LLM: 'LLM',
   ClassNodeResult: 'ClassNodeResult',
+  ClassNodeModelVerdict: 'ClassNodeModelVerdict',
   TrainingRun: 'TrainingRun'
 } as const
 
@@ -413,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "funnel" | "classNode" | "goldStandard" | "funnelKeyword" | "funnelCreator" | "classNodeResult" | "trainingRun"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "funnel" | "classNode" | "goldStandard" | "funnelKeyword" | "funnelCreator" | "lLM" | "classNodeResult" | "classNodeModelVerdict" | "trainingRun"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1305,6 +1307,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LLM: {
+      payload: Prisma.$LLMPayload<ExtArgs>
+      fields: Prisma.LLMFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LLMFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LLMFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>
+        }
+        findFirst: {
+          args: Prisma.LLMFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LLMFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>
+        }
+        findMany: {
+          args: Prisma.LLMFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>[]
+        }
+        create: {
+          args: Prisma.LLMCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>
+        }
+        createMany: {
+          args: Prisma.LLMCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LLMCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>[]
+        }
+        delete: {
+          args: Prisma.LLMDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>
+        }
+        update: {
+          args: Prisma.LLMUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>
+        }
+        deleteMany: {
+          args: Prisma.LLMDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LLMUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LLMUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>[]
+        }
+        upsert: {
+          args: Prisma.LLMUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LLMPayload>
+        }
+        aggregate: {
+          args: Prisma.LLMAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLLM>
+        }
+        groupBy: {
+          args: Prisma.LLMGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LLMGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LLMCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LLMCountAggregateOutputType> | number
+        }
+      }
+    }
     ClassNodeResult: {
       payload: Prisma.$ClassNodeResultPayload<ExtArgs>
       fields: Prisma.ClassNodeResultFieldRefs
@@ -1376,6 +1452,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClassNodeResultCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClassNodeResultCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClassNodeModelVerdict: {
+      payload: Prisma.$ClassNodeModelVerdictPayload<ExtArgs>
+      fields: Prisma.ClassNodeModelVerdictFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClassNodeModelVerdictFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClassNodeModelVerdictFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>
+        }
+        findFirst: {
+          args: Prisma.ClassNodeModelVerdictFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClassNodeModelVerdictFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>
+        }
+        findMany: {
+          args: Prisma.ClassNodeModelVerdictFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>[]
+        }
+        create: {
+          args: Prisma.ClassNodeModelVerdictCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>
+        }
+        createMany: {
+          args: Prisma.ClassNodeModelVerdictCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClassNodeModelVerdictCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>[]
+        }
+        delete: {
+          args: Prisma.ClassNodeModelVerdictDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>
+        }
+        update: {
+          args: Prisma.ClassNodeModelVerdictUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClassNodeModelVerdictDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClassNodeModelVerdictUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClassNodeModelVerdictUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClassNodeModelVerdictUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassNodeModelVerdictPayload>
+        }
+        aggregate: {
+          args: Prisma.ClassNodeModelVerdictAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClassNodeModelVerdict>
+        }
+        groupBy: {
+          args: Prisma.ClassNodeModelVerdictGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassNodeModelVerdictGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClassNodeModelVerdictCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassNodeModelVerdictCountAggregateOutputType> | number
         }
       }
     }
@@ -1614,6 +1764,7 @@ export type FunnelScalarFieldEnum = (typeof FunnelScalarFieldEnum)[keyof typeof 
 
 export const ClassNodeScalarFieldEnum = {
   id: 'id',
+  title: 'title',
   description: 'description',
   parentClassNodeId: 'parentClassNodeId',
   funnelId: 'funnelId',
@@ -1663,19 +1814,43 @@ export const FunnelCreatorScalarFieldEnum = {
 export type FunnelCreatorScalarFieldEnum = (typeof FunnelCreatorScalarFieldEnum)[keyof typeof FunnelCreatorScalarFieldEnum]
 
 
+export const LLMScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LLMScalarFieldEnum = (typeof LLMScalarFieldEnum)[keyof typeof LLMScalarFieldEnum]
+
+
 export const ClassNodeResultScalarFieldEnum = {
   id: 'id',
   videoId: 'videoId',
   classNodeId: 'classNodeId',
   result: 'result',
-  explanation: 'explanation',
-  modelUsed: 'modelUsed',
   confidence: 'confidence',
+  explanation: 'explanation',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type ClassNodeResultScalarFieldEnum = (typeof ClassNodeResultScalarFieldEnum)[keyof typeof ClassNodeResultScalarFieldEnum]
+
+
+export const ClassNodeModelVerdictScalarFieldEnum = {
+  id: 'id',
+  videoId: 'videoId',
+  classNodeId: 'classNodeId',
+  classNodeResultId: 'classNodeResultId',
+  llmId: 'llmId',
+  rationale: 'rationale',
+  verdict: 'verdict',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClassNodeModelVerdictScalarFieldEnum = (typeof ClassNodeModelVerdictScalarFieldEnum)[keyof typeof ClassNodeModelVerdictScalarFieldEnum]
 
 
 export const TrainingRunScalarFieldEnum = {
@@ -1827,6 +2002,20 @@ export type ListEnumClassNodeResultValueFieldRefInput<$PrismaModel> = FieldRefIn
 
 
 /**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
  * Reference to a field of type 'TrainingStatus'
  */
 export type EnumTrainingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TrainingStatus'>
@@ -1865,20 +2054,6 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
- * Reference to a field of type 'Float'
- */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-/**
- * Reference to a field of type 'Float[]'
- */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1988,7 +2163,9 @@ export type GlobalOmitConfig = {
   goldStandard?: Prisma.GoldStandardOmit
   funnelKeyword?: Prisma.FunnelKeywordOmit
   funnelCreator?: Prisma.FunnelCreatorOmit
+  lLM?: Prisma.LLMOmit
   classNodeResult?: Prisma.ClassNodeResultOmit
+  classNodeModelVerdict?: Prisma.ClassNodeModelVerdictOmit
   trainingRun?: Prisma.TrainingRunOmit
 }
 

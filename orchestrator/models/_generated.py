@@ -139,6 +139,8 @@ class Funnel(BaseModel):
     active: bool = Field(default=True)
     pipeline_interval_hours: int = Field(default=6, alias="pipelineIntervalHours")
     last_pipeline_run_at: datetime | None = Field(default=None, alias="lastPipelineRunAt")
+    max_videos_per_keyword: int = Field(default=20, alias="maxVideosPerKeyword")
+    max_videos_per_creator: int = Field(default=30, alias="maxVideosPerCreator")
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
@@ -147,7 +149,8 @@ class ClassNode(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
-    description: str
+    title: str = ""
+    description: str | None = None
     parent_class_node_id: str | None = Field(default=None, alias="parentClassNodeId")
     funnel_id: str | None = Field(default=None, alias="funnelId")
     created_at: datetime | None = Field(default=None, alias="createdAt")
@@ -201,9 +204,31 @@ class ClassNodeResult(BaseModel):
     video_id: str = Field(alias="videoId")
     class_node_id: str = Field(alias="classNodeId")
     result: ClassNodeResultValue
+    confidence: float
     explanation: str | None = Field(default=None)
-    model_used: str | None = Field(default=None, alias="modelUsed")
-    confidence: int | None = Field(default=None)
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class LLM(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str  # model API identifier, e.g. "gpt-4o"
+    provider: str  # "openai" | "anthropic"
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class ClassNodeModelVerdict(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str
+    video_id: str = Field(alias="videoId")
+    class_node_id: str = Field(alias="classNodeId")
+    class_node_result_id: str = Field(alias="classNodeResultId")
+    llm_id: str = Field(alias="llmId")
+    rationale: str
+    verdict: bool
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 

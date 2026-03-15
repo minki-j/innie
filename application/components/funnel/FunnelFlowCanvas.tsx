@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ReactFlow,
   Background,
-  Controls,
   type Node,
   type Edge,
   type NodeProps,
@@ -34,7 +33,8 @@ export interface FunnelSummary {
 
 export interface ClassNodeFlat {
   id: string;
-  description: string;
+  title: string;
+  description: string | null;
   parentClassNodeId: string | null;
   funnelId: string | null;
 }
@@ -42,7 +42,8 @@ export interface ClassNodeFlat {
 export interface SelectedClassNode {
   id: string;
   funnelId: string;
-  description: string;
+  title: string;
+  description: string | null;
 }
 
 type Direction = 'LR' | 'TB';
@@ -120,11 +121,10 @@ function FunnelNodeCard({ data }: NodeProps) {
 
   return (
     <div
-      className={`group relative w-[220px] bg-white border-2 rounded-xl shadow-sm cursor-pointer transition-all hover:shadow-md ${
-        isSelected
+      className={`group relative w-[220px] bg-white border-2 rounded-xl shadow-sm cursor-pointer transition-all hover:shadow-md ${isSelected
           ? 'border-blue-500 shadow-blue-100 shadow-md'
           : 'border-gray-200 hover:border-gray-300'
-      }`}
+        }`}
     >
       <Handle type="target" position={targetPos} className="!invisible" />
 
@@ -133,18 +133,17 @@ function FunnelNodeCard({ data }: NodeProps) {
           e.stopPropagation();
           onRequestDelete({ type: 'funnel', id: funnel.id, label: funnel.name });
         }}
-        title="Delete funnel"
-        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 cursor-pointer z-10"
-      >
-        <TrashIcon />
-      </button>
+        title="Delete topic"
+        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white cursor-pointer z-10"
+        >
+          <TrashIcon />
+        </button>
 
       <div className="p-3">
         <div className="flex items-center gap-2 mb-1">
           <span
-            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${
-              funnel.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-            }`}
+            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${funnel.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+              }`}
           >
             {funnel.active ? 'Active' : 'Paused'}
           </span>
@@ -175,45 +174,59 @@ function ClassNodeCard({ data }: NodeProps) {
     data as unknown as ClassNodeData;
   const targetPos = direction === 'LR' ? Position.Left : Position.Top;
   const sourcePos = direction === 'LR' ? Position.Right : Position.Bottom;
+  const isPending = classNode.id.startsWith('temp-');
 
   return (
     <div
-      className={`group relative w-[200px] bg-white border rounded-lg shadow-sm p-2.5 cursor-pointer transition-all hover:shadow-md ${
-        isSelected
-          ? 'border-blue-400 ring-1 ring-blue-300'
-          : 'border-gray-200 hover:border-gray-300'
-      }`}
+      className={`group relative w-[200px] bg-white border rounded-lg shadow-sm p-2.5 transition-all ${isPending
+          ? 'opacity-60 cursor-default border-gray-200'
+          : isSelected
+            ? 'border-blue-400 ring-1 ring-blue-300 cursor-pointer hover:shadow-md'
+            : 'border-gray-200 hover:border-gray-300 cursor-pointer hover:shadow-md'
+        }`}
     >
       <Handle type="target" position={targetPos} className="!invisible" />
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
+      {isPending ? (
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0" />
+          <p className="text-xs text-gray-400 leading-snug">Creating…</p>
+        </div>
+      ) : (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
           onRequestDelete({
             type: 'classNode',
             id: classNode.id,
             funnelId: classNode.funnelId ?? '',
-            label: classNode.description,
+            label: classNode.title || 'Untitled',
           });
-        }}
-        title="Delete class node"
-        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 cursor-pointer z-10"
-      >
-        <TrashIcon />
-      </button>
+            }}
+            title="Delete class node"
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white cursor-pointer z-10"
+          >
+            <TrashIcon />
+          </button>
 
-      <p className="text-xs text-gray-800 leading-snug line-clamp-3 pr-1">{classNode.description}</p>
+          <p className="text-xs font-medium text-gray-900 leading-snug line-clamp-2 pr-1">{classNode.title || 'Untitled'}</p>
+          {classNode.description && (
+            <p className="text-[11px] text-gray-400 leading-snug line-clamp-1 mt-0.5 pr-1">{classNode.description}</p>
+          )}
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onAddChild(classNode.id, classNode.funnelId ?? '');
-        }}
-        title="Add child class node"
-        className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-gray-100 hover:bg-blue-100 hover:text-blue-600 text-gray-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-      >
-        <PlusIcon />
-      </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddChild(classNode.id, classNode.funnelId ?? '');
+            }}
+            title="Add child class node"
+            className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-gray-100 hover:bg-blue-100 hover:text-blue-600 text-gray-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+          >
+            <PlusIcon />
+          </button>
+        </>
+      )}
 
       <Handle type="source" position={sourcePos} className="!invisible" />
     </div>
@@ -255,21 +268,32 @@ function InnerCanvas({
 }: InnerCanvasProps) {
   const { fitView } = useReactFlow();
 
-  const handleNodeClick = useCallback(
-    (_event: React.MouseEvent, node: Node) => {
+  const selectNode = useCallback(
+    (node: Node) => {
       if (node.type === 'funnelNode') {
         const funnel = (node.data as unknown as FunnelNodeData).funnel;
         onSelectFunnel(funnel.id === selectedFunnelId ? null : funnel.id);
       } else if (node.type === 'classNode') {
         const cn = (node.data as unknown as ClassNodeData).classNode;
+        if (cn.id.startsWith('temp-')) return;
         onSelectClassNode(
           cn.id === selectedClassNodeId
             ? null
-            : { id: cn.id, funnelId: cn.funnelId ?? '', description: cn.description },
+            : { id: cn.id, funnelId: cn.funnelId ?? '', title: cn.title, description: cn.description },
         );
       }
     },
     [selectedFunnelId, selectedClassNodeId, onSelectFunnel, onSelectClassNode],
+  );
+
+  const handleNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => selectNode(node),
+    [selectNode],
+  );
+
+  const handleNodeDragStart = useCallback(
+    (_event: React.MouseEvent, node: Node) => selectNode(node),
+    [selectNode],
   );
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -381,6 +405,7 @@ function InnerCanvas({
       onEdgesChange={onEdgesChange}
       nodeTypes={nodeTypes}
       onNodeClick={handleNodeClick}
+      onNodeDragStart={handleNodeDragStart}
       fitView
       fitViewOptions={{ padding: 0.2 }}
       minZoom={0.3}
@@ -388,35 +413,47 @@ function InnerCanvas({
       proOptions={{ hideAttribution: true }}
     >
       <Background color="#e5e7eb" gap={20} />
-      <Controls showInteractive={false} />
 
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-        <button
-          onClick={onAddFunnel}
-          className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-colors cursor-pointer"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          New Funnel
-        </button>
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onAddFunnel}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-colors cursor-pointer"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Topic
+          </button>
 
-        <button
-          onClick={onToggleDirection}
-          title={direction === 'LR' ? 'Switch to vertical layout' : 'Switch to horizontal layout'}
-          className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-colors cursor-pointer"
-        >
-          {direction === 'LR' ? (
+          <button
+            onClick={() => fitView({ padding: 0.05, duration: 300 })}
+            title="Fit nodes to screen"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-colors cursor-pointer"
+          >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 6h18M3 18h18" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
             </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18M6 3v18M18 3v18" />
-            </svg>
-          )}
-          {direction === 'LR' ? 'Vertical' : 'Horizontal'}
-        </button>
+            Arrange
+          </button>
+
+          <button
+            onClick={onToggleDirection}
+            title={direction === 'LR' ? 'Switch to vertical layout' : 'Switch to horizontal layout'}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-colors cursor-pointer"
+          >
+            {direction === 'LR' ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18M3 6h18M3 18h18" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18M6 3v18M18 3v18" />
+              </svg>
+            )}
+            {direction === 'LR' ? 'Vertical' : 'Horizontal'}
+          </button>
+        </div>
       </div>
 
       {pendingDelete && (
@@ -433,7 +470,7 @@ function InnerCanvas({
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">
-                  Delete {pendingDelete.type === 'funnel' ? 'funnel' : 'class node'}?
+                  Delete {pendingDelete.type === 'funnel' ? 'topic' : 'class node'}?
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
                   &ldquo;{pendingDelete.label}&rdquo;
@@ -474,6 +511,7 @@ interface FunnelFlowCanvasProps {
   selectedClassNodeId: string | null;
   onSelectFunnel: (id: string | null) => void;
   onSelectClassNode: (cn: SelectedClassNode | null) => void;
+  onFunnelAdded?: (funnel: FunnelSummary) => void;
 }
 
 export function FunnelFlowCanvas({
@@ -482,6 +520,7 @@ export function FunnelFlowCanvas({
   selectedClassNodeId,
   onSelectFunnel,
   onSelectClassNode,
+  onFunnelAdded,
 }: FunnelFlowCanvasProps) {
   const [funnels, setFunnels] = useState<FunnelSummary[]>(initialFunnels);
   const [classNodesByFunnel, setClassNodesByFunnel] = useState<
@@ -499,7 +538,7 @@ export function FunnelFlowCanvas({
         return [f.id, data] as const;
       }),
     ).then((entries) => setClassNodesByFunnel(Object.fromEntries(entries)));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleToggleDirection = useCallback(() => {
@@ -510,7 +549,7 @@ export function FunnelFlowCanvas({
     const res = await fetch('/api/funnels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'New Funnel' }),
+      body: JSON.stringify({ name: 'New Topic' }),
     });
     if (res.ok) {
       const funnel = await res.json();
@@ -520,58 +559,79 @@ export function FunnelFlowCanvas({
       };
       setFunnels((prev) => [...prev, newFunnel]);
       setClassNodesByFunnel((prev) => ({ ...prev, [funnel.id]: [] }));
+      onFunnelAdded?.(newFunnel);
       onSelectFunnel(funnel.id);
     }
   };
 
   const handleAddRootClassNode = useCallback(
     async (funnelId: string) => {
+      const tempId = `temp-${Date.now()}`;
+      const tempNode: ClassNodeFlat = { id: tempId, title: 'New class node', description: null, parentClassNodeId: null, funnelId };
+
+      setClassNodesByFunnel((prev) => ({ ...prev, [funnelId]: [...(prev[funnelId] ?? []), tempNode] }));
+      setFunnels((prev) =>
+        prev.map((f) => f.id === funnelId ? { ...f, _count: { ...f._count, classNodes: f._count.classNodes + 1 } } : f),
+      );
+
       const res = await fetch(`/api/funnels/${funnelId}/class-nodes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: 'New class node' }),
+        body: JSON.stringify({ title: 'New class node' }),
       });
       if (res.ok) {
         const newNode: ClassNodeFlat = await res.json();
         setClassNodesByFunnel((prev) => ({
           ...prev,
-          [funnelId]: [...(prev[funnelId] ?? []), newNode],
+          [funnelId]: (prev[funnelId] ?? []).map((n) => n.id === tempId ? newNode : n),
+        }));
+        onSelectClassNode({ id: newNode.id, funnelId, title: newNode.title, description: newNode.description });
+      } else {
+        setClassNodesByFunnel((prev) => ({
+          ...prev,
+          [funnelId]: (prev[funnelId] ?? []).filter((n) => n.id !== tempId),
         }));
         setFunnels((prev) =>
-          prev.map((f) =>
-            f.id === funnelId
-              ? { ...f, _count: { ...f._count, classNodes: f._count.classNodes + 1 } }
-              : f,
-          ),
+          prev.map((f) => f.id === funnelId ? { ...f, _count: { ...f._count, classNodes: f._count.classNodes - 1 } } : f),
         );
       }
     },
-    [],
+    [onSelectClassNode],
   );
 
   const handleAddChildClassNode = useCallback(
     async (parentId: string, funnelId: string) => {
+      const tempId = `temp-${Date.now()}`;
+      const tempNode: ClassNodeFlat = { id: tempId, title: 'New class node', description: null, parentClassNodeId: parentId, funnelId };
+
+      setClassNodesByFunnel((prev) => ({ ...prev, [funnelId]: [...(prev[funnelId] ?? []), tempNode] }));
+      setFunnels((prev) =>
+        prev.map((f) => f.id === funnelId ? { ...f, _count: { ...f._count, classNodes: f._count.classNodes + 1 } } : f),
+      );
+
       const res = await fetch(`/api/funnels/${funnelId}/class-nodes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: 'New class node', parentClassNodeId: parentId }),
+        body: JSON.stringify({ title: 'New class node', parentClassNodeId: parentId }),
       });
       if (res.ok) {
         const newNode: ClassNodeFlat = await res.json();
         setClassNodesByFunnel((prev) => ({
           ...prev,
-          [funnelId]: [...(prev[funnelId] ?? []), newNode],
+          [funnelId]: (prev[funnelId] ?? []).map((n) => n.id === tempId ? newNode : n),
+        }));
+        onSelectClassNode({ id: newNode.id, funnelId, title: newNode.title, description: newNode.description });
+      } else {
+        setClassNodesByFunnel((prev) => ({
+          ...prev,
+          [funnelId]: (prev[funnelId] ?? []).filter((n) => n.id !== tempId),
         }));
         setFunnels((prev) =>
-          prev.map((f) =>
-            f.id === funnelId
-              ? { ...f, _count: { ...f._count, classNodes: f._count.classNodes + 1 } }
-              : f,
-          ),
+          prev.map((f) => f.id === funnelId ? { ...f, _count: { ...f._count, classNodes: f._count.classNodes - 1 } } : f),
         );
       }
     },
-    [],
+    [onSelectClassNode],
   );
 
   // Sync funnel updates from FunnelDetailPanel
@@ -630,16 +690,22 @@ export function FunnelFlowCanvas({
     return () => window.removeEventListener('class-node-deleted', handler);
   }, []);
 
-  // Sync class node description updates from ClassNodeDetailPanel
+  // Sync class node updates from ClassNodeDetailPanel
   useEffect(() => {
     const handler = (e: Event) => {
-      const { classNodeId, funnelId, description } = (
-        e as CustomEvent<{ classNodeId: string; funnelId: string; description: string }>
+      const { classNodeId, funnelId, title, description } = (
+        e as CustomEvent<{ classNodeId: string; funnelId: string; title?: string; description?: string | null }>
       ).detail;
       setClassNodesByFunnel((prev) => ({
         ...prev,
         [funnelId]: (prev[funnelId] ?? []).map((cn) =>
-          cn.id === classNodeId ? { ...cn, description } : cn,
+          cn.id === classNodeId
+            ? {
+                ...cn,
+                ...(title !== undefined && { title }),
+                ...(description !== undefined && { description }),
+              }
+            : cn,
         ),
       }));
     };

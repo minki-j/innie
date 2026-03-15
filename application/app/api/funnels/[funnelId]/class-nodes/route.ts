@@ -62,15 +62,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { description, parentClassNodeId } = body;
+    const { title, description, parentClassNodeId } = body;
+
+    if (!title || typeof title !== "string" || title.trim().length === 0) {
+      return NextResponse.json(
+        { error: "title is required" },
+        { status: 400 },
+      );
+    }
 
     if (
-      !description ||
-      typeof description !== "string" ||
-      description.trim().length === 0
+      description !== undefined &&
+      description !== null &&
+      (typeof description !== "string" || description.trim().length === 0)
     ) {
       return NextResponse.json(
-        { error: "description is required" },
+        { error: "description cannot be empty string" },
         { status: 400 },
       );
     }
@@ -89,7 +96,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const classNode = await prisma.classNode.create({
       data: {
-        description: description.trim(),
+        title: title.trim(),
+        description: description ? description.trim() : null,
         funnelId,
         parentClassNodeId: parentClassNodeId || null,
       },

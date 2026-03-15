@@ -7,7 +7,14 @@ export async function getUserFunnels() {
 
   return prisma.funnel.findMany({
     where: { userId: session.user.id },
-    select: { id: true, name: true },
+    select: {
+      id: true,
+      name: true,
+      classNodes: {
+        select: { id: true, title: true },
+        orderBy: { createdAt: "asc" },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 }

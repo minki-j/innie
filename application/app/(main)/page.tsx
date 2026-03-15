@@ -17,6 +17,13 @@ export default async function Home({ searchParams }: HomeProps) {
       ? [funnelParam]
       : [];
 
+  const classNodeParam = params.classNode;
+  const selectedClassNodeIds: string[] = Array.isArray(classNodeParam)
+    ? classNodeParam
+    : classNodeParam
+      ? [classNodeParam]
+      : [];
+
   const funnels = await getUserFunnels();
 
   const effectiveFunnelIds =
@@ -27,11 +34,16 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Suspense fallback={null}>
-        <FunnelFilter funnels={funnels} selectedFunnelIds={selectedFunnelIds} />
+        <FunnelFilter
+          funnels={funnels}
+          selectedFunnelIds={selectedFunnelIds}
+          selectedClassNodeIds={selectedClassNodeIds}
+        />
       </Suspense>
       <VideoGrid
-        key={effectiveFunnelIds.join(',')}
+        key={`${effectiveFunnelIds.join(',')}-${selectedClassNodeIds.join(',')}`}
         selectedFunnelIds={effectiveFunnelIds}
+        selectedClassNodeIds={selectedClassNodeIds}
       />
     </div>
   );

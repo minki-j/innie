@@ -78,10 +78,20 @@ export type FunnelKeyword = Prisma.FunnelKeywordModel
  */
 export type FunnelCreator = Prisma.FunnelCreatorModel
 /**
+ * Model LLM
+ * 
+ */
+export type LLM = Prisma.LLMModel
+/**
  * Model ClassNodeResult
  * 
  */
 export type ClassNodeResult = Prisma.ClassNodeResultModel
+/**
+ * Model ClassNodeModelVerdict
+ * 
+ */
+export type ClassNodeModelVerdict = Prisma.ClassNodeModelVerdictModel
 /**
  * Model TrainingRun
  * 

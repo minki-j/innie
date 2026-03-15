@@ -5,11 +5,15 @@ import { FunnelFlowCanvas, type FunnelSummary, type SelectedClassNode } from '@/
 import { FunnelDetailPanel } from '@/components/funnel/FunnelDetailPanel';
 import { ClassNodeDetailPanel } from '@/components/funnel/ClassNodeDetailPanel';
 
-export default function FunnelsPage() {
+export default function ClassificationTreePage() {
   const [funnels, setFunnels] = useState<FunnelSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFunnelId, setSelectedFunnelId] = useState<string | null>(null);
   const [selectedClassNode, setSelectedClassNode] = useState<SelectedClassNode | null>(null);
+
+  useEffect(() => {
+    document.title = 'Classification Tree – Innie';
+  }, []);
 
   useEffect(() => {
     fetch('/api/funnels')
@@ -26,7 +30,7 @@ export default function FunnelsPage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-gray-400">
-        Loading funnels…
+        Loading…
       </div>
     );
   }
@@ -42,8 +46,8 @@ export default function FunnelsPage() {
             <svg className="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <p className="text-lg font-medium text-gray-500">No funnels yet</p>
-            <p className="text-sm">Click &quot;New Funnel&quot; in the canvas to get started.</p>
+            <p className="text-lg font-medium text-gray-500">No topics yet</p>
+            <p className="text-sm">Click &quot;New Topic&quot; in the canvas to get started.</p>
           </div>
         ) : null}
         <FunnelFlowCanvas
@@ -58,6 +62,7 @@ export default function FunnelsPage() {
             setSelectedClassNode(cn);
             setSelectedFunnelId(null);
           }}
+          onFunnelAdded={(funnel) => setFunnels((prev) => [...prev, funnel])}
         />
       </div>
 
@@ -79,6 +84,7 @@ export default function FunnelsPage() {
               key={selectedClassNode.id}
               classNodeId={selectedClassNode.id}
               funnelId={selectedClassNode.funnelId}
+              initialTitle={selectedClassNode.title}
               initialDescription={selectedClassNode.description}
               onClose={() => setSelectedClassNode(null)}
             />
