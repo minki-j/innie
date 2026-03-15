@@ -5,8 +5,8 @@ from typing import Any, Type, Set, Union, Optional, Tuple, Callable
 from pydantic import BaseModel, create_model
 from pydantic_core import PydanticUndefined
 
-from agents.state import ItemState, ClassNodeState
-from agents.llm_factory import AIModel
+from .state import ItemState, ClassNodeState
+from .llm_factory import AIModel
 
 logger = logging.getLogger(__name__)
 

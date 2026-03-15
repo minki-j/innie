@@ -4,7 +4,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from langgraph.graph import add_messages
 from langchain_core.messages import BaseMessage
-from agents.llm_factory import AIModel
+from .llm_factory import AIModel
 
 ROOT_NODE_ID = "root"
 

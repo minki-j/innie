@@ -3,7 +3,7 @@
         "."
     ],
     "graphs": {
-        "classify_items": "./classify_items/classify_items_graph.py:g"
+        "classify_items": "agents.classify_items.classify_items_graph:g"
     },
     "env": ".env",
     "python_version": "3.13"
