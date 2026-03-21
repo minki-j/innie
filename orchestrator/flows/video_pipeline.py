@@ -17,6 +17,7 @@ Triggering semantics:
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from prefect import flow, get_run_logger
@@ -37,17 +38,17 @@ from models.schemas import (
     VideoData,
 )
 from tasks.db import (
-    class_node_result_exists,
+    bulk_check_existing_class_node_results,
+    bulk_save_class_node_results,
     delete_stale_class_node_results,
     ensure_llms_exist,
-    get_active_funnels,
+    get_funnels_due_for_pipeline,
     get_funnel_by_id,
     get_funnel_video_ids,
     get_video_data,
     get_videos_for_funnel,
     link_video_to_funnel,
     save_class_node_model_verdicts,
-    save_class_node_result,
     save_video,
     update_funnel_last_run,
     video_exists,
@@ -88,72 +89,103 @@ def _extract_video_id_from_url(url: str) -> str | None:
     return m.group(1) if m else None
 
 
-def _save_results_for_video(
-    video_id: str,
-    data: dict,
+def _save_all_results(
+    classification_map: dict[str, dict],
     logger: Any,
     skip_existing: bool = False,
 ) -> None:
-    """Save ClassNodeResult + ClassNodeModelVerdict rows for a single video."""
-    pass_node_ids = {nd["node_id"] for nd in data["classified_as"]}
-    all_verdict_node_ids = {v["node_id"] for v in data["verdicts"]}
-    fail_node_ids = all_verdict_node_ids - pass_node_ids
+    """
+    Bulk-save ClassNodeResult + ClassNodeModelVerdict rows for all videos at once.
 
-    # Ensure all referenced LLM rows exist before inserting verdicts
-    unique_llm_ids = list({v["model"] for v in data["verdicts"]})
-    if unique_llm_ids:
-        ensure_llms_exist(unique_llm_ids)
+    Reduces DB round-trips from O(N×M) to O(1) by batching all inserts across
+    every video and class node into a handful of bulk queries.
+    """
+    # ── 1. Ensure LLM rows exist (one call for all videos) ────────
+    all_llm_ids = {
+        v["model"]
+        for data in classification_map.values()
+        for v in data["verdicts"]
+    }
+    if all_llm_ids:
+        ensure_llms_exist(list(all_llm_ids))
 
-    def _save_node(
-        class_node_id: str, result_value: ClassNodeResultValue, node_data: dict | None
-    ) -> None:
-        if skip_existing and class_node_result_exists(video_id, class_node_id):
-            return
-        node_verdict_list = [
-            v for v in data["verdicts"] if v["node_id"] == class_node_id
-        ]
-        pass_votes = sum(1 for v in node_verdict_list if v["verdict"])
-        confidence_score = (
-            node_data.get("confidence_score", 1.0)
-            if node_data
-            else (pass_votes / len(node_verdict_list) if node_verdict_list else 0.0)
-        )
-        try:
-            result_id = save_class_node_result(
+    # ── 2. Build all ClassNodeResultCreate records ─────────────────
+    all_results: list[ClassNodeResultCreate] = []
+    # verdict_index lets us look up verdicts by (video_id, class_node_id) later
+    verdict_index: dict[tuple[str, str], list[dict]] = {}
+
+    for video_id, data in classification_map.items():
+        pass_node_ids = {nd["node_id"] for nd in data["classified_as"]}
+        all_verdict_node_ids = {v["node_id"] for v in data["verdicts"]}
+        fail_node_ids = all_verdict_node_ids - pass_node_ids
+
+        for nd in data["classified_as"]:
+            node_id = nd["node_id"]
+            node_verdicts = [v for v in data["verdicts"] if v["node_id"] == node_id]
+            verdict_index[(video_id, node_id)] = node_verdicts
+            all_results.append(
                 ClassNodeResultCreate(
                     video_id=video_id,
-                    class_node_id=class_node_id,
-                    result=result_value,
+                    class_node_id=node_id,
+                    result=ClassNodeResultValue.PASS,
+                    confidence_score=nd.get("confidence_score", 1.0),
+                    explanation=nd.get("explanation"),
+                )
+            )
+
+        for node_id in fail_node_ids:
+            node_verdicts = [v for v in data["verdicts"] if v["node_id"] == node_id]
+            pass_votes = sum(1 for v in node_verdicts if v["verdict"])
+            confidence_score = (
+                pass_votes / len(node_verdicts) if node_verdicts else 0.0
+            )
+            verdict_index[(video_id, node_id)] = node_verdicts
+            all_results.append(
+                ClassNodeResultCreate(
+                    video_id=video_id,
+                    class_node_id=node_id,
+                    result=ClassNodeResultValue.FAIL,
                     confidence_score=confidence_score,
-                    explanation=node_data.get("explanation") if node_data else None,
+                    explanation=None,
                 )
             )
-            if node_verdict_list:
-                save_class_node_model_verdicts(
-                    [
-                        ClassNodeModelVerdictCreate(
-                            video_id=video_id,
-                            class_node_id=class_node_id,
-                            class_node_result_id=result_id,
-                            llm_id=v["model"],
-                            rationale=v["rationale"],
-                            verdict=v["verdict"],
-                        )
-                        for v in node_verdict_list
-                    ]
+
+    # ── 3. Filter out already-saved pairs (one bulk check) ────────
+    if skip_existing and all_results:
+        pairs = [(r.video_id, r.class_node_id) for r in all_results]
+        existing = bulk_check_existing_class_node_results(pairs)
+        all_results = [
+            r for r in all_results if (r.video_id, r.class_node_id) not in existing
+        ]
+
+    if not all_results:
+        logger.info("_save_all_results: all results already exist, nothing to save")
+        return
+
+    # ── 4. Bulk-insert ClassNodeResults, get back (video_id, class_node_id) → id ──
+    try:
+        result_id_map = bulk_save_class_node_results(all_results)
+    except Exception:
+        logger.exception("Failed to bulk-save ClassNodeResults")
+        return
+
+    # ── 5. Build and bulk-insert all verdicts (one call) ─────────
+    all_verdicts: list[ClassNodeModelVerdictCreate] = []
+    for (video_id, class_node_id), result_id in result_id_map.items():
+        for v in verdict_index.get((video_id, class_node_id), []):
+            all_verdicts.append(
+                ClassNodeModelVerdictCreate(
+                    video_id=video_id,
+                    class_node_id=class_node_id,
+                    class_node_result_id=result_id,
+                    llm_id=v["model"],
+                    rationale=v["rationale"],
+                    verdict=v["verdict"],
                 )
-        except Exception:
-            logger.exception(
-                "Failed to save ClassNodeResult: video=%s class_node=%s",
-                video_id,
-                class_node_id,
             )
 
-    for node_data in data["classified_as"]:
-        _save_node(node_data["node_id"], ClassNodeResultValue.PASS, node_data)
-
-    for node_id in fail_node_ids:
-        _save_node(node_id, ClassNodeResultValue.FAIL, None)
+    if all_verdicts:
+        save_class_node_model_verdicts(all_verdicts)
 
 
 def _classify_videos_via_langgraph(
@@ -409,18 +441,19 @@ def _process_funnel(
         return
 
     # ── 1. Discover videos ────────────────────────────────────
+    t0 = time.perf_counter()
     existing_funnel_video_ids = get_funnel_video_ids(funnel.id)
     discovered_ids = discover_videos(funnel)
     new_ids = [vid for vid in discovered_ids if vid not in existing_funnel_video_ids]
-
     logger.info(
-        "Funnel '%s': %d discovered, %d new",
-        funnel.name,
+        "Step 1 (discover videos) took %.2fs — %d discovered, %d new",
+        time.perf_counter() - t0,
         len(discovered_ids),
         len(new_ids),
     )
 
     # ── 2. Save + link to funnel ──────────────────────────────
+    t0 = time.perf_counter()
     saved_videos: list[VideoData] = []
     for video_id in new_ids:
         try:
@@ -435,6 +468,11 @@ def _process_funnel(
             logger.exception(
                 "Failed to process video %s for funnel '%s'", video_id, funnel.name
             )
+    logger.info(
+        "Step 2 (save + link videos) took %.2fs — %d saved",
+        time.perf_counter() - t0,
+        len(saved_videos),
+    )
 
     if not funnel.class_nodes:
         logger.info(
@@ -449,12 +487,18 @@ def _process_funnel(
     # Classify ALL videos in funnel (not just new ones) to handle re-runs cleanly
     all_funnel_videos = get_videos_for_funnel(funnel.id)
 
+    t0 = time.perf_counter()
     try:
         classification_map = _classify_videos_via_langgraph(
             funnel=funnel,
             class_nodes=funnel.class_nodes,
             videos=all_funnel_videos,
             logger=logger,
+        )
+        logger.info(
+            "Step 3 (LangGraph classification) took %.2fs — %d videos classified",
+            time.perf_counter() - t0,
+            len(classification_map),
         )
     except Exception:
         logger.exception(
@@ -466,11 +510,15 @@ def _process_funnel(
         return
 
     # ── 4. Save ClassNodeResults and per-model verdicts ───────
-    for video_id, data in classification_map.items():
-        _save_results_for_video(video_id, data, logger, skip_existing=True)
+    t0 = time.perf_counter()
+    _save_all_results(classification_map, logger, skip_existing=True)
+    logger.info("Step 4 (save results) took %.2fs", time.perf_counter() - t0)
 
+    # ── 5. Update lastPipelineRunAt ───────────────────────────
     if update_last_run:
+        t0 = time.perf_counter()
         update_funnel_last_run(funnel.id)
+        logger.info("Step 5 (update last run) took %.2fs", time.perf_counter() - t0)
     logger.info("Completed processing for funnel '%s'", funnel.name)
 
 
@@ -484,8 +532,8 @@ def video_pipeline(
 
     Args:
         model_name: LLM model to use for ClassNode evaluation.
-        funnel_id: If provided, process this specific funnel regardless of interval.
-                   If None, process all active funnels that are due.
+        funnel_id: If provided, process this specific funnel, skipping due date check.
+                   If None, process all funnels that are due for pipeline run.
     """
     logger = get_run_logger()
     logger.info("Starting video pipeline (funnel_id=%s)", funnel_id)
@@ -498,11 +546,11 @@ def video_pipeline(
         logger.info("Manual trigger: funnel='%s' (%s)", funnel.name, funnel_id)
         _process_funnel(funnel, model_name, logger, update_last_run=True)
     else:
-        funnels = get_active_funnels()
-        logger.info("Found %d active funnels due for processing", len(funnels))
+        funnels = get_funnels_due_for_pipeline()
+        logger.info("Found %d funnels due for pipeline run", len(funnels))
 
         if not funnels:
-            logger.info("No funnels due for processing. Pipeline complete.")
+            logger.info("No funnels due for pipeline run. Pipeline complete.")
             return
 
         for funnel in funnels:
@@ -552,8 +600,7 @@ def re_evaluate_videos(
         delete_stale_class_node_results(video_ids, funnel_id)
         return
 
-    for video_id, data in classification_map.items():
-        _save_results_for_video(video_id, data, logger, skip_existing=False)
+    _save_all_results(classification_map, logger, skip_existing=False)
 
     delete_stale_class_node_results(video_ids, funnel_id)
 

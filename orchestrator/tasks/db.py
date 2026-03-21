@@ -220,10 +220,10 @@ def _load_funnel_relations(cur: Any, funnel_id: str) -> dict[str, Any]:
 # ── Read tasks ────────────────────────────────────────────────
 
 
-@task(name="get_active_funnels", retries=2, retry_delay_seconds=5)
-def get_active_funnels() -> list[FunnelWithRelations]:
+@task(name="get_funnels_due_for_pipeline", retries=2, retry_delay_seconds=5)
+def get_funnels_due_for_pipeline() -> list[FunnelWithRelations]:
     """
-    Query all active funnels that are due for processing based on
+    Active funnels whose pipeline interval has elapsed (or never ran), using
     pipelineIntervalHours and lastPipelineRunAt.
     """
     with get_connection() as conn:
@@ -250,7 +250,7 @@ def get_active_funnels() -> list[FunnelWithRelations]:
                 relations = _load_funnel_relations(cur, row["id"])
                 funnels.append(FunnelWithRelations(**row, **relations))
 
-            logger.info("Found %d active funnels due for processing", len(funnels))
+            logger.info("Found %d funnels due for pipeline run", len(funnels))
             return funnels
 
 
@@ -661,6 +661,83 @@ def save_class_node_result(result: ClassNodeResultCreate) -> str:
         result.result.value,
     )
     return returned_id
+
+
+@task(name="bulk_check_existing_class_node_results", retries=2, retry_delay_seconds=5)
+def bulk_check_existing_class_node_results(
+    pairs: list[tuple[str, str]],
+) -> set[tuple[str, str]]:
+    """Return the subset of (video_id, class_node_id) pairs that already exist in the DB."""
+    if not pairs:
+        return set()
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT "videoId", "classNodeId"
+                FROM "ClassNodeResult"
+                WHERE ("videoId", "classNodeId") = ANY(%s)
+                """,
+                (list(pairs),),
+            )
+            existing = {(row[0], row[1]) for row in cur.fetchall()}
+    logger.info(
+        "bulk_check_existing_class_node_results: %d/%d pairs already exist",
+        len(existing),
+        len(pairs),
+    )
+    return existing
+
+
+@task(name="bulk_save_class_node_results", retries=2, retry_delay_seconds=5)
+def bulk_save_class_node_results(
+    results: list[ClassNodeResultCreate],
+) -> dict[tuple[str, str], str]:
+    """
+    Batch-upsert ClassNodeResult rows.
+
+    Returns a mapping of (video_id, class_node_id) -> result_id so callers can
+    immediately build the associated ClassNodeModelVerdict rows.
+    """
+    if not results:
+        return {}
+    now = datetime.now(timezone.utc)
+    rows = [
+        (
+            _generate_cuid(),
+            r.video_id,
+            r.class_node_id,
+            r.result.value,
+            r.confidence_score,
+            r.explanation,
+            now,
+            now,
+        )
+        for r in results
+    ]
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            returned = psycopg2.extras.execute_values(
+                cur,
+                """
+                INSERT INTO "ClassNodeResult" (
+                    id, "videoId", "classNodeId", result, confidence, explanation,
+                    "createdAt", "updatedAt"
+                ) VALUES %s
+                ON CONFLICT ("videoId", "classNodeId") DO UPDATE SET
+                    result = EXCLUDED.result,
+                    confidence = EXCLUDED.confidence,
+                    explanation = EXCLUDED.explanation,
+                    "updatedAt" = EXCLUDED."updatedAt"
+                RETURNING id, "videoId", "classNodeId"
+                """,
+                rows,
+                fetch=True,
+            )
+            conn.commit()
+    result_id_map = {(row[1], row[2]): row[0] for row in returned}
+    logger.info("bulk_save_class_node_results: upserted %d ClassNodeResult rows", len(result_id_map))
+    return result_id_map
 
 
 @task(name="ensure_llms_exist", retries=2, retry_delay_seconds=5)
