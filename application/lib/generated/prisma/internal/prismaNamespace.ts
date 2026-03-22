@@ -1755,6 +1755,8 @@ export const FunnelScalarFieldEnum = {
   active: 'active',
   pipelineIntervalHours: 'pipelineIntervalHours',
   lastPipelineRunAt: 'lastPipelineRunAt',
+  maxVideosPerKeyword: 'maxVideosPerKeyword',
+  maxVideosPerCreator: 'maxVideosPerCreator',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

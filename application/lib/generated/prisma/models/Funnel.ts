@@ -28,10 +28,14 @@ export type AggregateFunnel = {
 
 export type FunnelAvgAggregateOutputType = {
   pipelineIntervalHours: number | null
+  maxVideosPerKeyword: number | null
+  maxVideosPerCreator: number | null
 }
 
 export type FunnelSumAggregateOutputType = {
   pipelineIntervalHours: number | null
+  maxVideosPerKeyword: number | null
+  maxVideosPerCreator: number | null
 }
 
 export type FunnelMinAggregateOutputType = {
@@ -42,6 +46,8 @@ export type FunnelMinAggregateOutputType = {
   active: boolean | null
   pipelineIntervalHours: number | null
   lastPipelineRunAt: Date | null
+  maxVideosPerKeyword: number | null
+  maxVideosPerCreator: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +60,8 @@ export type FunnelMaxAggregateOutputType = {
   active: boolean | null
   pipelineIntervalHours: number | null
   lastPipelineRunAt: Date | null
+  maxVideosPerKeyword: number | null
+  maxVideosPerCreator: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +74,8 @@ export type FunnelCountAggregateOutputType = {
   active: number
   pipelineIntervalHours: number
   lastPipelineRunAt: number
+  maxVideosPerKeyword: number
+  maxVideosPerCreator: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -74,10 +84,14 @@ export type FunnelCountAggregateOutputType = {
 
 export type FunnelAvgAggregateInputType = {
   pipelineIntervalHours?: true
+  maxVideosPerKeyword?: true
+  maxVideosPerCreator?: true
 }
 
 export type FunnelSumAggregateInputType = {
   pipelineIntervalHours?: true
+  maxVideosPerKeyword?: true
+  maxVideosPerCreator?: true
 }
 
 export type FunnelMinAggregateInputType = {
@@ -88,6 +102,8 @@ export type FunnelMinAggregateInputType = {
   active?: true
   pipelineIntervalHours?: true
   lastPipelineRunAt?: true
+  maxVideosPerKeyword?: true
+  maxVideosPerCreator?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +116,8 @@ export type FunnelMaxAggregateInputType = {
   active?: true
   pipelineIntervalHours?: true
   lastPipelineRunAt?: true
+  maxVideosPerKeyword?: true
+  maxVideosPerCreator?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +130,8 @@ export type FunnelCountAggregateInputType = {
   active?: true
   pipelineIntervalHours?: true
   lastPipelineRunAt?: true
+  maxVideosPerKeyword?: true
+  maxVideosPerCreator?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -211,6 +231,8 @@ export type FunnelGroupByOutputType = {
   active: boolean
   pipelineIntervalHours: number
   lastPipelineRunAt: Date | null
+  maxVideosPerKeyword: number
+  maxVideosPerCreator: number
   createdAt: Date
   updatedAt: Date
   _count: FunnelCountAggregateOutputType | null
@@ -246,6 +268,8 @@ export type FunnelWhereInput = {
   active?: Prisma.BoolFilter<"Funnel"> | boolean
   pipelineIntervalHours?: Prisma.IntFilter<"Funnel"> | number
   lastPipelineRunAt?: Prisma.DateTimeNullableFilter<"Funnel"> | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFilter<"Funnel"> | number
+  maxVideosPerCreator?: Prisma.IntFilter<"Funnel"> | number
   createdAt?: Prisma.DateTimeFilter<"Funnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Funnel"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -265,6 +289,8 @@ export type FunnelOrderByWithRelationInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxVideosPerKeyword?: Prisma.SortOrder
+  maxVideosPerCreator?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -287,6 +313,8 @@ export type FunnelWhereUniqueInput = Prisma.AtLeast<{
   active?: Prisma.BoolFilter<"Funnel"> | boolean
   pipelineIntervalHours?: Prisma.IntFilter<"Funnel"> | number
   lastPipelineRunAt?: Prisma.DateTimeNullableFilter<"Funnel"> | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFilter<"Funnel"> | number
+  maxVideosPerCreator?: Prisma.IntFilter<"Funnel"> | number
   createdAt?: Prisma.DateTimeFilter<"Funnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Funnel"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -306,6 +334,8 @@ export type FunnelOrderByWithAggregationInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxVideosPerKeyword?: Prisma.SortOrder
+  maxVideosPerCreator?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.FunnelCountOrderByAggregateInput
@@ -326,6 +356,8 @@ export type FunnelScalarWhereWithAggregatesInput = {
   active?: Prisma.BoolWithAggregatesFilter<"Funnel"> | boolean
   pipelineIntervalHours?: Prisma.IntWithAggregatesFilter<"Funnel"> | number
   lastPipelineRunAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Funnel"> | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntWithAggregatesFilter<"Funnel"> | number
+  maxVideosPerCreator?: Prisma.IntWithAggregatesFilter<"Funnel"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Funnel"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Funnel"> | Date | string
 }
@@ -337,6 +369,8 @@ export type FunnelCreateInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFunnelsInput
@@ -356,6 +390,8 @@ export type FunnelUncheckedCreateInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   keywords?: Prisma.FunnelKeywordUncheckedCreateNestedManyWithoutFunnelInput
@@ -373,6 +409,8 @@ export type FunnelUpdateInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFunnelsNestedInput
@@ -392,6 +430,8 @@ export type FunnelUncheckedUpdateInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   keywords?: Prisma.FunnelKeywordUncheckedUpdateManyWithoutFunnelNestedInput
@@ -410,6 +450,8 @@ export type FunnelCreateManyInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -421,6 +463,8 @@ export type FunnelUpdateManyMutationInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -433,6 +477,8 @@ export type FunnelUncheckedUpdateManyInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -460,12 +506,16 @@ export type FunnelCountOrderByAggregateInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrder
+  maxVideosPerKeyword?: Prisma.SortOrder
+  maxVideosPerCreator?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type FunnelAvgOrderByAggregateInput = {
   pipelineIntervalHours?: Prisma.SortOrder
+  maxVideosPerKeyword?: Prisma.SortOrder
+  maxVideosPerCreator?: Prisma.SortOrder
 }
 
 export type FunnelMaxOrderByAggregateInput = {
@@ -476,6 +526,8 @@ export type FunnelMaxOrderByAggregateInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrder
+  maxVideosPerKeyword?: Prisma.SortOrder
+  maxVideosPerCreator?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -488,12 +540,16 @@ export type FunnelMinOrderByAggregateInput = {
   active?: Prisma.SortOrder
   pipelineIntervalHours?: Prisma.SortOrder
   lastPipelineRunAt?: Prisma.SortOrder
+  maxVideosPerKeyword?: Prisma.SortOrder
+  maxVideosPerCreator?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type FunnelSumOrderByAggregateInput = {
   pipelineIntervalHours?: Prisma.SortOrder
+  maxVideosPerKeyword?: Prisma.SortOrder
+  maxVideosPerCreator?: Prisma.SortOrder
 }
 
 export type FunnelScalarRelationFilter = {
@@ -666,6 +722,8 @@ export type FunnelCreateWithoutUserInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   keywords?: Prisma.FunnelKeywordCreateNestedManyWithoutFunnelInput
@@ -683,6 +741,8 @@ export type FunnelUncheckedCreateWithoutUserInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   keywords?: Prisma.FunnelKeywordUncheckedCreateNestedManyWithoutFunnelInput
@@ -730,6 +790,8 @@ export type FunnelScalarWhereInput = {
   active?: Prisma.BoolFilter<"Funnel"> | boolean
   pipelineIntervalHours?: Prisma.IntFilter<"Funnel"> | number
   lastPipelineRunAt?: Prisma.DateTimeNullableFilter<"Funnel"> | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFilter<"Funnel"> | number
+  maxVideosPerCreator?: Prisma.IntFilter<"Funnel"> | number
   createdAt?: Prisma.DateTimeFilter<"Funnel"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Funnel"> | Date | string
 }
@@ -741,6 +803,8 @@ export type FunnelCreateWithoutVideosInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFunnelsInput
@@ -759,6 +823,8 @@ export type FunnelUncheckedCreateWithoutVideosInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   keywords?: Prisma.FunnelKeywordUncheckedCreateNestedManyWithoutFunnelInput
@@ -796,6 +862,8 @@ export type FunnelCreateWithoutReviewsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFunnelsInput
@@ -814,6 +882,8 @@ export type FunnelUncheckedCreateWithoutReviewsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   keywords?: Prisma.FunnelKeywordUncheckedCreateNestedManyWithoutFunnelInput
@@ -846,6 +916,8 @@ export type FunnelUpdateWithoutReviewsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFunnelsNestedInput
@@ -864,6 +936,8 @@ export type FunnelUncheckedUpdateWithoutReviewsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   keywords?: Prisma.FunnelKeywordUncheckedUpdateManyWithoutFunnelNestedInput
@@ -880,6 +954,8 @@ export type FunnelCreateWithoutClassNodesInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFunnelsInput
@@ -898,6 +974,8 @@ export type FunnelUncheckedCreateWithoutClassNodesInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   keywords?: Prisma.FunnelKeywordUncheckedCreateNestedManyWithoutFunnelInput
@@ -930,6 +1008,8 @@ export type FunnelUpdateWithoutClassNodesInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFunnelsNestedInput
@@ -948,6 +1028,8 @@ export type FunnelUncheckedUpdateWithoutClassNodesInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   keywords?: Prisma.FunnelKeywordUncheckedUpdateManyWithoutFunnelNestedInput
@@ -964,6 +1046,8 @@ export type FunnelCreateWithoutKeywordsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFunnelsInput
@@ -982,6 +1066,8 @@ export type FunnelUncheckedCreateWithoutKeywordsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   creators?: Prisma.FunnelCreatorUncheckedCreateNestedManyWithoutFunnelInput
@@ -1014,6 +1100,8 @@ export type FunnelUpdateWithoutKeywordsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFunnelsNestedInput
@@ -1032,6 +1120,8 @@ export type FunnelUncheckedUpdateWithoutKeywordsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   creators?: Prisma.FunnelCreatorUncheckedUpdateManyWithoutFunnelNestedInput
@@ -1048,6 +1138,8 @@ export type FunnelCreateWithoutCreatorsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFunnelsInput
@@ -1066,6 +1158,8 @@ export type FunnelUncheckedCreateWithoutCreatorsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   keywords?: Prisma.FunnelKeywordUncheckedCreateNestedManyWithoutFunnelInput
@@ -1098,6 +1192,8 @@ export type FunnelUpdateWithoutCreatorsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFunnelsNestedInput
@@ -1116,6 +1212,8 @@ export type FunnelUncheckedUpdateWithoutCreatorsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   keywords?: Prisma.FunnelKeywordUncheckedUpdateManyWithoutFunnelNestedInput
@@ -1132,6 +1230,8 @@ export type FunnelCreateWithoutTrainingRunsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutFunnelsInput
@@ -1150,6 +1250,8 @@ export type FunnelUncheckedCreateWithoutTrainingRunsInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   keywords?: Prisma.FunnelKeywordUncheckedCreateNestedManyWithoutFunnelInput
@@ -1182,6 +1284,8 @@ export type FunnelUpdateWithoutTrainingRunsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFunnelsNestedInput
@@ -1200,6 +1304,8 @@ export type FunnelUncheckedUpdateWithoutTrainingRunsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   keywords?: Prisma.FunnelKeywordUncheckedUpdateManyWithoutFunnelNestedInput
@@ -1216,6 +1322,8 @@ export type FunnelCreateManyUserInput = {
   active?: boolean
   pipelineIntervalHours?: number
   lastPipelineRunAt?: Date | string | null
+  maxVideosPerKeyword?: number
+  maxVideosPerCreator?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1227,6 +1335,8 @@ export type FunnelUpdateWithoutUserInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   keywords?: Prisma.FunnelKeywordUpdateManyWithoutFunnelNestedInput
@@ -1244,6 +1354,8 @@ export type FunnelUncheckedUpdateWithoutUserInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   keywords?: Prisma.FunnelKeywordUncheckedUpdateManyWithoutFunnelNestedInput
@@ -1261,6 +1373,8 @@ export type FunnelUncheckedUpdateManyWithoutUserInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1272,6 +1386,8 @@ export type FunnelUpdateWithoutVideosInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutFunnelsNestedInput
@@ -1290,6 +1406,8 @@ export type FunnelUncheckedUpdateWithoutVideosInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   keywords?: Prisma.FunnelKeywordUncheckedUpdateManyWithoutFunnelNestedInput
@@ -1307,6 +1425,8 @@ export type FunnelUncheckedUpdateManyWithoutVideosInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   pipelineIntervalHours?: Prisma.IntFieldUpdateOperationsInput | number
   lastPipelineRunAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxVideosPerKeyword?: Prisma.IntFieldUpdateOperationsInput | number
+  maxVideosPerCreator?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1395,6 +1515,8 @@ export type FunnelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   active?: boolean
   pipelineIntervalHours?: boolean
   lastPipelineRunAt?: boolean
+  maxVideosPerKeyword?: boolean
+  maxVideosPerCreator?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1415,6 +1537,8 @@ export type FunnelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   active?: boolean
   pipelineIntervalHours?: boolean
   lastPipelineRunAt?: boolean
+  maxVideosPerKeyword?: boolean
+  maxVideosPerCreator?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1428,6 +1552,8 @@ export type FunnelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   active?: boolean
   pipelineIntervalHours?: boolean
   lastPipelineRunAt?: boolean
+  maxVideosPerKeyword?: boolean
+  maxVideosPerCreator?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1441,11 +1567,13 @@ export type FunnelSelectScalar = {
   active?: boolean
   pipelineIntervalHours?: boolean
   lastPipelineRunAt?: boolean
+  maxVideosPerKeyword?: boolean
+  maxVideosPerCreator?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type FunnelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "userId" | "active" | "pipelineIntervalHours" | "lastPipelineRunAt" | "createdAt" | "updatedAt", ExtArgs["result"]["funnel"]>
+export type FunnelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "userId" | "active" | "pipelineIntervalHours" | "lastPipelineRunAt" | "maxVideosPerKeyword" | "maxVideosPerCreator" | "createdAt" | "updatedAt", ExtArgs["result"]["funnel"]>
 export type FunnelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   keywords?: boolean | Prisma.Funnel$keywordsArgs<ExtArgs>
@@ -1482,6 +1610,8 @@ export type $FunnelPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     active: boolean
     pipelineIntervalHours: number
     lastPipelineRunAt: Date | null
+    maxVideosPerKeyword: number
+    maxVideosPerCreator: number
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["funnel"]>
@@ -1921,6 +2051,8 @@ export interface FunnelFieldRefs {
   readonly active: Prisma.FieldRef<"Funnel", 'Boolean'>
   readonly pipelineIntervalHours: Prisma.FieldRef<"Funnel", 'Int'>
   readonly lastPipelineRunAt: Prisma.FieldRef<"Funnel", 'DateTime'>
+  readonly maxVideosPerKeyword: Prisma.FieldRef<"Funnel", 'Int'>
+  readonly maxVideosPerCreator: Prisma.FieldRef<"Funnel", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Funnel", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Funnel", 'DateTime'>
 }

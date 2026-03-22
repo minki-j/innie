@@ -56,6 +56,8 @@ export default async function FunnelDetailPage({ params }: FunnelDetailPageProps
         active={funnel.active}
         pipelineIntervalHours={funnel.pipelineIntervalHours}
         lastPipelineRunAt={funnel.lastPipelineRunAt?.toISOString() ?? null}
+        maxVideosPerKeyword={funnel.maxVideosPerKeyword}
+        maxVideosPerCreator={funnel.maxVideosPerCreator}
         keywords={funnel.keywords}
         creators={funnel.creators}
       />
