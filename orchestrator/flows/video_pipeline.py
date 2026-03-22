@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import time
+from datetime import datetime, timezone
 from typing import Any
 
 from prefect import flow, get_run_logger
@@ -60,8 +61,52 @@ from tasks.youtube import (
     fetch_video_metadata,
     search_videos_by_keyword,
 )
+from utils.failed_queue import get_failed_queue
+from utils.rate_limiter import get_rate_limiter
 
 logging.basicConfig(level=logging.INFO)
+
+
+# ── on_failure hooks ──────────────────────────────────────────
+
+
+def _on_video_processing_failure(flow, flow_run, state) -> None:
+    """Push failed process_video_for_funnel jobs to the dead-letter queue."""
+    exc = state.result(raise_on_failure=False)
+    params = flow_run.parameters or {}
+    try:
+        get_failed_queue("process_video_for_funnel").push(
+            {
+                "video_id": params.get("video_id"),
+                "funnel_id": (params.get("funnel") or {}).get("id"),
+                "model_name": params.get("model_name"),
+                "error": str(exc),
+                "failed_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    except Exception:
+        logging.getLogger(__name__).exception(
+            "Failed to push video processing failure to dead-letter queue"
+        )
+
+
+def _on_langgraph_classify_failure(flow, flow_run, state) -> None:
+    """Push failed video_pipeline classification runs to the dead-letter queue."""
+    exc = state.result(raise_on_failure=False)
+    params = flow_run.parameters or {}
+    try:
+        get_failed_queue("langgraph_classify").push(
+            {
+                "funnel_id": params.get("funnel_id"),
+                "model_name": params.get("model_name"),
+                "error": str(exc),
+                "failed_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    except Exception:
+        logging.getLogger(__name__).exception(
+            "Failed to push LangGraph classification failure to dead-letter queue"
+        )
 
 
 # ── LangGraph classify helper ─────────────────────────────────
@@ -286,6 +331,8 @@ def _classify_videos_via_langgraph(
         LANGGRAPH_API_URL,
     )
 
+    get_rate_limiter("langgraph").acquire()
+
     client = get_sync_client(
         url=LANGGRAPH_API_URL,
         api_key=LANGGRAPH_API_KEY or None,
@@ -368,7 +415,11 @@ def discover_videos(funnel: FunnelWithRelations) -> list[str]:
     return list(discovered)
 
 
-@flow(name="process_video_for_funnel", log_prints=True)
+@flow(
+    name="process_video_for_funnel",
+    log_prints=True,
+    on_failure=[_on_video_processing_failure],
+)
 def process_video_for_funnel(
     video_id: str,
     funnel: FunnelWithRelations,
@@ -522,7 +573,11 @@ def _process_funnel(
     logger.info("Completed processing for funnel '%s'", funnel.name)
 
 
-@flow(name="video_pipeline", log_prints=True)
+@flow(
+    name="video_pipeline",
+    log_prints=True,
+    on_failure=[_on_langgraph_classify_failure],
+)
 def video_pipeline(
     model_name: str | None = None,
     funnel_id: str | None = None,
@@ -605,6 +660,81 @@ def re_evaluate_videos(
     delete_stale_class_node_results(video_ids, funnel_id)
 
     logger.info("Re-evaluation complete for funnel '%s'", funnel.name)
+
+
+# ── Retry failed jobs ─────────────────────────────────────────
+
+
+@flow(name="retry_failed_jobs", log_prints=True)
+def retry_failed_jobs(queue_names: list[str] | None = None) -> None:
+    """
+    Drain Redis dead-letter queues and re-process each failed item.
+
+    Args:
+        queue_names: Specific queue names to drain. Defaults to all known queues:
+                     ``process_video_for_funnel``, ``evaluate_class_node``,
+                     ``langgraph_classify``.
+    """
+    logger = get_run_logger()
+
+    all_queues = ["process_video_for_funnel", "evaluate_class_node", "langgraph_classify"]
+    targets = queue_names or all_queues
+
+    for qname in targets:
+        queue = get_failed_queue(qname)
+        jobs = queue.pop_all()
+        if not jobs:
+            logger.info("Dead-letter queue '%s' is empty", qname)
+            continue
+
+        logger.info("Retrying %d failed jobs from queue '%s'", len(jobs), qname)
+
+        if qname == "process_video_for_funnel":
+            for job in jobs:
+                video_id = job.get("video_id")
+                funnel_id = job.get("funnel_id")
+                model_name = job.get("model_name")
+                if not video_id or not funnel_id:
+                    logger.warning("Skipping malformed job: %s", job)
+                    continue
+                funnel = get_funnel_by_id(funnel_id)
+                if funnel is None:
+                    logger.warning(
+                        "Funnel %s not found, skipping video %s", funnel_id, video_id
+                    )
+                    continue
+                logger.info("Re-processing video %s for funnel '%s'", video_id, funnel.name)
+                process_video_for_funnel(
+                    video_id=video_id, funnel=funnel, model_name=model_name
+                )
+
+        elif qname == "langgraph_classify":
+            # Re-trigger the full pipeline for the affected funnels (deduped)
+            seen: set[str] = set()
+            for job in jobs:
+                funnel_id = job.get("funnel_id")
+                model_name = job.get("model_name")
+                if not funnel_id or funnel_id in seen:
+                    continue
+                seen.add(funnel_id)
+                logger.info("Re-triggering pipeline for funnel %s", funnel_id)
+                video_pipeline(model_name=model_name, funnel_id=funnel_id)
+
+        elif qname == "evaluate_class_node":
+            # evaluate_class_node failures don't carry a funnel_id, so we cannot
+            # auto-route them to re_evaluate_videos. Log each failure clearly so
+            # an operator can trigger re_evaluate_videos manually if needed.
+            for job in jobs:
+                logger.warning(
+                    "Unresolved evaluate_class_node failure — "
+                    "video_id=%s class_node_id=%s model=%s error=%s failed_at=%s. "
+                    "Trigger re_evaluate_videos manually to retry.",
+                    job.get("video_id"),
+                    job.get("class_node_id"),
+                    job.get("model_name"),
+                    job.get("error"),
+                    job.get("failed_at"),
+                )
 
 
 # ── Entry point ───────────────────────────────────────────────

@@ -17,6 +17,7 @@ dependencies = [
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.2",
+    "redis>=7.3.0",
     "uvicorn>=0.41.0",
     "youtube-transcript-api>=1.2.4",
     "yt-dlp>=2026.3.13",

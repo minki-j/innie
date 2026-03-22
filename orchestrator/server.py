@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 
-from flows.video_pipeline import re_evaluate_videos, video_pipeline
+from flows.video_pipeline import re_evaluate_videos, retry_failed_jobs, video_pipeline
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -88,6 +88,31 @@ async def re_evaluate(funnel_id: str, body: ReEvaluateRequest):
         }
     except Exception as e:
         logger.exception("Failed to start re-evaluation for funnel %s", funnel_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class RetryFailedJobsRequest(BaseModel):
+    queue_names: list[str] | None = None
+
+
+@app.post("/retry-failed")
+async def retry_failed(body: RetryFailedJobsRequest | None = None):
+    """Drain dead-letter queues and re-process all failed jobs."""
+    queue_names = (body.queue_names if body else None) or None
+    logger.info("Received retry-failed request (queues=%s)", queue_names)
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(
+            _executor,
+            lambda: retry_failed_jobs(queue_names=queue_names),
+        )
+        return {
+            "status": "triggered",
+            "queues": queue_names or ["process_video_for_funnel", "evaluate_class_node", "langgraph_classify"],
+            "message": "Retry run started in background",
+        }
+    except Exception as e:
+        logger.exception("Failed to start retry-failed jobs")
         raise HTTPException(status_code=500, detail=str(e))
 
 

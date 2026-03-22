@@ -65,3 +65,24 @@ MAX_VIDEOS_PER_CREATOR: int = int(os.environ["MAX_VIDEOS_PER_CREATOR"])
 
 # Max characters of transcript to send to the LLM (to stay within context window)
 TRANSCRIPT_MAX_CHARS: int = int(os.environ.get("TRANSCRIPT_MAX_CHARS"))
+
+# ── Redis ─────────────────────────────────────────────────────
+
+REDIS_URL: str = os.environ.get("REDIS_URL", "redis://localhost:6380/0")
+
+# ── Rate Limits (calls per window_seconds) ───────────────────
+
+YOUTUBE_RATE_LIMIT_CALLS: int = int(os.environ.get("YOUTUBE_RATE_LIMIT_CALLS", "5"))
+YOUTUBE_RATE_LIMIT_WINDOW: int = int(os.environ.get("YOUTUBE_RATE_LIMIT_WINDOW", "60"))
+
+OPENAI_RATE_LIMIT_CALLS: int = int(os.environ.get("OPENAI_RATE_LIMIT_CALLS", "60"))
+OPENAI_RATE_LIMIT_WINDOW: int = int(os.environ.get("OPENAI_RATE_LIMIT_WINDOW", "60"))
+
+ANTHROPIC_RATE_LIMIT_CALLS: int = int(os.environ.get("ANTHROPIC_RATE_LIMIT_CALLS", "50"))
+ANTHROPIC_RATE_LIMIT_WINDOW: int = int(os.environ.get("ANTHROPIC_RATE_LIMIT_WINDOW", "60"))
+
+GOOGLE_RATE_LIMIT_CALLS: int = int(os.environ.get("GOOGLE_RATE_LIMIT_CALLS", "60"))
+GOOGLE_RATE_LIMIT_WINDOW: int = int(os.environ.get("GOOGLE_RATE_LIMIT_WINDOW", "60"))
+
+LANGGRAPH_RATE_LIMIT_CALLS: int = int(os.environ.get("LANGGRAPH_RATE_LIMIT_CALLS", "10"))
+LANGGRAPH_RATE_LIMIT_WINDOW: int = int(os.environ.get("LANGGRAPH_RATE_LIMIT_WINDOW", "60"))

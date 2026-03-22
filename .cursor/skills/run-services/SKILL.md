@@ -13,12 +13,14 @@ description: Start all local development services for this project (Next.js app,
 | Orchestrator API (FastAPI) | `uv run uvicorn server:app --port 8200 --reload` in `orchestrator/` | http://127.0.0.1:8200 |
 | Orchestrator Prefect | `uv run serve-local` in `orchestrator/` | http://127.0.0.1:4200 |
 | Agents (LangGraph) | `uv run langgraph dev --no-browser` in `agents/` | http://127.0.0.1:2024 |
+| Redis | `docker start innie-redis` (or `docker run -d --name innie-redis -p 6380:6379 redis:7-alpine` on first run) | localhost:6380 |
 
 ## Startup Steps
 
 1. Check running terminals to avoid duplicate processes before starting anything.
 
-2. Start all four services in background (block_until_ms: 0):
+2. Start all five services in background (block_until_ms: 0):
+   - **Redis**: `docker start innie-redis` (use `docker run -d --name innie-redis -p 6380:6379 redis:7-alpine` if the container doesn't exist yet)
    - **Application**: `npm run dev` in `application/`
    - **Orchestrator API**: `uv run uvicorn server:app --port 8200 --reload` in `orchestrator/`
    - **Orchestrator Prefect**: `uv run serve-local` in `orchestrator/` — this script starts both the Prefect server and serves the `video_pipeline` flow
@@ -28,6 +30,7 @@ description: Start all local development services for this project (Next.js app,
 
 ## Healthy Startup Signals
 
+- **Redis**: `docker exec innie-redis redis-cli ping` returns `PONG`
 - **Application**: `✓ Ready in` line present
 - **Orchestrator API**: `Uvicorn running on http://127.0.0.1:8200`
 - **Prefect**: `Your flow 'video_pipeline' is being served and polling for scheduled runs!`

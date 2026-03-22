@@ -6,7 +6,6 @@ Patterns adapted from lab/datasets/ai_dot_engineer/ scripts.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import re
 from datetime import datetime, timezone, timedelta
@@ -14,11 +13,30 @@ from typing import Any
 from html import unescape
 
 from prefect import task
+from prefect.states import State
 
 from config import MAX_VIDEOS_PER_CREATOR, MAX_VIDEOS_PER_KEYWORD
 from models.schemas import VideoData
+from utils.rate_limiter import get_rate_limiter
 
 logger = logging.getLogger(__name__)
+
+
+def _should_retry_youtube(task, task_run, state: State) -> bool:
+    """Retry only on transient network/download errors, not permanent failures."""
+    exc = state.result(raise_on_failure=False)
+    transient = (
+        ConnectionError,
+        TimeoutError,
+        OSError,
+    )
+    try:
+        import yt_dlp  # type: ignore
+
+        transient = transient + (yt_dlp.utils.DownloadError,)
+    except ImportError:
+        pass
+    return isinstance(exc, transient)
 
 
 # ── yt-dlp helpers ────────────────────────────────────────────
@@ -43,7 +61,13 @@ def _parse_upload_date(date_str: str | None) -> datetime | None:
 # ── Keyword search ────────────────────────────────────────────
 
 
-@task(name="search_videos_by_keyword", retries=2, retry_delay_seconds=10)
+@task(
+    name="search_videos_by_keyword",
+    retries=3,
+    retry_delay_seconds=[10, 30, 90],
+    retry_jitter_factor=0.2,
+    retry_condition_fn=_should_retry_youtube,
+)
 def search_videos_by_keyword(
     keyword: str,
     max_results: int | None = None,
@@ -55,6 +79,7 @@ def search_videos_by_keyword(
     if max_results is None:
         max_results = MAX_VIDEOS_PER_KEYWORD
 
+    get_rate_limiter("youtube").acquire()
     yt_dlp = _get_yt_dlp()
     search_url = f"ytsearch{max_results}:{keyword}"
 
@@ -95,7 +120,13 @@ def _channel_videos_url(channel_url: str) -> str:
     return f"{url}/videos"
 
 
-@task(name="fetch_creator_videos", retries=2, retry_delay_seconds=10)
+@task(
+    name="fetch_creator_videos",
+    retries=3,
+    retry_delay_seconds=[10, 30, 90],
+    retry_jitter_factor=0.2,
+    retry_condition_fn=_should_retry_youtube,
+)
 def fetch_creator_videos(
     channel_id: str | None = None,
     channel_url: str | None = None,
@@ -109,6 +140,7 @@ def fetch_creator_videos(
     if max_results is None:
         max_results = MAX_VIDEOS_PER_CREATOR
 
+    get_rate_limiter("youtube").acquire()
     yt_dlp = _get_yt_dlp()
 
     # Build the channel URL
@@ -158,12 +190,19 @@ def fetch_creator_videos(
 # ── Video metadata extraction ─────────────────────────────────
 
 
-@task(name="fetch_video_metadata", retries=2, retry_delay_seconds=10)
+@task(
+    name="fetch_video_metadata",
+    retries=3,
+    retry_delay_seconds=[10, 30, 90],
+    retry_jitter_factor=0.2,
+    retry_condition_fn=_should_retry_youtube,
+)
 def fetch_video_metadata(video_id: str) -> VideoData | None:
     """
     Fetch full video metadata using yt-dlp.
     Returns a VideoData model or None on failure.
     """
+    get_rate_limiter("youtube").acquire()
     yt_dlp = _get_yt_dlp()
     url = f"https://www.youtube.com/watch?v={video_id}"
 
@@ -248,6 +287,7 @@ def _strip_vtt(vtt: str) -> str:
 
 def _fetch_transcript_yta(video_id: str) -> tuple[str | None, str]:
     """Fetch transcript via youtube-transcript-api."""
+    get_rate_limiter("youtube").acquire()
     try:
         from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore
         from youtube_transcript_api._errors import (  # type: ignore
@@ -312,6 +352,7 @@ def _fetch_transcript_yta(video_id: str) -> tuple[str | None, str]:
 
 def _fetch_transcript_ytdlp(video_id: str) -> tuple[str | None, str]:
     """Fallback: fetch transcript via yt-dlp subtitle extraction."""
+    get_rate_limiter("youtube").acquire()
     yt_dlp = _get_yt_dlp()
     import urllib.request
 
@@ -356,7 +397,13 @@ def _fetch_transcript_ytdlp(video_id: str) -> tuple[str | None, str]:
     return None, "ytdlp:no_subtitles"
 
 
-@task(name="fetch_transcript", retries=2, retry_delay_seconds=10)
+@task(
+    name="fetch_transcript",
+    retries=3,
+    retry_delay_seconds=[10, 30, 90],
+    retry_jitter_factor=0.2,
+    retry_condition_fn=_should_retry_youtube,
+)
 def fetch_transcript(video_id: str) -> tuple[str | None, str]:
     """
     Fetch the best available transcript for a video.

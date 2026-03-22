@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timezone
 from typing import Literal
 
 from langchain_core.language_models import BaseChatModel
@@ -16,6 +17,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel, Field
 from prefect import task
+from prefect.states import State
 
 from config import (
     ANTHROPIC_API_KEY,
@@ -24,6 +26,8 @@ from config import (
     OPENAI_API_KEY,
     TRANSCRIPT_MAX_CHARS,
 )
+from utils.failed_queue import get_failed_queue
+from utils.rate_limiter import get_rate_limiter
 from models.schemas import (
     ClassNodeResultCreate,
     ClassNodeResultValue,
@@ -33,6 +37,57 @@ from models.schemas import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ── Rate limit helpers ────────────────────────────────────────
+
+
+def _llm_api_name(model_name: str) -> str:
+    """Map a model name to its rate-limiter API key."""
+    if model_name.startswith("claude"):
+        return "anthropic"
+    if model_name.startswith("gemini"):
+        return "google"
+    return "openai"
+
+
+def _should_retry_llm(task, task_run, state: State) -> bool:
+    """Retry only on rate-limit or transient connection errors."""
+    exc = state.result(raise_on_failure=False)
+    # Lazily resolve provider error types to avoid hard import at module load
+    transient_names = {
+        "RateLimitError",
+        "APIConnectionError",
+        "APITimeoutError",
+        "InternalServerError",
+        "ServiceUnavailableError",
+        "OverloadedError",
+    }
+    return type(exc).__name__ in transient_names or isinstance(
+        exc, (ConnectionError, TimeoutError, OSError)
+    )
+
+
+def _on_evaluate_class_node_failure(task, task_run, state) -> None:
+    """Push exhausted evaluate_class_node failures to the dead-letter queue."""
+    exc = state.result(raise_on_failure=False)
+    params = task_run.parameters or {}
+    try:
+        video = params.get("video")
+        class_node = params.get("class_node")
+        get_failed_queue("evaluate_class_node").push(
+            {
+                "video_id": video.video_id if video else None,
+                "class_node_id": class_node.id if class_node else None,
+                "model_name": params.get("model_name"),
+                "error": str(exc),
+                "failed_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    except Exception:
+        logger.exception(
+            "Failed to push evaluate_class_node failure to dead-letter queue"
+        )
 
 
 # ── Structured output schema ─────────────────────────────────
@@ -236,7 +291,14 @@ def _build_few_shot_messages(
 # ── Evaluation task ───────────────────────────────────────────
 
 
-@task(name="evaluate_class_node", retries=2, retry_delay_seconds=15)
+@task(
+    name="evaluate_class_node",
+    retries=4,
+    retry_delay_seconds=[15, 30, 60, 120],
+    retry_jitter_factor=0.3,
+    retry_condition_fn=_should_retry_llm,
+    on_failure=[_on_evaluate_class_node_failure],
+)
 def evaluate_class_node(
     video: VideoData,
     class_node: ClassNodeWithRelations,
@@ -264,6 +326,7 @@ def evaluate_class_node(
         few_shot_msgs = _build_few_shot_messages(
             few_shot_examples, class_node, video.video_id,
         )
+
         prompt_messages: list[tuple[str, str]] = [
             ("system", EVALUATION_SYSTEM_PROMPT),
             *few_shot_msgs,
@@ -289,6 +352,8 @@ def evaluate_class_node(
         },
         tags=["evaluation", "video-pipeline", used_model],
     )
+
+    get_rate_limiter(_llm_api_name(used_model)).acquire()
 
     try:
         result: ClassNodeEvaluation = chain.invoke(
@@ -391,7 +456,13 @@ SUMMARY_PROMPT = ChatPromptTemplate.from_messages(
 )
 
 
-@task(name="generate_summary", retries=2, retry_delay_seconds=15)
+@task(
+    name="generate_summary",
+    retries=4,
+    retry_delay_seconds=[15, 30, 60, 120],
+    retry_jitter_factor=0.3,
+    retry_condition_fn=_should_retry_llm,
+)
 def generate_summary(
     video: VideoData,
     model_name: str | None = None,
@@ -424,6 +495,8 @@ def generate_summary(
         },
         tags=["summary", "video-pipeline", used_model],
     )
+
+    get_rate_limiter(_llm_api_name(used_model)).acquire()
 
     try:
         result: VideoSummary = chain.invoke(
