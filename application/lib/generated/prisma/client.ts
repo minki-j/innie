@@ -75,6 +75,11 @@ export type Channel = Prisma.ChannelModel
  */
 export type Review = Prisma.ReviewModel
 /**
+ * Model FunnelVideo
+ * 
+ */
+export type FunnelVideo = Prisma.FunnelVideoModel
+/**
  * Model Funnel
  * 
  */

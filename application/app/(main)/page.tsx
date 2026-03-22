@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
+import { auth } from '@/lib/auth';
 import { VideoGrid } from '@/components/video/VideoGrid';
 import { FunnelFilter } from '@/components/funnel/FunnelFilter';
+import { WelcomeHero } from '@/components/WelcomeHero';
 import { getUserFunnels } from '@/lib/funnels';
 
 interface HomeProps {
@@ -8,6 +10,12 @@ interface HomeProps {
 }
 
 export default async function Home({ searchParams }: HomeProps) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return <WelcomeHero />;
+  }
+
   const params = await searchParams;
 
   const funnelParam = params.funnel;

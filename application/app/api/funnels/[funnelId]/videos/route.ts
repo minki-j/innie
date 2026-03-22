@@ -30,9 +30,13 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
     const videos = await prisma.video.findMany({
       where: {
-        funnels: { some: { id: funnelId } },
+        funnelVideos: { some: { funnelId } },
       },
       include: {
+        funnelVideos: {
+          where: { funnelId },
+          select: { updatedAt: true },
+        },
         classNodeResults: {
           where: {
             classNode: { funnelId },
@@ -45,6 +49,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     const result = videos.map((v) => {
       const passed = v.classNodeResults.filter((r) => r.result === "PASS").length;
       const total = v.classNodeResults.length;
+      const processedAt = v.funnelVideos[0]?.updatedAt ?? v.updatedAt;
 
       return {
         id: v.id,
@@ -52,7 +57,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
         channelTitle: v.channelTitle,
         thumbnailMedium:
           v.thumbnailMedium ?? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
-        updatedAt: v.updatedAt.toISOString(),
+        updatedAt: processedAt.toISOString(),
         publishedAt: v.publishedAt.toISOString(),
         classNodeScore: total > 0 ? passed / total : null,
         passedNodes: passed,
@@ -102,12 +107,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    await prisma.funnel.update({
-      where: { id: funnelId },
-      data: {
-        videos: {
-          disconnect: videoIds.map((id) => ({ id })),
-        },
+    await prisma.funnelVideo.deleteMany({
+      where: {
+        funnelId,
+        videoId: { in: videoIds },
       },
     });
 

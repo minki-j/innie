@@ -18,7 +18,7 @@ export async function GET() {
       include: {
         _count: {
           select: {
-            videos: true,
+            funnelVideos: true,
             classNodes: true,
             keywords: true,
             creators: true,

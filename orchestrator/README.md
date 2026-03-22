@@ -34,19 +34,13 @@ PREFECT_API_KEY=ignore
 
 > **Note:** If your shell is logged into Prefect Cloud, always set `PREFECT_API_URL=http://127.0.0.1:4200/api` before running any `prefect` commands, otherwise the CLI will hit Prefect Cloud instead of the local server.
 
-**Deploy flows to Prefect Cloud:**
+**Deploy flows to Prefect Cloud (deploys + syncs work pool in one step):**
 
 ```bash
-uv run prefect deploy --all
+uv run deploy
 ```
 
-**Sync dependencies and env vars to the Prefect Cloud deployment:**
-
-```bash
-uv run sync-prefect
-```
-
-Run this after deploying to push pip packages (from `pyproject.toml`) and environment variables (from `.env` files) to the managed work pool as `job_variables`.
+This runs `prefect deploy --all` then pushes pip packages (from `pyproject.toml`) and environment variables (from `.env`) to the managed work pool's base defaults so all deployments inherit them.
 
 **Regenerate Pydantic models from Prisma schema:**
 

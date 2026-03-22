@@ -216,6 +216,23 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntFilter<$PrismaModel>
 }
 
+export type EnumFunnelVideoStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.FunnelVideoStatus | Prisma.EnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.FunnelVideoStatus[] | Prisma.ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FunnelVideoStatus[] | Prisma.ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFunnelVideoStatusFilter<$PrismaModel> | $Enums.FunnelVideoStatus
+}
+
+export type EnumFunnelVideoStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FunnelVideoStatus | Prisma.EnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.FunnelVideoStatus[] | Prisma.ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FunnelVideoStatus[] | Prisma.ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFunnelVideoStatusWithAggregatesFilter<$PrismaModel> | $Enums.FunnelVideoStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFunnelVideoStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFunnelVideoStatusFilter<$PrismaModel>
+}
+
 export type BoolFilter<$PrismaModel = never> = {
   equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
@@ -571,6 +588,23 @@ export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedIntFilter<$PrismaModel>
   _max?: Prisma.NestedIntFilter<$PrismaModel>
+}
+
+export type NestedEnumFunnelVideoStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.FunnelVideoStatus | Prisma.EnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.FunnelVideoStatus[] | Prisma.ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FunnelVideoStatus[] | Prisma.ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFunnelVideoStatusFilter<$PrismaModel> | $Enums.FunnelVideoStatus
+}
+
+export type NestedEnumFunnelVideoStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FunnelVideoStatus | Prisma.EnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.FunnelVideoStatus[] | Prisma.ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FunnelVideoStatus[] | Prisma.ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFunnelVideoStatusWithAggregatesFilter<$PrismaModel> | $Enums.FunnelVideoStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFunnelVideoStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFunnelVideoStatusFilter<$PrismaModel>
 }
 
 export type NestedBoolFilter<$PrismaModel = never> = {

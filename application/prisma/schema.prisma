@@ -86,7 +86,7 @@ model Video {
   summary          String?  @db.Text
 
   reviews                Review[]
-  funnels                Funnel[]
+  funnelVideos           FunnelVideo[]
   channel                Channel?               @relation(fields: [channelId], references: [id])
   classNodeResults       ClassNodeResult[]
   classNodeModelVerdicts ClassNodeModelVerdict[]
@@ -135,6 +135,32 @@ model Review {
   @@index([funnelId])
 }
 
+// ─── Funnel ↔ Video Processing Status ────────────────────────
+
+enum FunnelVideoStatus {
+  PENDING       // linked to funnel, not yet queued
+  PROCESSING    // pipeline is actively working on it
+  PENDING_RETRY // failed but scheduled to retry
+  FAILED        // permanently failed
+  COMPLETED     // successfully processed
+}
+
+model FunnelVideo {
+  funnelId String
+  videoId  String
+  status   FunnelVideoStatus @default(PENDING)
+
+  funnel Funnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+  video  Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([funnelId, videoId])
+  @@index([funnelId, updatedAt])
+  @@index([videoId])
+}
+
 // ───Classification ──────────────────────────────────────────────────
 
 model Funnel {
@@ -153,7 +179,7 @@ model Funnel {
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   keywords         FunnelKeyword[]
   creators         FunnelCreator[]
-  videos           Video[]
+  funnelVideos     FunnelVideo[]
 
   classNodes       ClassNode[] @relation("FunnelClassNodes")
 

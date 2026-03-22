@@ -58,6 +58,7 @@ export const ModelName = {
   Video: 'Video',
   Channel: 'Channel',
   Review: 'Review',
+  FunnelVideo: 'FunnelVideo',
   Funnel: 'Funnel',
   ClassNode: 'ClassNode',
   GoldStandard: 'GoldStandard',
@@ -188,6 +189,17 @@ export const ReviewScalarFieldEnum = {
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+export const FunnelVideoScalarFieldEnum = {
+  funnelId: 'funnelId',
+  videoId: 'videoId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FunnelVideoScalarFieldEnum = (typeof FunnelVideoScalarFieldEnum)[keyof typeof FunnelVideoScalarFieldEnum]
 
 
 export const FunnelScalarFieldEnum = {

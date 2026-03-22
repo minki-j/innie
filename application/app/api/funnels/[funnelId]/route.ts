@@ -27,7 +27,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
         },
         keywords: { orderBy: { createdAt: "desc" } },
         creators: { orderBy: { createdAt: "desc" } },
-        _count: { select: { videos: true, classNodes: true } },
+        _count: { select: { funnelVideos: true, classNodes: true } },
       },
     });
 

@@ -9,6 +9,17 @@
 * 🟢 You can import this file directly.
 */
 
+export const FunnelVideoStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  PENDING_RETRY: 'PENDING_RETRY',
+  FAILED: 'FAILED',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type FunnelVideoStatus = (typeof FunnelVideoStatus)[keyof typeof FunnelVideoStatus]
+
+
 export const ClassNodeResultValue = {
   PASS: 'PASS',
   FAIL: 'FAIL',

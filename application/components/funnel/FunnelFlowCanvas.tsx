@@ -24,7 +24,7 @@ export interface FunnelSummary {
   description: string | null;
   active: boolean;
   _count: {
-    videos: number;
+    funnelVideos: number;
     classNodes: number;
     keywords: number;
     creators: number;
@@ -152,7 +152,7 @@ function FunnelNodeCard({ data }: NodeProps) {
           {funnel.name}
         </p>
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-400">
-          <span>{funnel._count.videos} videos</span>
+          <span>{funnel._count.funnelVideos} videos</span>
         </div>
       </div>
 
@@ -555,7 +555,7 @@ export function FunnelFlowCanvas({
       const funnel = await res.json();
       const newFunnel: FunnelSummary = {
         ...funnel,
-        _count: { videos: 0, classNodes: 0, keywords: 0, creators: 0 },
+        _count: { funnelVideos: 0, classNodes: 0, keywords: 0, creators: 0 },
       };
       setFunnels((prev) => [...prev, newFunnel]);
       setClassNodesByFunnel((prev) => ({ ...prev, [funnel.id]: [] }));

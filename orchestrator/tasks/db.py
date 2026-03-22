@@ -289,7 +289,7 @@ def get_funnel_video_ids(funnel_id: str) -> set[str]:
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                """SELECT "B" FROM "_FunnelToVideo" WHERE "A" = %s""",
+                """SELECT "videoId" FROM "FunnelVideo" WHERE "funnelId" = %s""",
                 (funnel_id,),
             )
             ids = {row[0] for row in cur.fetchall()}
@@ -606,13 +606,15 @@ def save_video(video: VideoData) -> None:
 
 @task(name="link_video_to_funnel", retries=2, retry_delay_seconds=5)
 def link_video_to_funnel(video_id: str, funnel_id: str) -> None:
-    """Link a video to a funnel via the _FunnelToVideo junction table."""
+    """Link a video to a funnel and mark it as COMPLETED in FunnelVideo."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO "_FunnelToVideo" ("A", "B") VALUES (%s, %s)
-                ON CONFLICT DO NOTHING
+                INSERT INTO "FunnelVideo" ("funnelId", "videoId", "status", "createdAt", "updatedAt")
+                VALUES (%s, %s, 'COMPLETED', NOW(), NOW())
+                ON CONFLICT ("funnelId", "videoId") DO UPDATE
+                    SET "status" = 'COMPLETED', "updatedAt" = NOW()
                 """,
                 (funnel_id, video_id),
             )

@@ -11,19 +11,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load .env files in order of priority (later files override earlier ones):
-# 1. Repo root .env (LLM API keys, etc.)
-# 2. Application .env (Postgres/Neon connection vars)
-# 3. Orchestrator-local .env (any overrides)
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-
-for env_path in [
-    _REPO_ROOT / ".env",
-    _REPO_ROOT / "application" / ".env",
-    Path(__file__).resolve().parent / ".env",
-]:
-    if env_path.exists():
-        load_dotenv(env_path, override=True)
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 
 # ── Database ──────────────────────────────────────────────────

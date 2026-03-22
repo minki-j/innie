@@ -28,7 +28,7 @@ interface FunnelDetail {
   maxVideosPerCreator: number;
   keywords: FunnelKeyword[];
   creators: FunnelCreator[];
-  _count: { videos: number; classNodes: number };
+  _count: { funnelVideos: number; classNodes: number };
 }
 
 interface Props {

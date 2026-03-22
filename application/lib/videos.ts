@@ -1,3 +1,4 @@
+import { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { YouTubeVideo, VideoFunnel } from "@/types/youtube";
 
@@ -30,7 +31,7 @@ interface VideoWithFunnels {
   thumbnailDefault: string | null;
   thumbnailMedium: string | null;
   thumbnailHigh: string | null;
-  funnels: VideoFunnel[];
+  funnelVideos: Array<{ funnel: VideoFunnel }>;
   summary?: string | null;
 }
 
@@ -77,29 +78,31 @@ function videoToYouTubeFormat(v: VideoWithFunnels): YouTubeVideo {
       definition: v.definition,
       caption: v.caption,
     },
-    funnels: v.funnels,
+    funnels: v.funnelVideos.map((fv) => fv.funnel),
     summary: v.summary ?? null,
   };
 }
 
 // ─── Cursor helpers ──────────────────────────────────────────
 
-function encodeCursor(updatedAt: Date, id: string): string {
+function encodeCursor(lastProcessedAt: Date, id: string): string {
   return Buffer.from(
-    JSON.stringify({ updatedAt: updatedAt.toISOString(), id }),
+    JSON.stringify({ lastProcessedAt: lastProcessedAt.toISOString(), id }),
   ).toString("base64url");
 }
 
-function decodeCursor(cursor: string): { updatedAt: Date; id: string } {
+function decodeCursor(cursor: string): { lastProcessedAt: Date; id: string } {
   const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString());
-  return { updatedAt: new Date(parsed.updatedAt), id: parsed.id };
+  return { lastProcessedAt: new Date(parsed.lastProcessedAt), id: parsed.id };
 }
 
 // ─── Video include fragment ──────────────────────────────────
 
 const videoInclude = {
-  funnels: {
-    select: { id: true, name: true },
+  funnelVideos: {
+    select: {
+      funnel: { select: { id: true, name: true } },
+    },
   },
 } as const;
 
@@ -111,90 +114,89 @@ export interface PaginatedVideosResult {
 }
 
 export async function getVideosPaginated(options: {
-  funnelIds?: string[];
+  funnelIds: string[];
   classNodeIds?: string[];
   cursor?: string | null;
   limit: number;
 }): Promise<PaginatedVideosResult> {
   const { funnelIds, classNodeIds, limit } = options;
+
+  if (funnelIds.length === 0) {
+    return { videos: [], nextCursor: null };
+  }
+
   const cursorData = options.cursor ? decodeCursor(options.cursor) : null;
 
-  interface CollectedItem {
-    video: YouTubeVideo;
-    updatedAt: Date;
-    id: string;
+  // One EXISTS sub-select per classNodeId (AND semantics)
+  const classNodeFragments = (classNodeIds ?? []).map(
+    (id) => Prisma.sql`
+      AND EXISTS (
+        SELECT 1 FROM "ClassNodeResult" cnr
+        WHERE cnr."videoId" = v.id
+          AND cnr."classNodeId" = ${id}
+          AND cnr."result" = 'PASS'
+      )`,
+  );
+  const classNodeSql =
+    classNodeFragments.length > 0
+      ? Prisma.join(classNodeFragments, "")
+      : Prisma.empty;
+
+  // Cursor: filter rows that come after the last seen position
+  const cursorSql = cursorData
+    ? Prisma.sql`HAVING (
+        MAX(fv."updatedAt") < ${cursorData.lastProcessedAt}
+        OR (MAX(fv."updatedAt") = ${cursorData.lastProcessedAt} AND v.id < ${cursorData.id})
+      )`
+    : Prisma.empty;
+
+  type RawRow = { id: string; last_processed_at: Date };
+
+  const rows = await prisma.$queryRaw<RawRow[]>(Prisma.sql`
+    SELECT v.id, MAX(fv."updatedAt") AS last_processed_at
+    FROM "Video" v
+    JOIN "FunnelVideo" fv ON fv."videoId" = v.id
+    WHERE fv."funnelId" = ANY(${funnelIds}::text[])
+      AND fv."status" = 'COMPLETED'
+      ${classNodeSql}
+    GROUP BY v.id
+    ${cursorSql}
+    ORDER BY last_processed_at DESC, v.id DESC
+    LIMIT ${limit + 1}
+  `);
+
+  const hasMore = rows.length > limit;
+  const pageRows = hasMore ? rows.slice(0, limit) : rows;
+  const videoIds = pageRows.map((r) => r.id);
+
+  if (videoIds.length === 0) {
+    return { videos: [], nextCursor: null };
   }
 
-  const collected: CollectedItem[] = [];
-  let dbCursorUpdatedAt: Date | null = cursorData?.updatedAt ?? null;
-  let dbCursorId: string | null = cursorData?.id ?? null;
-  let exhausted = false;
+  const videos = await prisma.video.findMany({
+    where: { id: { in: videoIds } },
+    include: videoInclude,
+  });
 
-  while (collected.length < limit && !exhausted) {
-    const batchSize = Math.max(limit * 3, 30);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
-
-    if (funnelIds && funnelIds.length > 0) {
-      where.funnels = { some: { id: { in: funnelIds } } };
-    }
-
-    if (classNodeIds && classNodeIds.length > 0) {
-      where.AND = classNodeIds.map((id) => ({
-        classNodeResults: {
-          some: { classNodeId: id, result: "PASS" },
-        },
-      }));
-    }
-
-    if (dbCursorUpdatedAt && dbCursorId) {
-      where.OR = [
-        { updatedAt: { lt: dbCursorUpdatedAt } },
-        { updatedAt: dbCursorUpdatedAt, id: { lt: dbCursorId } },
-      ];
-    }
-
-    const batch = await prisma.video.findMany({
-      where,
-      orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
-      take: batchSize,
-      include: videoInclude,
-    });
-
-    if (batch.length < batchSize) exhausted = true;
-
-    if (batch.length > 0) {
-      const last = batch[batch.length - 1];
-      dbCursorUpdatedAt = last.updatedAt;
-      dbCursorId = last.id;
-    }
-
-    for (const raw of batch) {
-      const formatted = videoToYouTubeFormat(raw);
-      collected.push({
-        video: formatted,
-        updatedAt: raw.updatedAt,
-        id: raw.id,
-      });
-    }
-  }
-
-  const result = collected.slice(0, limit);
+  const videoMap = new Map(videos.map((v) => [v.id, v]));
+  const orderedVideos = videoIds
+    .map((id) => videoMap.get(id))
+    .filter((v): v is NonNullable<typeof v> => v !== undefined)
+    .map((v) => videoToYouTubeFormat(v));
 
   let nextCursor: string | null = null;
-  if (result.length === limit && (collected.length > limit || !exhausted)) {
-    const last = result[result.length - 1];
-    nextCursor = encodeCursor(last.updatedAt, last.id);
+  if (hasMore) {
+    const last = pageRows[pageRows.length - 1];
+    nextCursor = encodeCursor(last.last_processed_at, last.id);
   }
 
-  return { videos: result.map((r) => r.video), nextCursor };
+  return { videos: orderedVideos, nextCursor };
 }
 
 export async function getVideos(funnelIds?: string[]): Promise<YouTubeVideo[]> {
   const where =
     funnelIds && funnelIds.length > 0
-      ? { funnels: { some: { id: { in: funnelIds } } } }
+      ? { funnelVideos: { some: { funnelId: { in: funnelIds } } } }
       : {};
 
   const videos = await prisma.video.findMany({
@@ -211,11 +213,7 @@ export async function getVideoById(
 ): Promise<YouTubeVideo | undefined> {
   const v = await prisma.video.findUnique({
     where: { id: videoId },
-    include: {
-      funnels: {
-        select: { id: true, name: true },
-      },
-    },
+    include: videoInclude,
   });
 
   if (!v) return undefined;

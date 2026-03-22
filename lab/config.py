@@ -15,17 +15,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load .env files in order of priority (later files override earlier ones):
-# 1. Repo root .env (LLM API keys, LangSmith, etc.)
-# 2. Lab-local .env (any overrides)
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-
-for env_path in [
-    _REPO_ROOT / ".env",
-    Path(__file__).resolve().parent / ".env",
-]:
-    if env_path.exists():
-        load_dotenv(env_path, override=True)
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 
 # ── LLM API Keys ─────────────────────────────────────────────

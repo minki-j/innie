@@ -391,6 +391,7 @@ export const ModelName = {
   Video: 'Video',
   Channel: 'Channel',
   Review: 'Review',
+  FunnelVideo: 'FunnelVideo',
   Funnel: 'Funnel',
   ClassNode: 'ClassNode',
   GoldStandard: 'GoldStandard',
@@ -415,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "funnel" | "classNode" | "goldStandard" | "funnelKeyword" | "funnelCreator" | "lLM" | "classNodeResult" | "classNodeModelVerdict" | "trainingRun"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "funnelVideo" | "funnel" | "classNode" | "goldStandard" | "funnelKeyword" | "funnelCreator" | "lLM" | "classNodeResult" | "classNodeModelVerdict" | "trainingRun"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -934,6 +935,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ReviewCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ReviewCountAggregateOutputType> | number
+        }
+      }
+    }
+    FunnelVideo: {
+      payload: Prisma.$FunnelVideoPayload<ExtArgs>
+      fields: Prisma.FunnelVideoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FunnelVideoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FunnelVideoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>
+        }
+        findFirst: {
+          args: Prisma.FunnelVideoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FunnelVideoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>
+        }
+        findMany: {
+          args: Prisma.FunnelVideoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>[]
+        }
+        create: {
+          args: Prisma.FunnelVideoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>
+        }
+        createMany: {
+          args: Prisma.FunnelVideoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FunnelVideoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>[]
+        }
+        delete: {
+          args: Prisma.FunnelVideoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>
+        }
+        update: {
+          args: Prisma.FunnelVideoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>
+        }
+        deleteMany: {
+          args: Prisma.FunnelVideoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FunnelVideoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FunnelVideoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>[]
+        }
+        upsert: {
+          args: Prisma.FunnelVideoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FunnelVideoPayload>
+        }
+        aggregate: {
+          args: Prisma.FunnelVideoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFunnelVideo>
+        }
+        groupBy: {
+          args: Prisma.FunnelVideoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FunnelVideoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FunnelVideoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FunnelVideoCountAggregateOutputType> | number
         }
       }
     }
@@ -1747,6 +1822,17 @@ export const ReviewScalarFieldEnum = {
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
+export const FunnelVideoScalarFieldEnum = {
+  funnelId: 'funnelId',
+  videoId: 'videoId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FunnelVideoScalarFieldEnum = (typeof FunnelVideoScalarFieldEnum)[keyof typeof FunnelVideoScalarFieldEnum]
+
+
 export const FunnelScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1983,6 +2069,20 @@ export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'FunnelVideoStatus'
+ */
+export type EnumFunnelVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FunnelVideoStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'FunnelVideoStatus[]'
+ */
+export type ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FunnelVideoStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -2160,6 +2260,7 @@ export type GlobalOmitConfig = {
   video?: Prisma.VideoOmit
   channel?: Prisma.ChannelOmit
   review?: Prisma.ReviewOmit
+  funnelVideo?: Prisma.FunnelVideoOmit
   funnel?: Prisma.FunnelOmit
   classNode?: Prisma.ClassNodeOmit
   goldStandard?: Prisma.GoldStandardOmit
