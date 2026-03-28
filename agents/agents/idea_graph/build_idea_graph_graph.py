@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
-from typing import Literal
+from typing import Any, Literal
 from uuid import uuid4
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain.agents import create_agent
+from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
+from langgraph.config import get_stream_writer
 from langgraph.graph import END, START, StateGraph
-from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel, Field
 
 
@@ -119,6 +120,46 @@ class BuildIdeaGraphState(BaseModel):
     result_graph: IdeaGraphSnapshot = Field(default_factory=IdeaGraphSnapshot)
 
 
+def _serialize_source(source: IdeaGraphSource) -> dict[str, Any]:
+    return {
+        "id": source.id,
+        "paraphrase": source.paraphrase,
+        "quote": source.quote,
+        "startSec": source.start_sec,
+        "endSec": source.end_sec,
+    }
+
+
+def _serialize_node(node: IdeaGraphNode) -> dict[str, Any]:
+    return {
+        "id": node.id,
+        "type": node.type,
+        "title": node.title,
+        "content": node.content,
+        "x": node.x,
+        "y": node.y,
+        "collapsed": node.collapsed,
+        "transcriptSources": [_serialize_source(source) for source in node.transcript_sources],
+    }
+
+
+def _serialize_edge(edge: IdeaGraphEdge) -> dict[str, Any]:
+    return {
+        "id": edge.id,
+        "sourceNodeId": edge.source_node_id,
+        "targetNodeId": edge.target_node_id,
+        "type": edge.type,
+        "label": edge.label,
+    }
+
+
+def _serialize_snapshot(snapshot: IdeaGraphSnapshot) -> dict[str, Any]:
+    return {
+        "nodes": [_serialize_node(node) for node in snapshot.nodes],
+        "edges": [_serialize_edge(edge) for edge in snapshot.edges],
+    }
+
+
 def _chunk_transcript(
     transcript: str,
     transcript_segments: list[TranscriptSegment],
@@ -214,9 +255,11 @@ def _chunk_transcript(
 
 
 class IdeaGraphContext:
-    def __init__(self, state: BuildIdeaGraphState):
+    def __init__(self, state: BuildIdeaGraphState, writer):
         self.graph = IdeaGraphSnapshot.model_validate(deepcopy(state.current_graph.model_dump()))
         self.chunks = _chunk_transcript(state.transcript, state.transcript_segments)
+        self.writer = writer
+        self.mutation_count = 0
 
     def _node_ids(self) -> set[str]:
         return {node.id for node in self.graph.nodes}
@@ -233,6 +276,9 @@ class IdeaGraphContext:
     def snapshot_json(self) -> str:
         return json.dumps(self.graph.model_dump(mode="json"), ensure_ascii=True)
 
+    def snapshot_payload(self) -> dict[str, Any]:
+        return _serialize_snapshot(self.graph)
+
     def chunk_index_json(self) -> str:
         payload = [
             {
@@ -245,24 +291,58 @@ class IdeaGraphContext:
         ]
         return json.dumps(payload, ensure_ascii=True)
 
+    def chunk_index_payload(self) -> dict[str, Any]:
+        return {
+            "chunks": [
+                {
+                    "index": chunk.index,
+                    "startSec": chunk.start_sec,
+                    "endSec": chunk.end_sec,
+                    "preview": chunk.text[:180],
+                }
+                for chunk in self.chunks
+            ],
+            "count": len(self.chunks),
+        }
+
+    def _emit(self, event_type: str, payload: dict[str, Any]) -> None:
+        if self.writer is None:
+            return
+        self.writer({"event_type": event_type, "payload": payload})
+
+    def _emit_snapshot_if_needed(self, *, force: bool = False) -> None:
+        if force or self.mutation_count % 5 == 0:
+            self._emit("snapshot", {"graph": self.snapshot_payload()})
+
     def read_chunk(self, index: int) -> str:
         if index < 0 or index >= len(self.chunks):
             raise ValueError(f"Chunk index {index} is out of range")
         chunk = self.chunks[index]
+        self._emit(
+            "chunk_read",
+            {
+                "index": chunk.index,
+                "startSec": chunk.start_sec,
+                "endSec": chunk.end_sec,
+                "preview": chunk.text[:180],
+            },
+        )
         return json.dumps(chunk.model_dump(mode="json"), ensure_ascii=True)
 
     def add_node(self, node_type: str, title: str, content: str | None = None) -> str:
         if node_type not in NODE_TYPES:
             raise ValueError(f"Unsupported node type: {node_type}")
         node_id = self._make_id("node", self._node_ids())
-        self.graph.nodes.append(
-            IdeaGraphNode(
-                id=node_id,
-                type=node_type,
-                title=title.strip(),
-                content=content.strip() if content else None,
-            )
+        node = IdeaGraphNode(
+            id=node_id,
+            type=node_type,
+            title=title.strip(),
+            content=content.strip() if content else None,
         )
+        self.graph.nodes.append(node)
+        self.mutation_count += 1
+        self._emit("node_added", {"node": _serialize_node(node)})
+        self._emit_snapshot_if_needed()
         return node_id
 
     def update_node(
@@ -286,6 +366,9 @@ class IdeaGraphContext:
                 node.content = content.strip() if content else None
             if collapsed is not None:
                 node.collapsed = collapsed
+            self.mutation_count += 1
+            self._emit("node_updated", {"node": _serialize_node(node)})
+            self._emit_snapshot_if_needed()
             return node_id
         raise ValueError(f"Unknown node id: {node_id}")
 
@@ -303,15 +386,17 @@ class IdeaGraphContext:
             raise ValueError("Both source and target nodes must already exist")
 
         edge_id = self._make_id("edge", self._edge_ids())
-        self.graph.edges.append(
-            IdeaGraphEdge(
-                id=edge_id,
-                source_node_id=source_node_id,
-                target_node_id=target_node_id,
-                type=edge_type,
-                label=label.strip() if label else None,
-            )
+        edge = IdeaGraphEdge(
+            id=edge_id,
+            source_node_id=source_node_id,
+            target_node_id=target_node_id,
+            type=edge_type,
+            label=label.strip() if label else None,
         )
+        self.graph.edges.append(edge)
+        self.mutation_count += 1
+        self._emit("edge_added", {"edge": _serialize_edge(edge)})
+        self._emit_snapshot_if_needed()
         return edge_id
 
     def attach_source(
@@ -329,21 +414,31 @@ class IdeaGraphContext:
                 "source",
                 {source.id for candidate in self.graph.nodes for source in candidate.transcript_sources},
             )
-            node.transcript_sources.append(
-                IdeaGraphSource(
-                    id=source_id,
-                    paraphrase=paraphrase.strip() if paraphrase else None,
-                    quote=quote.strip(),
-                    start_sec=start_sec,
-                    end_sec=end_sec,
-                )
+            source = IdeaGraphSource(
+                id=source_id,
+                paraphrase=paraphrase.strip() if paraphrase else None,
+                quote=quote.strip(),
+                start_sec=start_sec,
+                end_sec=end_sec,
             )
+            node.transcript_sources.append(source)
+            self.mutation_count += 1
+            self._emit(
+                "source_attached",
+                {
+                    "nodeId": node_id,
+                    "source": _serialize_source(source),
+                },
+            )
+            self._emit_snapshot_if_needed()
             return source_id
         raise ValueError(f"Unknown node id: {node_id}")
 
 
 async def generate_idea_graph(state: BuildIdeaGraphState):
-    ctx = IdeaGraphContext(state)
+    writer = get_stream_writer()
+    ctx = IdeaGraphContext(state, writer)
+    ctx._emit("chunk_index_ready", ctx.chunk_index_payload())
 
     @tool
     def read_graph_state() -> str:
@@ -447,8 +542,13 @@ async def generate_idea_graph(state: BuildIdeaGraphState):
             paraphrase=paraphrase,
         )
 
-    llm = ChatOpenAI(model="gpt-5-mini")
-    agent = create_react_agent(
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+        node_types=", ".join(NODE_TYPES),
+        edge_types=", ".join(EDGE_TYPES),
+    )
+
+    llm = ChatOpenAI(model="gpt-5.4-pro")
+    agent = create_agent(
         model=llm,
         tools=[
             read_graph_state,
@@ -459,11 +559,7 @@ async def generate_idea_graph(state: BuildIdeaGraphState):
             add_edge,
             attach_source,
         ],
-    )
-
-    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
-        node_types=", ".join(NODE_TYPES),
-        edge_types=", ".join(EDGE_TYPES),
+        system_prompt=system_prompt,
     )
 
     user_prompt = USER_PROMPT_TEMPLATE.format(
@@ -474,12 +570,12 @@ async def generate_idea_graph(state: BuildIdeaGraphState):
     await agent.ainvoke(
         {
             "messages": [
-                SystemMessage(content=system_prompt),
                 HumanMessage(content=user_prompt),
             ]
         }
     )
 
+    ctx._emit_snapshot_if_needed(force=True)
     return {"result_graph": ctx.graph}
 
 

@@ -16,15 +16,25 @@ import {
   type EdgeProps,
   type Node,
   type NodeProps,
+  type ReactFlowInstance,
   getBezierPath,
   useEdgesState,
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import {
+  type IdeaGraphEdgePayload as IdeaGraphEdgeRecord,
+  type IdeaGraphNodePayload as IdeaGraphNodeRecord,
+  type IdeaGraphPayload,
+} from '@/lib/idea-graph';
+import {
+  type ActiveIdeaGraphGenerationResponse,
+  applyIdeaGraphStreamEvent,
+  type IdeaGraphStreamEvent,
+  type StartIdeaGraphGenerationResponse,
+} from '@/lib/idea-graph-stream';
 import { cn } from '@/lib/utils';
 
-type IdeaGraphGenerationStatus = 'IDLE' | 'GENERATING' | 'COMPLETED' | 'FAILED';
-type IdeaGraphLayoutDirection = 'LR' | 'TB';
 type IdeaGraphNodeType =
   | 'CLAIM'
   | 'EVIDENCE'
@@ -44,48 +54,6 @@ type IdeaGraphEdgeType =
   | 'ILLUSTRATES'
   | 'CONTRASTS_WITH';
 type Direction = 'LR' | 'TB';
-
-interface IdeaGraphSource {
-  id: string;
-  paraphrase: string | null;
-  quote: string;
-  startSec: number;
-  endSec: number;
-}
-
-interface IdeaGraphNodeRecord {
-  id: string;
-  type: IdeaGraphNodeType;
-  title: string;
-  content: string | null;
-  x: number;
-  y: number;
-  collapsed: boolean;
-  transcriptSources: IdeaGraphSource[];
-}
-
-interface IdeaGraphEdgeRecord {
-  id: string;
-  sourceNodeId: string;
-  targetNodeId: string;
-  type: IdeaGraphEdgeType;
-  label: string | null;
-}
-
-interface IdeaGraphPayload {
-  id: string;
-  userId: string;
-  videoId: string;
-  generationStatus: IdeaGraphGenerationStatus;
-  generationError: string | null;
-  generatedAt: string | null;
-  layoutDirection: IdeaGraphLayoutDirection;
-  visibleDepth: number | null;
-  createdAt: string;
-  updatedAt: string;
-  nodes: IdeaGraphNodeRecord[];
-  edges: IdeaGraphEdgeRecord[];
-}
 
 interface ApiErrorPayload {
   error?: string;
@@ -574,8 +542,11 @@ export function IdeaGraphSection({
   const [legendCollapsed, setLegendCollapsed] = useState(true);
   const [visibleDepth, setVisibleDepth] = useState<number | null>(null);
   const [pendingChildDraft, setPendingChildDraft] = useState<PendingChildDraft | null>(null);
+  const [activeGenerationId, setActiveGenerationId] = useState<string | null>(null);
   const autoArrangedRef = useRef(false);
   const canvasViewportRef = useRef<HTMLDivElement | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const reactFlowRef = useRef<ReactFlowInstance<Node, Edge> | null>(null);
 
   const selectedNode = graph && Array.isArray(graph.nodes)
     ? graph.nodes.find((node) => node.id === selectedNodeId) ?? null
@@ -586,6 +557,7 @@ export function IdeaGraphSection({
 
   const [nodeDraft, setNodeDraft] = useState<IdeaGraphNodeRecord | null>(null);
   const [edgeDraft, setEdgeDraft] = useState<IdeaGraphEdgeRecord | null>(null);
+  const isGenerationInProgress = graph?.generationStatus === 'GENERATING' || activeGenerationId !== null;
 
   useEffect(() => {
     setNodeDraft(selectedNode ? structuredClone(selectedNode) : null);
@@ -594,6 +566,11 @@ export function IdeaGraphSection({
   useEffect(() => {
     setEdgeDraft(selectedEdge ? structuredClone(selectedEdge) : null);
   }, [selectedEdge]);
+
+  const closeGenerationStream = useCallback(() => {
+    eventSourceRef.current?.close();
+    eventSourceRef.current = null;
+  }, []);
 
   const fetchGraph = useCallback(async () => {
     setLoading(true);
@@ -629,9 +606,82 @@ export function IdeaGraphSection({
       setDirection(data.layoutDirection);
       setVisibleDepth(data.visibleDepth ?? getMaxDepthFromGraph(data));
       setErrorMessage(null);
+      if (data.generationStatus !== 'GENERATING') {
+        setActiveGenerationId(null);
+        closeGenerationStream();
+      }
     } finally {
       setLoading(false);
     }
+  }, [closeGenerationStream, videoId]);
+
+  const connectToGenerationStream = useCallback((generationId: string, streamUrl: string) => {
+    closeGenerationStream();
+    const source = new EventSource(streamUrl);
+    eventSourceRef.current = source;
+    setActiveGenerationId(generationId);
+    setErrorMessage(null);
+
+    const handleEvent = (rawEvent: Event) => {
+      const messageEvent = rawEvent as MessageEvent<string>;
+      const parsed = JSON.parse(messageEvent.data) as IdeaGraphStreamEvent;
+      setGraph((currentGraph) => {
+        const nextGraph = applyIdeaGraphStreamEvent(currentGraph, parsed);
+        if (nextGraph) {
+          setVisibleDepth(getMaxDepthFromGraph(nextGraph));
+        }
+        return nextGraph;
+      });
+
+      if (parsed.type === 'completed' || parsed.type === 'failed') {
+        closeGenerationStream();
+        setActiveGenerationId(null);
+        void fetchGraph();
+      }
+    };
+
+    const streamEventTypes: IdeaGraphStreamEvent['type'][] = [
+      'generation_started',
+      'chunk_index_ready',
+      'chunk_read',
+      'node_added',
+      'node_updated',
+      'edge_added',
+      'source_attached',
+      'snapshot',
+      'completed',
+      'failed',
+    ];
+
+    streamEventTypes.forEach((eventType) => {
+      source.addEventListener(eventType, handleEvent as EventListener);
+    });
+
+    source.onerror = () => {
+      if (eventSourceRef.current !== source) return;
+      setErrorMessage((current) => current ?? 'Live idea graph stream disconnected. Attempting to reconnect...');
+    };
+    source.onopen = () => {
+      setErrorMessage((current) =>
+        current === 'Live idea graph stream disconnected. Attempting to reconnect...' ? null : current
+      );
+    };
+  }, [closeGenerationStream, fetchGraph]);
+
+  const fetchActiveGeneration = useCallback(async () => {
+    const response = await fetch(`/api/videos/${encodeURIComponent(videoId)}/idea-graph/generate`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = (await response.json().catch(() => null)) as ActiveIdeaGraphGenerationResponse | ApiErrorPayload | null;
+    if (!response.ok) {
+      throw new Error(
+        data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
+          ? data.error
+          : 'Failed to fetch active idea graph generation.'
+      );
+    }
+    return data as ActiveIdeaGraphGenerationResponse;
   }, [videoId]);
 
   useEffect(() => {
@@ -640,11 +690,22 @@ export function IdeaGraphSection({
 
   useEffect(() => {
     if (graph?.generationStatus !== 'GENERATING') return;
-    const interval = window.setInterval(() => {
-      fetchGraph();
-    }, 3000);
-    return () => window.clearInterval(interval);
-  }, [graph?.generationStatus, fetchGraph]);
+    if (eventSourceRef.current || activeGenerationId) return;
+    void (async () => {
+      try {
+        const activeGeneration = await fetchActiveGeneration();
+        if (activeGeneration.active && activeGeneration.generationId && activeGeneration.eventsUrl) {
+          connectToGenerationStream(activeGeneration.generationId, activeGeneration.eventsUrl);
+        }
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : 'Failed to reconnect to live idea graph stream.');
+      }
+    })();
+  }, [activeGenerationId, connectToGenerationStream, fetchActiveGeneration, graph?.generationStatus]);
+
+  useEffect(() => () => {
+    closeGenerationStream();
+  }, [closeGenerationStream]);
 
   useEffect(() => {
     const element = canvasViewportRef.current;
@@ -681,6 +742,9 @@ export function IdeaGraphSection({
     nextDirection: Direction,
     nextVisibleDepth: number
   ) => {
+    if (nextGraph.generationStatus === 'GENERATING') {
+      return;
+    }
     setSaving(true);
     try {
       const response = await fetch(`/api/videos/${encodeURIComponent(videoId)}/idea-graph`, {
@@ -711,7 +775,12 @@ export function IdeaGraphSection({
     }
   }, [videoId]);
 
-  const nodeDepths = useMemo(() => computeNodeDepths(graph), [graph]);
+  const displayedGraph = useMemo(
+    () => (graph?.generationStatus === 'GENERATING' && graph.nodes.length > 0 ? applyDagreLayout(graph, direction) : graph),
+    [graph, direction]
+  );
+
+  const nodeDepths = useMemo(() => computeNodeDepths(displayedGraph), [displayedGraph]);
   const maxVisibleDepth = useMemo(
     () => Math.max(0, ...Array.from(nodeDepths.values(), (depth) => depth)),
     [nodeDepths]
@@ -726,8 +795,8 @@ export function IdeaGraphSection({
 
   const effectiveVisibleDepth = visibleDepth ?? maxVisibleDepth;
   const hiddenNodeIds = useMemo(
-    () => buildHiddenNodeSet(graph, nodeDepths, effectiveVisibleDepth),
-    [graph, nodeDepths, effectiveVisibleDepth]
+    () => buildHiddenNodeSet(displayedGraph, nodeDepths, effectiveVisibleDepth),
+    [displayedGraph, nodeDepths, effectiveVisibleDepth]
   );
 
   const persistViewSettings = useCallback(async (nextDirection: Direction, nextVisibleDepth: number | null) => {
@@ -750,7 +819,15 @@ export function IdeaGraphSection({
         return;
       }
       if (saved && isIdeaGraphPayload(saved)) {
-        setGraph(saved);
+        setGraph((currentGraph) =>
+          currentGraph?.generationStatus === 'GENERATING'
+            ? {
+                ...currentGraph,
+                layoutDirection: saved.layoutDirection,
+                visibleDepth: saved.visibleDepth,
+              }
+            : saved
+        );
         setErrorMessage(null);
       }
     } catch {
@@ -759,7 +836,7 @@ export function IdeaGraphSection({
   }, [videoId]);
 
   const handleToggleCollapse = useCallback((nodeId: string) => {
-    if (!graph) return;
+    if (!graph || isGenerationInProgress) return;
     const nextGraph = {
       ...graph,
       nodes: graph.nodes.map((node) =>
@@ -768,30 +845,31 @@ export function IdeaGraphSection({
     };
     setGraph(nextGraph);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, persistGraph]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, persistGraph]);
 
   const handleStartAddChild = useCallback((nodeId: string) => {
+    if (isGenerationInProgress) return;
     setPendingChildDraft({
       parentNodeId: nodeId,
       nodeType: 'CLAIM',
       edgeType: 'SUPPORTS',
       title: '',
     });
-  }, []);
+  }, [isGenerationInProgress]);
 
   const flowNodes = useMemo(
     () =>
       buildFlowNodes(
-        graph,
+        displayedGraph,
         direction,
         selectedNodeId,
         hiddenNodeIds,
         handleToggleCollapse,
         handleStartAddChild
       ),
-    [graph, direction, selectedNodeId, hiddenNodeIds, handleToggleCollapse, handleStartAddChild]
+    [displayedGraph, direction, selectedNodeId, hiddenNodeIds, handleToggleCollapse, handleStartAddChild]
   );
-  const flowEdges = useMemo(() => buildFlowEdges(graph, hiddenNodeIds), [graph, hiddenNodeIds]);
+  const flowEdges = useMemo(() => buildFlowEdges(displayedGraph, hiddenNodeIds), [displayedGraph, hiddenNodeIds]);
   const [canvasNodes, setCanvasNodes, onCanvasNodesChange] = useNodesState(flowNodes);
   const [canvasEdges, setCanvasEdges, onCanvasEdgesChange] = useEdgesState(flowEdges);
 
@@ -804,7 +882,19 @@ export function IdeaGraphSection({
   }, [flowEdges, setCanvasEdges]);
 
   useEffect(() => {
-    if (!graph || autoArrangedRef.current || !isGraphUnpositioned(graph)) return;
+    if (!isGenerationInProgress || !reactFlowRef.current || !displayedGraph || displayedGraph.nodes.length === 0) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      reactFlowRef.current?.fitView({ padding: 0.18, duration: 300 });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [displayedGraph, isGenerationInProgress]);
+
+  useEffect(() => {
+    if (!graph || graph.generationStatus === 'GENERATING' || autoArrangedRef.current || !isGraphUnpositioned(graph)) return;
     autoArrangedRef.current = true;
     const laidOut = applyDagreLayout(graph, direction);
     setGraph(laidOut);
@@ -812,6 +902,7 @@ export function IdeaGraphSection({
   }, [graph, direction, effectiveVisibleDepth, persistGraph]);
 
   const handleGenerate = useCallback(async () => {
+    if (isGenerationInProgress) return;
     let response = await fetch(`/api/videos/${encodeURIComponent(videoId)}/idea-graph/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -831,16 +922,31 @@ export function IdeaGraphSection({
     }
 
     if (response.ok) {
+      const data = (await response.json().catch(() => null)) as StartIdeaGraphGenerationResponse | ApiErrorPayload | null;
+      if (!data || !('generationId' in data) || !data.generationId || !data.eventsUrl) {
+        setErrorMessage('Failed to start idea graph generation.');
+        return;
+      }
       autoArrangedRef.current = false;
       setErrorMessage(null);
-      await fetchGraph();
+      setGraph((currentGraph) =>
+        currentGraph
+          ? {
+              ...currentGraph,
+              generationStatus: 'GENERATING',
+              generationError: null,
+            }
+          : currentGraph
+      );
+      connectToGenerationStream(data.generationId, data.eventsUrl);
     } else {
       const data = (await response.json().catch(() => null)) as ApiErrorPayload | null;
       setErrorMessage(data?.error ?? 'Failed to start idea graph generation.');
     }
-  }, [fetchGraph, videoId]);
+  }, [connectToGenerationStream, isGenerationInProgress, videoId]);
 
   const handleAddNode = useCallback(() => {
+    if (isGenerationInProgress) return;
     const baseGraph: IdeaGraphPayload = graph ?? {
       id: '',
       userId: '',
@@ -876,10 +982,10 @@ export function IdeaGraphSection({
     setSelectedNodeId(nextNode.id);
     setSelectedEdgeId(null);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, persistGraph, videoId]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, persistGraph, videoId]);
 
   const handleCreateChildNode = useCallback(() => {
-    if (!graph || !pendingChildDraft) return;
+    if (!graph || !pendingChildDraft || isGenerationInProgress) return;
     const parentNode = graph.nodes.find((node) => node.id === pendingChildDraft.parentNodeId);
     if (!parentNode) {
       setPendingChildDraft(null);
@@ -920,14 +1026,14 @@ export function IdeaGraphSection({
     setSelectedEdgeId(null);
     setPendingChildDraft(null);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, pendingChildDraft, persistGraph]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, pendingChildDraft, persistGraph]);
 
   const handleArrange = useCallback(() => {
-    if (!graph) return;
+    if (!graph || isGenerationInProgress) return;
     const laidOut = applyDagreLayout(graph, direction);
     setGraph(laidOut);
     void persistGraph(laidOut, direction, effectiveVisibleDepth);
-  }, [graph, direction, effectiveVisibleDepth, persistGraph]);
+  }, [graph, direction, effectiveVisibleDepth, isGenerationInProgress, persistGraph]);
 
   const handleToggleDirection = useCallback(() => {
     if (!graph) {
@@ -939,13 +1045,17 @@ export function IdeaGraphSection({
 
     const nextDirection: Direction = direction === 'LR' ? 'TB' : 'LR';
     setDirection(nextDirection);
+    if (isGenerationInProgress) {
+      void persistViewSettings(nextDirection, visibleDepth);
+      return;
+    }
     const laidOut = applyDagreLayout(graph, nextDirection);
     setGraph(laidOut);
     void persistGraph(laidOut, nextDirection, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, persistGraph, persistViewSettings, visibleDepth]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, persistGraph, persistViewSettings, visibleDepth]);
 
   const handleConnect = useCallback((connection: Connection) => {
-    if (!graph || !connection.source || !connection.target) return;
+    if (!graph || !connection.source || !connection.target || isGenerationInProgress) return;
     const nextGraph = {
       ...graph,
       edges: [
@@ -961,10 +1071,10 @@ export function IdeaGraphSection({
     };
     setGraph(nextGraph);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, persistGraph]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, persistGraph]);
 
   const handleNodeDragStop = useCallback((_event: React.MouseEvent, draggedNode: Node) => {
-    if (!graph) return;
+    if (!graph || isGenerationInProgress) return;
     const nextGraph = {
       ...graph,
       nodes: graph.nodes.map((node) =>
@@ -975,20 +1085,20 @@ export function IdeaGraphSection({
     };
     setGraph(nextGraph);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, persistGraph]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, persistGraph]);
 
   const handleSaveNode = useCallback(() => {
-    if (!graph || !nodeDraft) return;
+    if (!graph || !nodeDraft || isGenerationInProgress) return;
     const nextGraph = {
       ...graph,
       nodes: graph.nodes.map((node) => (node.id === nodeDraft.id ? nodeDraft : node)),
     };
     setGraph(nextGraph);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, nodeDraft, persistGraph]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, nodeDraft, persistGraph]);
 
   const handleDeleteNode = useCallback(() => {
-    if (!graph || !selectedNodeId) return;
+    if (!graph || !selectedNodeId || isGenerationInProgress) return;
     const nextGraph = {
       ...graph,
       nodes: graph.nodes.filter((node) => node.id !== selectedNodeId),
@@ -1000,20 +1110,20 @@ export function IdeaGraphSection({
     setSelectedNodeId(null);
     setSelectedEdgeId(null);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, selectedNodeId, persistGraph]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, selectedNodeId, persistGraph]);
 
   const handleSaveEdge = useCallback(() => {
-    if (!graph || !edgeDraft) return;
+    if (!graph || !edgeDraft || isGenerationInProgress) return;
     const nextGraph = {
       ...graph,
       edges: graph.edges.map((edge) => (edge.id === edgeDraft.id ? edgeDraft : edge)),
     };
     setGraph(nextGraph);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, edgeDraft, persistGraph]);
+  }, [direction, effectiveVisibleDepth, edgeDraft, graph, isGenerationInProgress, persistGraph]);
 
   const handleDeleteEdge = useCallback(() => {
-    if (!graph || !selectedEdgeId) return;
+    if (!graph || !selectedEdgeId || isGenerationInProgress) return;
     const nextGraph = {
       ...graph,
       edges: graph.edges.filter((edge) => edge.id !== selectedEdgeId),
@@ -1021,7 +1131,7 @@ export function IdeaGraphSection({
     setGraph(nextGraph);
     setSelectedEdgeId(null);
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
-  }, [direction, effectiveVisibleDepth, graph, persistGraph, selectedEdgeId]);
+  }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, persistGraph, selectedEdgeId]);
 
   if (loading) {
     return (
@@ -1043,10 +1153,10 @@ export function IdeaGraphSection({
         <div className="flex items-center gap-2">
           <button
             onClick={handleGenerate}
-            disabled={graph?.generationStatus === 'GENERATING'}
+            disabled={isGenerationInProgress}
             className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-wait disabled:opacity-60"
           >
-            {graph?.generationStatus === 'GENERATING' ? 'Generating...' : 'Generate idea graph'}
+            {isGenerationInProgress ? 'Generating...' : 'Generate idea graph'}
           </button>
         </div>
       </div>
@@ -1071,7 +1181,8 @@ export function IdeaGraphSection({
           <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
             <button
               onClick={handleArrange}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300"
+              disabled={isGenerationInProgress}
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -1099,6 +1210,9 @@ export function IdeaGraphSection({
           {graph && graph.nodes.length > 0 ? (
             <ReactFlowProvider>
               <ReactFlow
+                onInit={(instance) => {
+                  reactFlowRef.current = instance;
+                }}
                 nodes={canvasNodes}
                 edges={canvasEdges}
                 onNodesChange={onCanvasNodesChange}
@@ -1119,6 +1233,8 @@ export function IdeaGraphSection({
                 }}
                 onConnect={handleConnect}
                 onNodeDragStop={handleNodeDragStop}
+                nodesDraggable={!isGenerationInProgress}
+                nodesConnectable={!isGenerationInProgress}
                 fitView
                 fitViewOptions={{ padding: 0.18 }}
                 minZoom={0.2}
@@ -1137,7 +1253,8 @@ export function IdeaGraphSection({
               </p>
               <button
                 onClick={handleAddNode}
-                className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                disabled={isGenerationInProgress}
+                className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Add root node
               </button>
@@ -1255,11 +1372,14 @@ export function IdeaGraphSection({
         <div className="h-[720px] overflow-y-auto rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold text-gray-900">Inspector</h3>
-            <span className="text-xs text-gray-400">{saving ? 'Saving...' : 'Saved automatically'}</span>
+            <span className="text-xs text-gray-400">
+              {isGenerationInProgress ? 'Live generation in progress' : saving ? 'Saving...' : 'Saved automatically'}
+            </span>
           </div>
 
           {nodeDraft && (
             <div className="mt-4 space-y-4">
+              <fieldset disabled={isGenerationInProgress} className="contents">
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Node type</label>
                 <select
@@ -1441,22 +1561,26 @@ export function IdeaGraphSection({
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveNode}
-                  className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  disabled={isGenerationInProgress}
+                  className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Save node
                 </button>
                 <button
                   onClick={handleDeleteNode}
-                  className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                  disabled={isGenerationInProgress}
+                  className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Delete
                 </button>
               </div>
+              </fieldset>
             </div>
           )}
 
           {!nodeDraft && edgeDraft && (
             <div className="mt-4 space-y-4">
+              <fieldset disabled={isGenerationInProgress} className="contents">
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Edge type</label>
                 <select
@@ -1488,17 +1612,20 @@ export function IdeaGraphSection({
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveEdge}
-                  className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  disabled={isGenerationInProgress}
+                  className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Save edge
                 </button>
                 <button
                   onClick={handleDeleteEdge}
-                  className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                  disabled={isGenerationInProgress}
+                  className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Delete
                 </button>
               </div>
+              </fieldset>
             </div>
           )}
 

@@ -1,368 +1,231 @@
 # Idea Graph Implementation
 
-This document summarizes the major implementation work for the video watch page idea graph feature.
+Per-user idea graph on the video watch page, generated from the video transcript and streamed to the browser in real time.
 
-It focuses on the main architecture, data model, backend flow, and editor behavior. Small UI polish changes made during iteration are intentionally omitted.
+## Architecture
 
-## Goal
+The feature spans three services in the monorepo.
 
-Add a persisted, per-user idea graph to the video watch page that:
+- **`application`** — watch page, graph editor, app API routes
+- **`orchestrator`** — generation flow, Redis event buffering, SSE delivery, final DB write
+- **`agents`** — LangGraph agent that builds the graph incrementally
 
-- generates from a video's title and transcript
-- stores graph structure in the database
-- supports editing in a canvas UI
-- connects transcript evidence to graph nodes
-- uses the `agents` repo for graph generation
-- uses the `orchestrator` as the execution bridge between the application and LangGraph
+## Generation Flow
 
-## High-Level Architecture
+1. User clicks **Generate idea graph**.
+2. `application` calls `POST /idea-graph/generate` on the orchestrator and receives a `generationId`.
+3. `application` opens an `EventSource` to the orchestrator SSE endpoint for that generation.
+4. `orchestrator` prepares transcript context and starts the LangGraph run in a background thread.
+5. The `build_idea_graph` agent reads transcript chunks and builds the graph through tool calls, emitting a custom stream event for every mutation.
+6. `orchestrator` consumes those events, appends them to a Redis event log, and relays them to the browser over SSE.
+7. The browser applies each event to local graph state and re-renders immediately.
+8. When LangGraph finishes, `orchestrator` validates the final `result_graph`, writes it to Postgres once, and emits a terminal `completed` event.
+9. On `completed`, the browser closes the SSE connection and fetches the canonical graph from the app API.
+10. If the page is reloaded after completion, the DB snapshot is the source of truth.
 
-The feature is split across three parts of the monorepo:
+## Streaming, Redis Replay, and DB Persist
 
-- `application`
-  - renders the watch page
-  - stores and edits graph state
-  - triggers generation
-- `orchestrator`
-  - fetches transcript context
-  - starts the LangGraph run
-  - writes generated graph results back into the database
-- `agents`
-  - hosts the LangGraph graph-builder agent
-  - reads transcript chunks and builds the idea graph
+```mermaid
+flowchart LR
+    subgraph browser ["Browser"]
+        watch["Watch Page"]
+    end
 
-The flow is:
+    subgraph orch ["Orchestrator"]
+        start["Start endpoint
+returns generation_id"]
+        flow["IdeaGraphFlow
+background thread"]
+        sse["SSE endpoint
+/generations/{id}/events"]
+    end
 
-1. User opens a video watch page.
-2. `application` fetches the current persisted graph for `userId + videoId`.
-3. User clicks `Generate idea graph`.
-4. `application` calls the orchestrator.
-5. `orchestrator` prepares transcript context and current graph state.
-6. `orchestrator` invokes the LangGraph assistant in `agents`.
-7. The LangGraph agent returns a full graph snapshot.
-8. `orchestrator` replaces the stored graph in Postgres.
-9. `application` polls and re-renders the updated graph.
+    subgraph agent ["Agents"]
+        ag["build_idea_graph
+ReAct agent"]
+    end
+
+    subgraph redis ["Redis replay buffer"]
+        meta["Generation metadata
+status · last_event_id · run_id"]
+        evts["Ordered event log
+append-only replay buffer"]
+    end
+
+    subgraph pg ["Postgres"]
+        db["IdeaGraph · Node · Edge · Source"]
+    end
+
+    watch -->|"1. POST /generate"| start
+    start -->|"2. return generation_id"| watch
+    start -->|"3. create generation record"| meta
+    start -->|"4. launch"| flow
+
+    flow <-->|"5. invoke + receive stream events"| ag
+    flow -->|"6. write every streamed event"| evts
+    flow -->|"7. update status / last_event_id"| meta
+
+    watch -->|"8. open SSE with generation_id"| sse
+    sse -.->|"9. look up generation status"| meta
+    sse -.->|"10. read replayable events"| evts
+    sse -->|"11. emit SSE frames to browser"| watch
+
+    flow ==>|"12. persist final graph once"| db
+    flow -->|"13. append completed / failed"| evts
+    flow -->|"14. mark terminal status"| meta
+```
+
+The important boundary is:
+
+- `IdeaGraphFlow` does not push directly to the browser.
+- `IdeaGraphFlow` writes stream events into Redis.
+- The SSE endpoint reads Redis and turns those records into SSE frames for the browser.
+
+After `completed`, the browser fetches the canonical graph via the app API (`GET /idea-graph -> Postgres`).
+
+| Path | Transport | Source |
+|---|---|---|
+| Live incremental updates | SSE from orchestrator | LangGraph stream via Redis |
+| Disconnected client replay | SSE from orchestrator | Redis event log |
+| Durable canonical graph | HTTP GET from app API | Postgres — written once at completion |
+
+## Stream Events
+
+Each event carries `generation_id`, `event_id`, `user_id`, `video_id`, `timestamp`, `type`, and `payload`.
+
+| Type | When |
+|---|---|
+| `generation_started` | generation begins |
+| `chunk_index_ready` | transcript chunk list prepared |
+| `chunk_read` | agent reads a transcript chunk |
+| `node_added` | agent creates a node |
+| `node_updated` | agent edits an existing node |
+| `edge_added` | agent creates an edge |
+| `source_attached` | agent attaches a transcript source to a node |
+| `snapshot` | periodic full graph snapshot for recovery |
+| `completed` | final graph persisted to Postgres |
+| `failed` | generation failed with error |
+
+## Redis Buffering
+
+Redis stores transient event data only. Postgres remains the durable graph store.
+
+Key shapes:
+
+- `idea_graph:generation:{generation_id}:meta` — status, `last_event_id`, `thread_id`, `run_id`
+- `idea_graph:generation:{generation_id}:events` — ordered append-only event list
+- `idea_graph:active:{user_id}:{video_id}` — lookup for active in-progress generation
+
+Terminal generations are expired from Redis with a TTL after the `completed` or `failed` event is written.
 
 ## Database Model
 
-The graph is stored in Prisma under the `application` schema.
+Stored in Prisma under the `application` schema.
 
-### Main tables
+### Tables
 
-- `IdeaGraph`
-  - one row per `userId + videoId`
-  - stores generation state and graph-level view settings
-- `IdeaGraphNode`
-  - stores graph nodes
-- `IdeaGraphEdge`
-  - stores typed edges between nodes
-- `IdeaGraphNodeSource`
-  - stores transcript-backed evidence spans for a node
+- **`IdeaGraph`** — one row per `userId + videoId`, stores `generationStatus`, `generationError`, `generatedAt`, `layoutDirection`, `visibleDepth`
+- **`IdeaGraphNode`** — `type`, `title`, `content`, `x`, `y`, `collapsed`
+- **`IdeaGraphEdge`** — `sourceNodeId`, `targetNodeId`, `type`, `label`
+- **`IdeaGraphNodeSource`** — `paraphrase`, `quote`, `startSec`, `endSec`
 
-### Key fields
-
-`IdeaGraph` stores:
-
-- `generationStatus`
-- `generationError`
-- `generatedAt`
-- `layoutDirection`
-- `visibleDepth`
-
-`IdeaGraphNode` stores:
-
-- `type`
-- `title`
-- `content`
-- `x`
-- `y`
-- `collapsed`
-
-`IdeaGraphNodeSource` stores:
-
-- `paraphrase`
-- `quote`
-- `startSec`
-- `endSec`
-
-This means both graph content and important graph-view state are now persisted in the DB.
+Both graph content and view settings (`layoutDirection`, `visibleDepth`) are persisted in Postgres.
 
 ## Application Layer
 
-### Main watch page integration
+### Watch page
 
-The watch page now uses a client wrapper:
-
-- `application/components/video/WatchPageClient.tsx`
-
-This component is responsible for:
-
-- rendering the main player and sidebar
-- rendering the full-width idea graph section below the main content
-- coordinating player seeking from graph interactions
-- positioning the embedded floating mini-player inside the canvas area
+`WatchPageClient.tsx` renders the player, sidebar, and the full-width idea graph section below. It coordinates player seeking from graph interactions and positions the floating mini-player inside the canvas.
 
 ### Idea graph editor
 
-The core editor lives in:
+`IdeaGraphSection.tsx` is the core editor. It handles:
 
-- `application/components/video/IdeaGraphSection.tsx`
-
-This component handles:
-
-- fetching the graph
-- polling during generation
+- starting generation and subscribing to SSE
+- applying streamed events to local graph state
+- reconnecting and replaying missed events after a disconnect
 - rendering the React Flow canvas
+- auto-fitting the canvas as new nodes appear during streaming
+- resetting visible depth to the current max as the graph grows during streaming
 - persisting graph edits
-- arranging with Dagre
-- node selection and edge selection
-- inspector editing
-- graph depth filtering
-- layout direction switching
-
-### Player integration
-
-The player wrapper lives in:
-
-- `application/components/video/VideoPlayer.tsx`
-
-It exposes:
-
-- `seekTo(seconds)`
-
-and supports:
-
-- regular player mode
-- embedded floating mini-player mode positioned by the graph canvas
-
-### Application APIs
-
-The main routes are:
-
-- `application/app/api/videos/[videoId]/idea-graph/route.ts`
-  - `GET`
-    - fetch current graph
-  - `PUT`
-    - replace graph contents
-  - `PATCH`
-    - update view settings like layout direction and visible depth
-  - `DELETE`
-    - delete graph
-- `application/app/api/videos/[videoId]/idea-graph/generate/route.ts`
-  - starts background graph generation via the orchestrator
+- Dagre layout and arrange
+- node/edge selection and inspector editing
+- depth filtering and layout direction switching
+- disabling editing while generation is in progress
 
 ### Serialization
 
-Shared API graph serialization lives in:
+- `application/lib/idea-graph.ts` — graph payload shape shared between routes and the frontend
+- `application/lib/idea-graph-stream.ts` — stream event types and reducer-style helper that applies streamed updates to in-memory graph state
 
-- `application/lib/idea-graph.ts`
+### Application API routes
 
-This file defines the graph payload shape used by the frontend and routes.
+**`/api/videos/[videoId]/idea-graph`**
+
+- `GET` — fetch current persisted graph
+- `PUT` — replace full graph contents
+- `PATCH` — update view settings (`layoutDirection`, `visibleDepth`)
+- `DELETE` — delete graph
+
+**`/api/videos/[videoId]/idea-graph/generate`**
+
+- `POST` — start generation; returns `generationId` and SSE URL
+- `GET` — return active in-progress generation for resume/reconnect after reload
 
 ## Orchestrator Layer
 
-### Purpose
-
-The orchestrator is the execution bridge. It is used instead of calling LangGraph directly from the browser or from the watch page UI.
-
-This allows:
-
-- background execution
-- future buffering/retry behavior
-- shared workflow handling in one backend layer
+The orchestrator is the execution bridge between the application and LangGraph. It handles streaming, Redis buffering, SSE delivery, and final Postgres persistence.
 
 ### Main files
 
-- `orchestrator/flows/idea_graph.py`
-  - main generation flow
-- `orchestrator/server.py`
-  - HTTP endpoint used by the application
-- `orchestrator/tasks/db.py`
-  - database read/write helpers for graph state
-- `orchestrator/tasks/youtube.py`
-  - transcript segment fetching for evidence grounding
-- `orchestrator/models/schemas.py`
-  - typed payloads for graph generation
+- `orchestrator/flows/idea_graph.py` — generation flow
+- `orchestrator/server.py` — HTTP and SSE endpoints
+- `orchestrator/utils/idea_graph_events.py` — Redis event log and generation metadata helpers
+- `orchestrator/tasks/db.py` — Postgres read/write helpers
+- `orchestrator/tasks/youtube.py` — transcript segment fetching
+- `orchestrator/models/schemas.py` — typed payloads for generation and streaming
 
-### Main responsibilities
+### Orchestrator endpoints
 
-The orchestrator:
-
-- loads current graph state
-- loads transcript content
-- tries to fetch timestamped transcript segments
-- calls the LangGraph assistant
-- validates the returned graph snapshot
-- replaces the stored graph in Postgres
-- updates generation status
+- `POST /idea-graphs/generate` — starts generation, returns `generation_id`
+- `GET /idea-graphs/generations/active` — returns the active generation for a `user_id + video_id`
+- `GET /idea-graphs/generations/{generation_id}/events` — SSE stream; replays buffered events then tails live ones
 
 ## Agents Layer
 
-### LangGraph registration
-
-The new assistant is registered in:
-
-- `agents/langgraph.json`
-
-Registered graph name:
-
-- `build_idea_graph`
-
-### Main agent file
-
-- `agents/agents/idea_graph/build_idea_graph_graph.py`
+The `build_idea_graph` LangGraph graph is registered in `agents/langgraph.json` and implemented in `agents/agents/idea_graph/build_idea_graph_graph.py`.
 
 ### Agent behavior
 
-The agent is a graph-building workflow that:
+- reads transcript chunks progressively via tool calls
+- maintains an in-memory `IdeaGraphContext` that accumulates nodes and edges
+- emits a custom stream event (`get_stream_writer()`) for every mutation: `node_added`, `edge_added`, `source_attached`, `node_updated`
+- emits a `snapshot` every five mutations and once at the end
+- returns the final accumulated graph as `result_graph`
 
-- reads transcript chunks progressively
-- inspects current graph state
-- adds nodes and edges through tool calls
-- attaches transcript-backed evidence spans
-- returns a full `result_graph` snapshot
+### Node types
 
-### Node and edge semantics
+`CLAIM`, `EVIDENCE`, `COUNTERARGUMENT`, `REBUTTAL`, `EXAMPLE`, `ASSUMPTION`, `DEFINITION`, `QUESTION`, `CONCLUSION`
 
-Supported node types include:
+### Edge types
 
-- `CLAIM`
-- `EVIDENCE`
-- `COUNTERARGUMENT`
-- `REBUTTAL`
-- `EXAMPLE`
-- `ASSUMPTION`
-- `DEFINITION`
-- `QUESTION`
-- `CONCLUSION`
+`SUPPORTS`, `ATTACKS`, `REBUTS`, `ELABORATES`, `DEPENDS_ON`, `ILLUSTRATES`, `CONTRASTS_WITH`
 
-Supported edge types include:
+## Layout
 
-- `SUPPORTS`
-- `ATTACKS`
-- `REBUTS`
-- `ELABORATES`
-- `DEPENDS_ON`
-- `ILLUSTRATES`
-- `CONTRASTS_WITH`
+Layout uses Dagre (`nodesep: 80`, `ranksep: 130`) in `IdeaGraphSection.tsx`.
 
-## Graph Editing Behavior
+During generation, Dagre is applied to the streamed in-memory graph on each update so nodes are visible and arranged immediately. After generation completes, the persisted layout is loaded from Postgres.
 
-The editor supports:
-
-- selecting nodes and edges
-- editing node title/content/type
-- editing edge type/label
-- adding transcript-backed sources
-- creating connected child nodes from a node-end `+` action
-- node collapse/expand
-- dragging nodes
-- arranging layout
-- vertical and horizontal graph orientation
-- visible depth filtering
-
-### Dragging
-
-Dragging behavior was updated to use live React Flow state, matching the funnel canvas behavior:
-
-- local drag state updates while the mouse moves
-- persistence still occurs after drag stop
-
-## Layout and Arrange
-
-Layout uses Dagre in:
-
-- `application/components/video/IdeaGraphSection.tsx`
-
-Current layout settings:
-
-- `nodesep: 80`
-- `ranksep: 130`
-
-`Arrange` re-runs Dagre and persists the new node coordinates.
-
-Changing vertical/horizontal layout also triggers an automatic arrange.
-
-## Persisted View State
-
-The following view settings are now stored in the DB on `IdeaGraph`:
-
-- `layoutDirection`
-- `visibleDepth`
-
-This replaced the temporary local-storage implementation so those settings now follow the persisted graph instead of only the current browser.
+`Arrange` re-runs Dagre on demand and persists the result. Changing the layout direction also triggers an automatic arrange.
 
 ## Save Strategy
 
-Graph saves originally timed out on large graphs because node and edge rows were inserted one by one inside an interactive Prisma transaction.
-
-This was changed to:
-
-- batch node inserts with `createMany`
-- batch source inserts with `createMany`
-- batch edge inserts with `createMany`
-- increase transaction timeout for headroom
-
-This removed the `P2028` timeout failures seen while editing large generated graphs.
-
-## Generation Robustness
-
-Several fixes were added during implementation:
-
-- explicit handling for missing/unauthenticated graph fetches
-- orchestrator model generation fixed to ignore inline enum comments
-- Redis config corrected for orchestrator rate limiting
-- generation status transitions hardened so failures do not silently leave the graph stuck in `GENERATING`
-- transcript chunking reduced and merged for long transcripts to avoid runaway tool-call behavior in the agent
-
-## Testing and Verification
-
-Validation performed during implementation included:
-
-- Prisma migration + client generation
-- Next.js production build
-- targeted ESLint runs on edited files
-- Python compile checks for orchestrator and agent modules
-- orchestrator integration script:
-  - `orchestrator/scripts/test_build_idea_graph.py`
-- browser smoke testing on a real watch page
-
-## Main Files Added or Changed
-
-### Added
-
-- `application/components/video/IdeaGraphSection.tsx`
-- `application/components/video/WatchPageClient.tsx`
-- `application/lib/idea-graph.ts`
-- `application/app/api/videos/[videoId]/idea-graph/route.ts`
-- `application/app/api/videos/[videoId]/idea-graph/generate/route.ts`
-- `orchestrator/flows/idea_graph.py`
-- `orchestrator/scripts/test_build_idea_graph.py`
-- `agents/agents/idea_graph/build_idea_graph_graph.py`
-
-### Updated
-
-- `application/app/(main)/watch/[videoId]/page.tsx`
-- `application/components/video/VideoPlayer.tsx`
-- `application/prisma/schema.prisma`
-- `orchestrator/server.py`
-- `orchestrator/tasks/db.py`
-- `orchestrator/tasks/youtube.py`
-- `orchestrator/models/schemas.py`
-- `agents/langgraph.json`
+Saves use batched Prisma `createMany` for nodes, sources, and edges inside a single transaction with an extended timeout. This avoids `P2028` timeouts that occurred with large graphs when rows were inserted individually.
 
 ## Notes
 
-This feature currently treats the graph as:
-
-- private per user
-- tied to a single video
-- fully replaceable on regeneration
-- fully editable after generation
-
-The current implementation is a strong base for future additions like:
-
-- incremental regeneration of a selected subgraph
-- per-node comment threads
-- richer mini-player interactions
-- more advanced graph filters
+- Graph is private per user and tied to a single video.
+- Regeneration fully replaces the existing graph.
+- Editing is fully available once generation completes.
+- Future directions: incremental subgraph regeneration, per-node comment threads, richer mini-player interactions.

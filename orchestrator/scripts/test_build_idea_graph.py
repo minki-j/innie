@@ -56,7 +56,8 @@ def main() -> None:
         api_key=LANGGRAPH_API_KEY or None,
     )
     thread = client.threads.create()
-    run = client.runs.create(
+    stream_events = []
+    for part in client.runs.stream(
         thread_id=thread["thread_id"],
         assistant_id="build_idea_graph",
         input={
@@ -67,8 +68,11 @@ def main() -> None:
             "transcript_segments": transcript_segments,
             "current_graph": {"nodes": [], "edges": []},
         },
-    )
-    client.runs.join(thread_id=thread["thread_id"], run_id=run["run_id"])
+        stream_mode=["custom"],
+        version="v2",
+    ):
+        if part.get("type") == "custom":
+            stream_events.append(part.get("data"))
     state = client.threads.get_state(thread_id=thread["thread_id"])
 
     result_graph = state["values"].get("result_graph")
@@ -80,12 +84,15 @@ def main() -> None:
     assert len(nodes) >= 3, f"Expected at least 3 nodes, got {len(nodes)}"
     assert len(edges) >= 2, f"Expected at least 2 edges, got {len(edges)}"
     assert any(node.get("transcript_sources") for node in nodes), "Expected at least one node with transcript sources"
+    assert stream_events, "Expected at least one custom stream event"
+    assert any(event.get("event_type") == "node_added" for event in stream_events), "Expected node_added stream events"
 
     print("\n" + "=" * 60)
     print("Idea graph generation result")
     print("=" * 60)
     print(f"Nodes: {len(nodes)}")
     print(f"Edges: {len(edges)}")
+    print(f"Custom stream events: {len(stream_events)}")
     print(json.dumps(result_graph, indent=2))
 
 

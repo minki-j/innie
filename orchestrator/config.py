@@ -57,6 +57,12 @@ TRANSCRIPT_MAX_CHARS: int = int(os.environ.get("TRANSCRIPT_MAX_CHARS"))
 # ── Redis ─────────────────────────────────────────────────────
 
 REDIS_URL: str = os.environ.get("REDIS_URL", "redis://localhost:6380/0")
+IDEA_GRAPH_STREAM_TTL_SECONDS: int = int(
+    os.environ.get("IDEA_GRAPH_STREAM_TTL_SECONDS", "3600")
+)
+IDEA_GRAPH_STREAM_POLL_INTERVAL_MS: int = int(
+    os.environ.get("IDEA_GRAPH_STREAM_POLL_INTERVAL_MS", "500")
+)
 
 # ── Rate Limits (calls per window_seconds) ───────────────────
 

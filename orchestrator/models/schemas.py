@@ -11,6 +11,7 @@ Regenerate DB models with:  uv run python scripts/generate_models.py
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -162,3 +163,69 @@ class IdeaGraphGenerationInput(BaseModel):
     transcript: str
     transcript_segments: list[TranscriptSegment] = Field(default_factory=list)
     current_graph: IdeaGraphSnapshot = Field(default_factory=IdeaGraphSnapshot)
+
+
+IdeaGraphAgentEventType = Literal[
+    "chunk_index_ready",
+    "chunk_read",
+    "node_added",
+    "node_updated",
+    "edge_added",
+    "source_attached",
+    "snapshot",
+]
+
+IdeaGraphStreamEventType = Literal[
+    "generation_started",
+    "chunk_index_ready",
+    "chunk_read",
+    "node_added",
+    "node_updated",
+    "edge_added",
+    "source_attached",
+    "snapshot",
+    "completed",
+    "failed",
+]
+
+
+class IdeaGraphAgentCustomEvent(BaseModel):
+    event_type: IdeaGraphAgentEventType
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class IdeaGraphStreamEvent(BaseModel):
+    generation_id: str
+    event_id: int
+    user_id: str
+    video_id: str
+    timestamp: datetime
+    type: IdeaGraphStreamEventType
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class IdeaGraphGenerationMetadata(BaseModel):
+    generation_id: str
+    user_id: str
+    video_id: str
+    status: IdeaGraphGenerationStatus
+    replace_existing: bool = True
+    started_at: datetime
+    updated_at: datetime
+    completed_at: datetime | None = None
+    error: str | None = None
+    last_event_id: int = 0
+    thread_id: str | None = None
+    run_id: str | None = None
+
+
+class IdeaGraphGenerationStartResponse(BaseModel):
+    generation_id: str
+    user_id: str
+    video_id: str
+    status: IdeaGraphGenerationStatus
+
+
+class ActiveIdeaGraphGenerationResponse(BaseModel):
+    active: bool
+    generation: IdeaGraphGenerationMetadata | None = None
