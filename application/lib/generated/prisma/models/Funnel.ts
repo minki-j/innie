@@ -629,10 +629,6 @@ export type FunnelUpdateOneRequiredWithoutFunnelVideosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FunnelUpdateToOneWithWhereWithoutFunnelVideosInput, Prisma.FunnelUpdateWithoutFunnelVideosInput>, Prisma.FunnelUncheckedUpdateWithoutFunnelVideosInput>
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type FunnelCreateNestedOneWithoutClassNodesInput = {
   create?: Prisma.XOR<Prisma.FunnelCreateWithoutClassNodesInput, Prisma.FunnelUncheckedCreateWithoutClassNodesInput>
   connectOrCreate?: Prisma.FunnelCreateOrConnectWithoutClassNodesInput

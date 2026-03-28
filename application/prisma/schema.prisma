@@ -21,6 +21,7 @@ model User {
   reviews      Review[]
   funnels       Funnel[]
   trainingRuns TrainingRun[]
+  ideaGraphs   IdeaGraph[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -90,6 +91,7 @@ model Video {
   channel                Channel?               @relation(fields: [channelId], references: [id])
   classNodeResults       ClassNodeResult[]
   classNodeModelVerdicts ClassNodeModelVerdict[]
+  ideaGraphs             IdeaGraph[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -133,6 +135,122 @@ model Review {
   @@unique([userId, videoId, funnelId]) // One review per user per video per funnel
   @@index([videoId])
   @@index([funnelId])
+}
+
+enum IdeaGraphGenerationStatus {
+  IDLE
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+enum IdeaGraphLayoutDirection {
+  LR
+  TB
+}
+
+enum IdeaGraphNodeType {
+  CLAIM
+  EVIDENCE
+  COUNTERARGUMENT
+  REBUTTAL
+  EXAMPLE
+  ASSUMPTION
+  DEFINITION
+  QUESTION
+  CONCLUSION
+}
+
+enum IdeaGraphEdgeType {
+  SUPPORTS
+  ATTACKS
+  REBUTS
+  ELABORATES
+  DEPENDS_ON
+  ILLUSTRATES
+  CONTRASTS_WITH
+}
+
+model IdeaGraph {
+  id               String                    @id @default(cuid())
+  userId           String
+  videoId          String
+  generationStatus IdeaGraphGenerationStatus @default(IDLE)
+  generationError  String?                   @db.Text
+  generatedAt      DateTime?
+  layoutDirection  IdeaGraphLayoutDirection  @default(LR)
+  visibleDepth     Int?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  nodes IdeaGraphNode[]
+  edges IdeaGraphEdge[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
+}
+
+model IdeaGraphNode {
+  id        String            @id @default(cuid())
+  graphId   String
+  type      IdeaGraphNodeType
+  title     String            @default("")
+  content   String?           @db.Text
+  x         Float             @default(0)
+  y         Float             @default(0)
+  collapsed Boolean           @default(false)
+
+  graph IdeaGraph @relation(fields: [graphId], references: [id], onDelete: Cascade)
+
+  outgoingEdges IdeaGraphEdge[]       @relation("IdeaGraphEdgeSource")
+  incomingEdges IdeaGraphEdge[]       @relation("IdeaGraphEdgeTarget")
+  transcriptSources IdeaGraphNodeSource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([graphId])
+}
+
+model IdeaGraphEdge {
+  id           String            @id @default(cuid())
+  graphId      String
+  sourceNodeId String
+  targetNodeId String
+  type         IdeaGraphEdgeType
+  label        String?
+
+  graph IdeaGraph @relation(fields: [graphId], references: [id], onDelete: Cascade)
+  sourceNode IdeaGraphNode @relation("IdeaGraphEdgeSource", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode IdeaGraphNode @relation("IdeaGraphEdgeTarget", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([graphId])
+  @@index([sourceNodeId])
+  @@index([targetNodeId])
+}
+
+model IdeaGraphNodeSource {
+  id         String  @id @default(cuid())
+  nodeId     String
+  paraphrase String? @db.Text
+  quote      String  @db.Text
+  startSec   Float
+  endSec     Float
+
+  node IdeaGraphNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nodeId])
 }
 
 // ─── Funnel ↔ Video Processing Status ────────────────────────

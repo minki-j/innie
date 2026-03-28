@@ -25,6 +25,8 @@ from models.schemas import (
     FunnelKeyword,
     FunnelWithRelations,
     GoldStandardWithContext,
+    IdeaGraphGenerationStatus,
+    IdeaGraphSnapshot,
     VideoData,
 )
 
@@ -826,3 +828,271 @@ def update_funnel_last_run(funnel_id: str) -> None:
             )
             conn.commit()
     logger.info("Updated lastPipelineRunAt for funnel %s", funnel_id)
+
+
+def get_video_for_idea_graph(video_id: str) -> dict[str, str] | None:
+    """Return the video title and transcript needed for idea graph generation."""
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id, title, transcript
+                FROM "Video"
+                WHERE id = %s
+                LIMIT 1
+                """,
+                (video_id,),
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return {
+                "id": row["id"],
+                "title": row["title"],
+                "transcript": row["transcript"],
+            }
+
+
+def get_idea_graph_snapshot(user_id: str, video_id: str) -> IdeaGraphSnapshot:
+    """Load the current graph snapshot for a user/video pair."""
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id
+                FROM "IdeaGraph"
+                WHERE "userId" = %s AND "videoId" = %s
+                LIMIT 1
+                """,
+                (user_id, video_id),
+            )
+            graph = cur.fetchone()
+            if not graph:
+                return IdeaGraphSnapshot()
+
+            graph_id = graph["id"]
+
+            cur.execute(
+                """
+                SELECT id, type, title, content, x, y, collapsed
+                FROM "IdeaGraphNode"
+                WHERE "graphId" = %s
+                ORDER BY "createdAt" ASC
+                """,
+                (graph_id,),
+            )
+            node_rows = cur.fetchall()
+
+            cur.execute(
+                """
+                SELECT id, "sourceNodeId", "targetNodeId", type, label
+                FROM "IdeaGraphEdge"
+                WHERE "graphId" = %s
+                ORDER BY "createdAt" ASC
+                """,
+                (graph_id,),
+            )
+            edge_rows = cur.fetchall()
+
+            cur.execute(
+                """
+                SELECT s.id, s."nodeId", s.paraphrase, s.quote, s."startSec", s."endSec"
+                FROM "IdeaGraphNodeSource" s
+                JOIN "IdeaGraphNode" n ON n.id = s."nodeId"
+                WHERE n."graphId" = %s
+                ORDER BY s."startSec" ASC, s."createdAt" ASC
+                """,
+                (graph_id,),
+            )
+            source_rows = cur.fetchall()
+
+    sources_by_node: dict[str, list[dict[str, Any]]] = {}
+    for row in source_rows:
+        sources_by_node.setdefault(row["nodeId"], []).append(
+            {
+                "id": row["id"],
+                "paraphrase": row["paraphrase"],
+                "quote": row["quote"],
+                "start_sec": float(row["startSec"]),
+                "end_sec": float(row["endSec"]),
+            }
+        )
+
+    return IdeaGraphSnapshot(
+        nodes=[
+            {
+                "id": row["id"],
+                "type": row["type"],
+                "title": row["title"],
+                "content": row["content"],
+                "x": float(row["x"]),
+                "y": float(row["y"]),
+                "collapsed": row["collapsed"],
+                "transcript_sources": sources_by_node.get(row["id"], []),
+            }
+            for row in node_rows
+        ],
+        edges=[
+            {
+                "id": row["id"],
+                "source_node_id": row["sourceNodeId"],
+                "target_node_id": row["targetNodeId"],
+                "type": row["type"],
+                "label": row["label"],
+            }
+            for row in edge_rows
+        ],
+    )
+
+
+def set_idea_graph_generation_status(
+    user_id: str,
+    video_id: str,
+    status: IdeaGraphGenerationStatus,
+    error: str | None = None,
+) -> None:
+    """Upsert generation status for an idea graph."""
+    now = datetime.now(timezone.utc)
+    generated_at = now if status == IdeaGraphGenerationStatus.COMPLETED else None
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO "IdeaGraph" (
+                    id, "userId", "videoId", "generationStatus", "generationError",
+                    "generatedAt", "createdAt", "updatedAt"
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT ("userId", "videoId") DO UPDATE SET
+                    "generationStatus" = EXCLUDED."generationStatus",
+                    "generationError" = EXCLUDED."generationError",
+                    "generatedAt" = EXCLUDED."generatedAt",
+                    "updatedAt" = EXCLUDED."updatedAt"
+                """,
+                (
+                    _generate_cuid(),
+                    user_id,
+                    video_id,
+                    status.value,
+                    error,
+                    generated_at,
+                    now,
+                    now,
+                ),
+            )
+            conn.commit()
+
+
+def replace_idea_graph(user_id: str, video_id: str, snapshot: IdeaGraphSnapshot) -> None:
+    """Replace an idea graph atomically for a user/video pair."""
+    now = datetime.now(timezone.utc)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO "IdeaGraph" (
+                    id, "userId", "videoId", "generationStatus", "generatedAt",
+                    "createdAt", "updatedAt"
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT ("userId", "videoId") DO UPDATE SET
+                    "generationStatus" = EXCLUDED."generationStatus",
+                    "generationError" = NULL,
+                    "generatedAt" = EXCLUDED."generatedAt",
+                    "updatedAt" = EXCLUDED."updatedAt"
+                RETURNING id
+                """,
+                (
+                    _generate_cuid(),
+                    user_id,
+                    video_id,
+                    IdeaGraphGenerationStatus.COMPLETED.value,
+                    now,
+                    now,
+                    now,
+                ),
+            )
+            graph_id = cur.fetchone()[0]
+
+            cur.execute("""DELETE FROM "IdeaGraphEdge" WHERE "graphId" = %s""", (graph_id,))
+            cur.execute("""DELETE FROM "IdeaGraphNode" WHERE "graphId" = %s""", (graph_id,))
+
+            if snapshot.nodes:
+                psycopg2.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO "IdeaGraphNode" (
+                        id, "graphId", type, title, content, x, y, collapsed,
+                        "createdAt", "updatedAt"
+                    ) VALUES %s
+                    """,
+                    [
+                        (
+                            node.id,
+                            graph_id,
+                            node.type.value,
+                            node.title,
+                            node.content,
+                            node.x,
+                            node.y,
+                            node.collapsed,
+                            now,
+                            now,
+                        )
+                        for node in snapshot.nodes
+                    ],
+                )
+
+                source_rows = [
+                    (
+                        source.id,
+                        node.id,
+                        source.paraphrase,
+                        source.quote,
+                        source.start_sec,
+                        source.end_sec,
+                        now,
+                        now,
+                    )
+                    for node in snapshot.nodes
+                    for source in node.transcript_sources
+                ]
+                if source_rows:
+                    psycopg2.extras.execute_values(
+                        cur,
+                        """
+                        INSERT INTO "IdeaGraphNodeSource" (
+                            id, "nodeId", paraphrase, quote, "startSec", "endSec",
+                            "createdAt", "updatedAt"
+                        ) VALUES %s
+                        """,
+                        source_rows,
+                    )
+
+            if snapshot.edges:
+                psycopg2.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO "IdeaGraphEdge" (
+                        id, "graphId", "sourceNodeId", "targetNodeId", type, label,
+                        "createdAt", "updatedAt"
+                    ) VALUES %s
+                    """,
+                    [
+                        (
+                            edge.id,
+                            graph_id,
+                            edge.source_node_id,
+                            edge.target_node_id,
+                            edge.type.value,
+                            edge.label,
+                            now,
+                            now,
+                        )
+                        for edge in snapshot.edges
+                    ],
+                )
+
+            conn.commit()

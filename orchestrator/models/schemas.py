@@ -28,6 +28,13 @@ from models._generated import (  # noqa: F401
     FunnelCreator,
     FunnelKeyword,
     GoldStandard,
+    IdeaGraph,
+    IdeaGraphEdge,
+    IdeaGraphEdgeType,
+    IdeaGraphGenerationStatus,
+    IdeaGraphNode,
+    IdeaGraphNodeSource,
+    IdeaGraphNodeType,
     LLM,
     Review,
     Session,
@@ -108,3 +115,50 @@ class ClassNodeModelVerdictCreate(BaseModel):
     llm_id: str
     rationale: str
     verdict: bool
+
+
+class IdeaGraphSourcePayload(BaseModel):
+    id: str
+    paraphrase: str | None = None
+    quote: str
+    start_sec: float
+    end_sec: float
+
+
+class IdeaGraphNodePayload(BaseModel):
+    id: str
+    type: IdeaGraphNodeType
+    title: str = ""
+    content: str | None = None
+    x: float = 0
+    y: float = 0
+    collapsed: bool = False
+    transcript_sources: list[IdeaGraphSourcePayload] = Field(default_factory=list)
+
+
+class IdeaGraphEdgePayload(BaseModel):
+    id: str
+    source_node_id: str
+    target_node_id: str
+    type: IdeaGraphEdgeType
+    label: str | None = None
+
+
+class IdeaGraphSnapshot(BaseModel):
+    nodes: list[IdeaGraphNodePayload] = Field(default_factory=list)
+    edges: list[IdeaGraphEdgePayload] = Field(default_factory=list)
+
+
+class TranscriptSegment(BaseModel):
+    text: str
+    start_sec: float
+    end_sec: float
+
+
+class IdeaGraphGenerationInput(BaseModel):
+    user_id: str
+    video_id: str
+    video_title: str
+    transcript: str
+    transcript_segments: list[TranscriptSegment] = Field(default_factory=list)
+    current_graph: IdeaGraphSnapshot = Field(default_factory=IdeaGraphSnapshot)

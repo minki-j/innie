@@ -391,6 +391,10 @@ export const ModelName = {
   Video: 'Video',
   Channel: 'Channel',
   Review: 'Review',
+  IdeaGraph: 'IdeaGraph',
+  IdeaGraphNode: 'IdeaGraphNode',
+  IdeaGraphEdge: 'IdeaGraphEdge',
+  IdeaGraphNodeSource: 'IdeaGraphNodeSource',
   FunnelVideo: 'FunnelVideo',
   Funnel: 'Funnel',
   ClassNode: 'ClassNode',
@@ -416,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "funnelVideo" | "funnel" | "classNode" | "goldStandard" | "funnelKeyword" | "funnelCreator" | "lLM" | "classNodeResult" | "classNodeModelVerdict" | "trainingRun"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "video" | "channel" | "review" | "ideaGraph" | "ideaGraphNode" | "ideaGraphEdge" | "ideaGraphNodeSource" | "funnelVideo" | "funnel" | "classNode" | "goldStandard" | "funnelKeyword" | "funnelCreator" | "lLM" | "classNodeResult" | "classNodeModelVerdict" | "trainingRun"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -935,6 +939,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ReviewCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ReviewCountAggregateOutputType> | number
+        }
+      }
+    }
+    IdeaGraph: {
+      payload: Prisma.$IdeaGraphPayload<ExtArgs>
+      fields: Prisma.IdeaGraphFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IdeaGraphFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IdeaGraphFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>
+        }
+        findFirst: {
+          args: Prisma.IdeaGraphFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IdeaGraphFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>
+        }
+        findMany: {
+          args: Prisma.IdeaGraphFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>[]
+        }
+        create: {
+          args: Prisma.IdeaGraphCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>
+        }
+        createMany: {
+          args: Prisma.IdeaGraphCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IdeaGraphCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>[]
+        }
+        delete: {
+          args: Prisma.IdeaGraphDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>
+        }
+        update: {
+          args: Prisma.IdeaGraphUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>
+        }
+        deleteMany: {
+          args: Prisma.IdeaGraphDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IdeaGraphUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IdeaGraphUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>[]
+        }
+        upsert: {
+          args: Prisma.IdeaGraphUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphPayload>
+        }
+        aggregate: {
+          args: Prisma.IdeaGraphAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIdeaGraph>
+        }
+        groupBy: {
+          args: Prisma.IdeaGraphGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IdeaGraphGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IdeaGraphCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IdeaGraphCountAggregateOutputType> | number
+        }
+      }
+    }
+    IdeaGraphNode: {
+      payload: Prisma.$IdeaGraphNodePayload<ExtArgs>
+      fields: Prisma.IdeaGraphNodeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IdeaGraphNodeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IdeaGraphNodeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>
+        }
+        findFirst: {
+          args: Prisma.IdeaGraphNodeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IdeaGraphNodeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>
+        }
+        findMany: {
+          args: Prisma.IdeaGraphNodeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>[]
+        }
+        create: {
+          args: Prisma.IdeaGraphNodeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>
+        }
+        createMany: {
+          args: Prisma.IdeaGraphNodeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IdeaGraphNodeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>[]
+        }
+        delete: {
+          args: Prisma.IdeaGraphNodeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>
+        }
+        update: {
+          args: Prisma.IdeaGraphNodeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>
+        }
+        deleteMany: {
+          args: Prisma.IdeaGraphNodeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IdeaGraphNodeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IdeaGraphNodeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>[]
+        }
+        upsert: {
+          args: Prisma.IdeaGraphNodeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodePayload>
+        }
+        aggregate: {
+          args: Prisma.IdeaGraphNodeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIdeaGraphNode>
+        }
+        groupBy: {
+          args: Prisma.IdeaGraphNodeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IdeaGraphNodeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IdeaGraphNodeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IdeaGraphNodeCountAggregateOutputType> | number
+        }
+      }
+    }
+    IdeaGraphEdge: {
+      payload: Prisma.$IdeaGraphEdgePayload<ExtArgs>
+      fields: Prisma.IdeaGraphEdgeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IdeaGraphEdgeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IdeaGraphEdgeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>
+        }
+        findFirst: {
+          args: Prisma.IdeaGraphEdgeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IdeaGraphEdgeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>
+        }
+        findMany: {
+          args: Prisma.IdeaGraphEdgeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>[]
+        }
+        create: {
+          args: Prisma.IdeaGraphEdgeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>
+        }
+        createMany: {
+          args: Prisma.IdeaGraphEdgeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IdeaGraphEdgeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>[]
+        }
+        delete: {
+          args: Prisma.IdeaGraphEdgeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>
+        }
+        update: {
+          args: Prisma.IdeaGraphEdgeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>
+        }
+        deleteMany: {
+          args: Prisma.IdeaGraphEdgeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IdeaGraphEdgeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IdeaGraphEdgeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>[]
+        }
+        upsert: {
+          args: Prisma.IdeaGraphEdgeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphEdgePayload>
+        }
+        aggregate: {
+          args: Prisma.IdeaGraphEdgeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIdeaGraphEdge>
+        }
+        groupBy: {
+          args: Prisma.IdeaGraphEdgeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IdeaGraphEdgeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IdeaGraphEdgeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IdeaGraphEdgeCountAggregateOutputType> | number
+        }
+      }
+    }
+    IdeaGraphNodeSource: {
+      payload: Prisma.$IdeaGraphNodeSourcePayload<ExtArgs>
+      fields: Prisma.IdeaGraphNodeSourceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IdeaGraphNodeSourceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IdeaGraphNodeSourceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>
+        }
+        findFirst: {
+          args: Prisma.IdeaGraphNodeSourceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IdeaGraphNodeSourceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>
+        }
+        findMany: {
+          args: Prisma.IdeaGraphNodeSourceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>[]
+        }
+        create: {
+          args: Prisma.IdeaGraphNodeSourceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>
+        }
+        createMany: {
+          args: Prisma.IdeaGraphNodeSourceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IdeaGraphNodeSourceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>[]
+        }
+        delete: {
+          args: Prisma.IdeaGraphNodeSourceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>
+        }
+        update: {
+          args: Prisma.IdeaGraphNodeSourceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>
+        }
+        deleteMany: {
+          args: Prisma.IdeaGraphNodeSourceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IdeaGraphNodeSourceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IdeaGraphNodeSourceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>[]
+        }
+        upsert: {
+          args: Prisma.IdeaGraphNodeSourceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IdeaGraphNodeSourcePayload>
+        }
+        aggregate: {
+          args: Prisma.IdeaGraphNodeSourceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIdeaGraphNodeSource>
+        }
+        groupBy: {
+          args: Prisma.IdeaGraphNodeSourceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IdeaGraphNodeSourceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IdeaGraphNodeSourceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IdeaGraphNodeSourceCountAggregateOutputType> | number
         }
       }
     }
@@ -1822,6 +2122,66 @@ export const ReviewScalarFieldEnum = {
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
 
 
+export const IdeaGraphScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  videoId: 'videoId',
+  generationStatus: 'generationStatus',
+  generationError: 'generationError',
+  generatedAt: 'generatedAt',
+  layoutDirection: 'layoutDirection',
+  visibleDepth: 'visibleDepth',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IdeaGraphScalarFieldEnum = (typeof IdeaGraphScalarFieldEnum)[keyof typeof IdeaGraphScalarFieldEnum]
+
+
+export const IdeaGraphNodeScalarFieldEnum = {
+  id: 'id',
+  graphId: 'graphId',
+  type: 'type',
+  title: 'title',
+  content: 'content',
+  x: 'x',
+  y: 'y',
+  collapsed: 'collapsed',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IdeaGraphNodeScalarFieldEnum = (typeof IdeaGraphNodeScalarFieldEnum)[keyof typeof IdeaGraphNodeScalarFieldEnum]
+
+
+export const IdeaGraphEdgeScalarFieldEnum = {
+  id: 'id',
+  graphId: 'graphId',
+  sourceNodeId: 'sourceNodeId',
+  targetNodeId: 'targetNodeId',
+  type: 'type',
+  label: 'label',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IdeaGraphEdgeScalarFieldEnum = (typeof IdeaGraphEdgeScalarFieldEnum)[keyof typeof IdeaGraphEdgeScalarFieldEnum]
+
+
+export const IdeaGraphNodeSourceScalarFieldEnum = {
+  id: 'id',
+  nodeId: 'nodeId',
+  paraphrase: 'paraphrase',
+  quote: 'quote',
+  startSec: 'startSec',
+  endSec: 'endSec',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IdeaGraphNodeSourceScalarFieldEnum = (typeof IdeaGraphNodeSourceScalarFieldEnum)[keyof typeof IdeaGraphNodeSourceScalarFieldEnum]
+
+
 export const FunnelVideoScalarFieldEnum = {
   funnelId: 'funnelId',
   videoId: 'videoId',
@@ -2069,37 +2429,44 @@ export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
- * Reference to a field of type 'FunnelVideoStatus'
+ * Reference to a field of type 'IdeaGraphGenerationStatus'
  */
-export type EnumFunnelVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FunnelVideoStatus'>
+export type EnumIdeaGraphGenerationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdeaGraphGenerationStatus'>
     
 
 
 /**
- * Reference to a field of type 'FunnelVideoStatus[]'
+ * Reference to a field of type 'IdeaGraphGenerationStatus[]'
  */
-export type ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FunnelVideoStatus[]'>
+export type ListEnumIdeaGraphGenerationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdeaGraphGenerationStatus[]'>
     
 
 
 /**
- * Reference to a field of type 'Boolean'
+ * Reference to a field of type 'IdeaGraphLayoutDirection'
  */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+export type EnumIdeaGraphLayoutDirectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdeaGraphLayoutDirection'>
     
 
 
 /**
- * Reference to a field of type 'ClassNodeResultValue'
+ * Reference to a field of type 'IdeaGraphLayoutDirection[]'
  */
-export type EnumClassNodeResultValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClassNodeResultValue'>
+export type ListEnumIdeaGraphLayoutDirectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdeaGraphLayoutDirection[]'>
     
 
 
 /**
- * Reference to a field of type 'ClassNodeResultValue[]'
+ * Reference to a field of type 'IdeaGraphNodeType'
  */
-export type ListEnumClassNodeResultValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClassNodeResultValue[]'>
+export type EnumIdeaGraphNodeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdeaGraphNodeType'>
+    
+
+
+/**
+ * Reference to a field of type 'IdeaGraphNodeType[]'
+ */
+export type ListEnumIdeaGraphNodeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdeaGraphNodeType[]'>
     
 
 
@@ -2114,6 +2481,55 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'IdeaGraphEdgeType'
+ */
+export type EnumIdeaGraphEdgeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdeaGraphEdgeType'>
+    
+
+
+/**
+ * Reference to a field of type 'IdeaGraphEdgeType[]'
+ */
+export type ListEnumIdeaGraphEdgeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdeaGraphEdgeType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'FunnelVideoStatus'
+ */
+export type EnumFunnelVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FunnelVideoStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'FunnelVideoStatus[]'
+ */
+export type ListEnumFunnelVideoStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FunnelVideoStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ClassNodeResultValue'
+ */
+export type EnumClassNodeResultValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClassNodeResultValue'>
+    
+
+
+/**
+ * Reference to a field of type 'ClassNodeResultValue[]'
+ */
+export type ListEnumClassNodeResultValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClassNodeResultValue[]'>
     
 
 
@@ -2260,6 +2676,10 @@ export type GlobalOmitConfig = {
   video?: Prisma.VideoOmit
   channel?: Prisma.ChannelOmit
   review?: Prisma.ReviewOmit
+  ideaGraph?: Prisma.IdeaGraphOmit
+  ideaGraphNode?: Prisma.IdeaGraphNodeOmit
+  ideaGraphEdge?: Prisma.IdeaGraphEdgeOmit
+  ideaGraphNodeSource?: Prisma.IdeaGraphNodeSourceOmit
   funnelVideo?: Prisma.FunnelVideoOmit
   funnel?: Prisma.FunnelOmit
   classNode?: Prisma.ClassNodeOmit

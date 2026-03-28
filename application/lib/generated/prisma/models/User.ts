@@ -203,6 +203,7 @@ export type UserWhereInput = {
   reviews?: Prisma.ReviewListRelationFilter
   funnels?: Prisma.FunnelListRelationFilter
   trainingRuns?: Prisma.TrainingRunListRelationFilter
+  ideaGraphs?: Prisma.IdeaGraphListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -218,6 +219,7 @@ export type UserOrderByWithRelationInput = {
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
   funnels?: Prisma.FunnelOrderByRelationAggregateInput
   trainingRuns?: Prisma.TrainingRunOrderByRelationAggregateInput
+  ideaGraphs?: Prisma.IdeaGraphOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -236,6 +238,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   reviews?: Prisma.ReviewListRelationFilter
   funnels?: Prisma.FunnelListRelationFilter
   trainingRuns?: Prisma.TrainingRunListRelationFilter
+  ideaGraphs?: Prisma.IdeaGraphListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -277,6 +280,7 @@ export type UserCreateInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -292,6 +296,7 @@ export type UserUncheckedCreateInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -307,6 +312,7 @@ export type UserUpdateInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -322,6 +328,7 @@ export type UserUncheckedUpdateInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -447,6 +454,20 @@ export type UserUpdateOneRequiredWithoutReviewsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReviewsInput, Prisma.UserUpdateWithoutReviewsInput>, Prisma.UserUncheckedUpdateWithoutReviewsInput>
 }
 
+export type UserCreateNestedOneWithoutIdeaGraphsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutIdeaGraphsInput, Prisma.UserUncheckedCreateWithoutIdeaGraphsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutIdeaGraphsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutIdeaGraphsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutIdeaGraphsInput, Prisma.UserUncheckedCreateWithoutIdeaGraphsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutIdeaGraphsInput
+  upsert?: Prisma.UserUpsertWithoutIdeaGraphsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutIdeaGraphsInput, Prisma.UserUpdateWithoutIdeaGraphsInput>, Prisma.UserUncheckedUpdateWithoutIdeaGraphsInput>
+}
+
 export type UserCreateNestedOneWithoutFunnelsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutFunnelsInput, Prisma.UserUncheckedCreateWithoutFunnelsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutFunnelsInput
@@ -487,6 +508,7 @@ export type UserCreateWithoutAccountsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -501,6 +523,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -531,6 +554,7 @@ export type UserUpdateWithoutAccountsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -545,6 +569,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -559,6 +584,7 @@ export type UserCreateWithoutSessionsInput = {
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -573,6 +599,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -603,6 +630,7 @@ export type UserUpdateWithoutSessionsInput = {
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -617,6 +645,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutReviewsInput = {
@@ -631,6 +660,7 @@ export type UserCreateWithoutReviewsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -645,6 +675,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -675,6 +706,7 @@ export type UserUpdateWithoutReviewsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -687,6 +719,83 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
+  trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutIdeaGraphsInput = {
+  id?: string
+  name?: string | null
+  email?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
+  trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutIdeaGraphsInput = {
+  id?: string
+  name?: string | null
+  email?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
+  trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutIdeaGraphsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutIdeaGraphsInput, Prisma.UserUncheckedCreateWithoutIdeaGraphsInput>
+}
+
+export type UserUpsertWithoutIdeaGraphsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutIdeaGraphsInput, Prisma.UserUncheckedUpdateWithoutIdeaGraphsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutIdeaGraphsInput, Prisma.UserUncheckedCreateWithoutIdeaGraphsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutIdeaGraphsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutIdeaGraphsInput, Prisma.UserUncheckedUpdateWithoutIdeaGraphsInput>
+}
+
+export type UserUpdateWithoutIdeaGraphsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
+  trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutIdeaGraphsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -703,6 +812,7 @@ export type UserCreateWithoutFunnelsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFunnelsInput = {
@@ -717,6 +827,7 @@ export type UserUncheckedCreateWithoutFunnelsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   trainingRuns?: Prisma.TrainingRunUncheckedCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFunnelsInput = {
@@ -747,6 +858,7 @@ export type UserUpdateWithoutFunnelsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFunnelsInput = {
@@ -761,6 +873,7 @@ export type UserUncheckedUpdateWithoutFunnelsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   trainingRuns?: Prisma.TrainingRunUncheckedUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTrainingRunsInput = {
@@ -775,6 +888,7 @@ export type UserCreateWithoutTrainingRunsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTrainingRunsInput = {
@@ -789,6 +903,7 @@ export type UserUncheckedCreateWithoutTrainingRunsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   funnels?: Prisma.FunnelUncheckedCreateNestedManyWithoutUserInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTrainingRunsInput = {
@@ -819,6 +934,7 @@ export type UserUpdateWithoutTrainingRunsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTrainingRunsInput = {
@@ -833,6 +949,7 @@ export type UserUncheckedUpdateWithoutTrainingRunsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   funnels?: Prisma.FunnelUncheckedUpdateManyWithoutUserNestedInput
+  ideaGraphs?: Prisma.IdeaGraphUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -846,6 +963,7 @@ export type UserCountOutputType = {
   reviews: number
   funnels: number
   trainingRuns: number
+  ideaGraphs: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -854,6 +972,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   reviews?: boolean | UserCountOutputTypeCountReviewsArgs
   funnels?: boolean | UserCountOutputTypeCountFunnelsArgs
   trainingRuns?: boolean | UserCountOutputTypeCountTrainingRunsArgs
+  ideaGraphs?: boolean | UserCountOutputTypeCountIdeaGraphsArgs
 }
 
 /**
@@ -901,6 +1020,13 @@ export type UserCountOutputTypeCountTrainingRunsArgs<ExtArgs extends runtime.Typ
   where?: Prisma.TrainingRunWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountIdeaGraphsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IdeaGraphWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -915,6 +1041,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
   funnels?: boolean | Prisma.User$funnelsArgs<ExtArgs>
   trainingRuns?: boolean | Prisma.User$trainingRunsArgs<ExtArgs>
+  ideaGraphs?: boolean | Prisma.User$ideaGraphsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -955,6 +1082,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
   funnels?: boolean | Prisma.User$funnelsArgs<ExtArgs>
   trainingRuns?: boolean | Prisma.User$trainingRunsArgs<ExtArgs>
+  ideaGraphs?: boolean | Prisma.User$ideaGraphsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -968,6 +1096,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
     funnels: Prisma.$FunnelPayload<ExtArgs>[]
     trainingRuns: Prisma.$TrainingRunPayload<ExtArgs>[]
+    ideaGraphs: Prisma.$IdeaGraphPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1376,6 +1505,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   reviews<T extends Prisma.User$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   funnels<T extends Prisma.User$funnelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$funnelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FunnelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   trainingRuns<T extends Prisma.User$trainingRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$trainingRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrainingRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ideaGraphs<T extends Prisma.User$ideaGraphsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ideaGraphsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IdeaGraphPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1917,6 +2047,30 @@ export type User$trainingRunsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.TrainingRunScalarFieldEnum | Prisma.TrainingRunScalarFieldEnum[]
+}
+
+/**
+ * User.ideaGraphs
+ */
+export type User$ideaGraphsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the IdeaGraph
+   */
+  select?: Prisma.IdeaGraphSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the IdeaGraph
+   */
+  omit?: Prisma.IdeaGraphOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IdeaGraphInclude<ExtArgs> | null
+  where?: Prisma.IdeaGraphWhereInput
+  orderBy?: Prisma.IdeaGraphOrderByWithRelationInput | Prisma.IdeaGraphOrderByWithRelationInput[]
+  cursor?: Prisma.IdeaGraphWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IdeaGraphScalarFieldEnum | Prisma.IdeaGraphScalarFieldEnum[]
 }
 
 /**

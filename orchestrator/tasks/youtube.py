@@ -285,8 +285,12 @@ def _strip_vtt(vtt: str) -> str:
     return _normalize_whitespace(" ".join(lines))
 
 
-def _fetch_transcript_yta(video_id: str) -> tuple[str | None, str]:
-    """Fetch transcript via youtube-transcript-api."""
+def _select_transcript_yta(video_id: str):
+    # We select the best youtube-transcript-api transcript once so both callers can
+    # reuse the same language/fallback logic. One caller flattens it to plain text
+    # for stored transcripts, while the idea-graph pipeline needs the original
+    # timestamped parts to preserve start/end offsets for evidence grounding.
+    """Select the best transcript candidate via youtube-transcript-api."""
     get_rate_limiter("youtube").acquire()
     try:
         from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore
@@ -301,7 +305,6 @@ def _fetch_transcript_yta(video_id: str) -> tuple[str | None, str]:
     try:
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
 
-        # Prefer English manual > English auto > translated > any
         chosen = None
         status = "yta:none"
 
@@ -336,6 +339,20 @@ def _fetch_transcript_yta(video_id: str) -> tuple[str | None, str]:
         if chosen is None:
             return None, status
 
+        return chosen, status
+    except (NoTranscriptFound, TranscriptsDisabled, VideoUnavailable) as e:
+        return None, f"yta:{type(e).__name__}"
+    except Exception as e:
+        return None, f"yta:error:{type(e).__name__}"
+
+
+def _fetch_transcript_yta(video_id: str) -> tuple[str | None, str]:
+    """Fetch transcript via youtube-transcript-api."""
+    chosen, status = _select_transcript_yta(video_id)
+    if chosen is None:
+        return None, status
+
+    try:
         parts = chosen.fetch()
         text = " ".join(p.get("text", "") for p in parts if p.get("text"))
         text = _normalize_whitespace(text)
@@ -343,11 +360,37 @@ def _fetch_transcript_yta(video_id: str) -> tuple[str | None, str]:
         if text and _is_plausible_transcript(text):
             return text, status
         return None, f"{status}:invalid"
-
-    except (NoTranscriptFound, TranscriptsDisabled, VideoUnavailable) as e:
-        return None, f"yta:{type(e).__name__}"
     except Exception as e:
-        return None, f"yta:error:{type(e).__name__}"
+        return None, f"{status}:error:{type(e).__name__}"
+
+
+def fetch_transcript_segments(video_id: str) -> tuple[list[dict[str, Any]] | None, str]:
+    """Fetch transcript segments with timestamps for idea-graph grounding."""
+    chosen, status = _select_transcript_yta(video_id)
+    if chosen is None:
+        return None, status
+
+    try:
+        parts = chosen.fetch()
+        segments = []
+        for part in parts:
+            text = _normalize_whitespace(part.get("text", ""))
+            if not text:
+                continue
+            start = float(part.get("start", 0))
+            duration = float(part.get("duration", 0))
+            segments.append(
+                {
+                    "text": text,
+                    "start_sec": start,
+                    "end_sec": start + max(duration, 0),
+                }
+            )
+        if not segments:
+            return None, f"{status}:no_segments"
+        return segments, status
+    except Exception as e:
+        return None, f"{status}:error:{type(e).__name__}"
 
 
 def _fetch_transcript_ytdlp(video_id: str) -> tuple[str | None, str]:

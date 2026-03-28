@@ -535,14 +535,6 @@ export type EnumClassNodeResultValueFieldUpdateOperationsInput = {
   set?: $Enums.ClassNodeResultValue
 }
 
-export type FloatFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ClassNodeResultCreateNestedOneWithoutClassNodeModelVerdictsInput = {
   create?: Prisma.XOR<Prisma.ClassNodeResultCreateWithoutClassNodeModelVerdictsInput, Prisma.ClassNodeResultUncheckedCreateWithoutClassNodeModelVerdictsInput>
   connectOrCreate?: Prisma.ClassNodeResultCreateOrConnectWithoutClassNodeModelVerdictsInput

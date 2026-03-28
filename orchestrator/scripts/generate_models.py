@@ -132,11 +132,11 @@ def parse_schema(text: str) -> tuple[list[EnumDef], list[ModelDef]]:
     for match in re.finditer(r"enum\s+(\w+)\s*\{([^}]*)\}", text, re.DOTALL):
         name = match.group(1)
         body = match.group(2)
-        values = [
-            line.strip()
-            for line in body.splitlines()
-            if line.strip() and not line.strip().startswith("//")
-        ]
+        values: list[str] = []
+        for raw_line in body.splitlines():
+            line = raw_line.split("//", 1)[0].strip()
+            if line:
+                values.append(line)
         enums.append(EnumDef(name=name, values=values))
 
     enum_names = {e.name for e in enums}

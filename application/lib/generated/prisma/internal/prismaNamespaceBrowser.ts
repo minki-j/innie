@@ -58,6 +58,10 @@ export const ModelName = {
   Video: 'Video',
   Channel: 'Channel',
   Review: 'Review',
+  IdeaGraph: 'IdeaGraph',
+  IdeaGraphNode: 'IdeaGraphNode',
+  IdeaGraphEdge: 'IdeaGraphEdge',
+  IdeaGraphNodeSource: 'IdeaGraphNodeSource',
   FunnelVideo: 'FunnelVideo',
   Funnel: 'Funnel',
   ClassNode: 'ClassNode',
@@ -189,6 +193,66 @@ export const ReviewScalarFieldEnum = {
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+export const IdeaGraphScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  videoId: 'videoId',
+  generationStatus: 'generationStatus',
+  generationError: 'generationError',
+  generatedAt: 'generatedAt',
+  layoutDirection: 'layoutDirection',
+  visibleDepth: 'visibleDepth',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IdeaGraphScalarFieldEnum = (typeof IdeaGraphScalarFieldEnum)[keyof typeof IdeaGraphScalarFieldEnum]
+
+
+export const IdeaGraphNodeScalarFieldEnum = {
+  id: 'id',
+  graphId: 'graphId',
+  type: 'type',
+  title: 'title',
+  content: 'content',
+  x: 'x',
+  y: 'y',
+  collapsed: 'collapsed',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IdeaGraphNodeScalarFieldEnum = (typeof IdeaGraphNodeScalarFieldEnum)[keyof typeof IdeaGraphNodeScalarFieldEnum]
+
+
+export const IdeaGraphEdgeScalarFieldEnum = {
+  id: 'id',
+  graphId: 'graphId',
+  sourceNodeId: 'sourceNodeId',
+  targetNodeId: 'targetNodeId',
+  type: 'type',
+  label: 'label',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IdeaGraphEdgeScalarFieldEnum = (typeof IdeaGraphEdgeScalarFieldEnum)[keyof typeof IdeaGraphEdgeScalarFieldEnum]
+
+
+export const IdeaGraphNodeSourceScalarFieldEnum = {
+  id: 'id',
+  nodeId: 'nodeId',
+  paraphrase: 'paraphrase',
+  quote: 'quote',
+  startSec: 'startSec',
+  endSec: 'endSec',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IdeaGraphNodeSourceScalarFieldEnum = (typeof IdeaGraphNodeSourceScalarFieldEnum)[keyof typeof IdeaGraphNodeSourceScalarFieldEnum]
 
 
 export const FunnelVideoScalarFieldEnum = {

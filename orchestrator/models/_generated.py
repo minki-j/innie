@@ -14,6 +14,48 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class IdeaGraphGenerationStatus(str, Enum):
+    IDLE = "IDLE"
+    GENERATING = "GENERATING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class IdeaGraphLayoutDirection(str, Enum):
+    LR = "LR"
+    TB = "TB"
+
+
+class IdeaGraphNodeType(str, Enum):
+    CLAIM = "CLAIM"
+    EVIDENCE = "EVIDENCE"
+    COUNTERARGUMENT = "COUNTERARGUMENT"
+    REBUTTAL = "REBUTTAL"
+    EXAMPLE = "EXAMPLE"
+    ASSUMPTION = "ASSUMPTION"
+    DEFINITION = "DEFINITION"
+    QUESTION = "QUESTION"
+    CONCLUSION = "CONCLUSION"
+
+
+class IdeaGraphEdgeType(str, Enum):
+    SUPPORTS = "SUPPORTS"
+    ATTACKS = "ATTACKS"
+    REBUTS = "REBUTS"
+    ELABORATES = "ELABORATES"
+    DEPENDS_ON = "DEPENDS_ON"
+    ILLUSTRATES = "ILLUSTRATES"
+    CONTRASTS_WITH = "CONTRASTS_WITH"
+
+
+class FunnelVideoStatus(str, Enum):
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    PENDING_RETRY = "PENDING_RETRY"
+    FAILED = "FAILED"
+    COMPLETED = "COMPLETED"
+
+
 class ClassNodeResultValue(str, Enum):
     PASS = "PASS"
     FAIL = "FAIL"
@@ -129,6 +171,72 @@ class Review(BaseModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
+class IdeaGraph(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str
+    user_id: str = Field(alias="userId")
+    video_id: str = Field(alias="videoId")
+    generation_status: IdeaGraphGenerationStatus = Field(alias="generationStatus")
+    generation_error: str | None = Field(default=None, alias="generationError")
+    generated_at: datetime | None = Field(default=None, alias="generatedAt")
+    layout_direction: IdeaGraphLayoutDirection = Field(alias="layoutDirection")
+    visible_depth: int | None = Field(default=None, alias="visibleDepth")
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class IdeaGraphNode(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str
+    graph_id: str = Field(alias="graphId")
+    type: IdeaGraphNodeType
+    title: str = Field(default="")
+    content: str | None = Field(default=None)
+    x: float = Field(default=0)
+    y: float = Field(default=0)
+    collapsed: bool = Field(default=False)
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class IdeaGraphEdge(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str
+    graph_id: str = Field(alias="graphId")
+    source_node_id: str = Field(alias="sourceNodeId")
+    target_node_id: str = Field(alias="targetNodeId")
+    type: IdeaGraphEdgeType
+    label: str | None = Field(default=None)
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class IdeaGraphNodeSource(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str
+    node_id: str = Field(alias="nodeId")
+    paraphrase: str | None = Field(default=None)
+    quote: str
+    start_sec: float = Field(alias="startSec")
+    end_sec: float = Field(alias="endSec")
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
+class FunnelVideo(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    funnel_id: str = Field(alias="funnelId")
+    video_id: str = Field(alias="videoId")
+    status: FunnelVideoStatus
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
 class Funnel(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -149,8 +257,8 @@ class ClassNode(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
-    title: str = ""
-    description: str | None = None
+    title: str = Field(default="")
+    description: str | None = Field(default=None)
     parent_class_node_id: str | None = Field(default=None, alias="parentClassNodeId")
     funnel_id: str | None = Field(default=None, alias="funnelId")
     created_at: datetime | None = Field(default=None, alias="createdAt")
@@ -197,6 +305,15 @@ class FunnelCreator(BaseModel):
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 
 
+class LLM(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str
+    provider: str
+    created_at: datetime | None = Field(default=None, alias="createdAt")
+    updated_at: datetime | None = Field(default=None, alias="updatedAt")
+
+
 class ClassNodeResult(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -206,15 +323,6 @@ class ClassNodeResult(BaseModel):
     result: ClassNodeResultValue
     confidence: float
     explanation: str | None = Field(default=None)
-    created_at: datetime | None = Field(default=None, alias="createdAt")
-    updated_at: datetime | None = Field(default=None, alias="updatedAt")
-
-
-class LLM(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    id: str  # model API identifier, e.g. "gpt-4o"
-    provider: str  # "openai" | "anthropic"
     created_at: datetime | None = Field(default=None, alias="createdAt")
     updated_at: datetime | None = Field(default=None, alias="updatedAt")
 

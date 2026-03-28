@@ -53,6 +53,26 @@ export type Channel = Prisma.ChannelModel
  */
 export type Review = Prisma.ReviewModel
 /**
+ * Model IdeaGraph
+ * 
+ */
+export type IdeaGraph = Prisma.IdeaGraphModel
+/**
+ * Model IdeaGraphNode
+ * 
+ */
+export type IdeaGraphNode = Prisma.IdeaGraphNodeModel
+/**
+ * Model IdeaGraphEdge
+ * 
+ */
+export type IdeaGraphEdge = Prisma.IdeaGraphEdgeModel
+/**
+ * Model IdeaGraphNodeSource
+ * 
+ */
+export type IdeaGraphNodeSource = Prisma.IdeaGraphNodeSourceModel
+/**
  * Model FunnelVideo
  * 
  */

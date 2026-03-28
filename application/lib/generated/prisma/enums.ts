@@ -9,6 +9,52 @@
 * 🟢 You can import this file directly.
 */
 
+export const IdeaGraphGenerationStatus = {
+  IDLE: 'IDLE',
+  GENERATING: 'GENERATING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type IdeaGraphGenerationStatus = (typeof IdeaGraphGenerationStatus)[keyof typeof IdeaGraphGenerationStatus]
+
+
+export const IdeaGraphLayoutDirection = {
+  LR: 'LR',
+  TB: 'TB'
+} as const
+
+export type IdeaGraphLayoutDirection = (typeof IdeaGraphLayoutDirection)[keyof typeof IdeaGraphLayoutDirection]
+
+
+export const IdeaGraphNodeType = {
+  CLAIM: 'CLAIM',
+  EVIDENCE: 'EVIDENCE',
+  COUNTERARGUMENT: 'COUNTERARGUMENT',
+  REBUTTAL: 'REBUTTAL',
+  EXAMPLE: 'EXAMPLE',
+  ASSUMPTION: 'ASSUMPTION',
+  DEFINITION: 'DEFINITION',
+  QUESTION: 'QUESTION',
+  CONCLUSION: 'CONCLUSION'
+} as const
+
+export type IdeaGraphNodeType = (typeof IdeaGraphNodeType)[keyof typeof IdeaGraphNodeType]
+
+
+export const IdeaGraphEdgeType = {
+  SUPPORTS: 'SUPPORTS',
+  ATTACKS: 'ATTACKS',
+  REBUTS: 'REBUTS',
+  ELABORATES: 'ELABORATES',
+  DEPENDS_ON: 'DEPENDS_ON',
+  ILLUSTRATES: 'ILLUSTRATES',
+  CONTRASTS_WITH: 'CONTRASTS_WITH'
+} as const
+
+export type IdeaGraphEdgeType = (typeof IdeaGraphEdgeType)[keyof typeof IdeaGraphEdgeType]
+
+
 export const FunnelVideoStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',

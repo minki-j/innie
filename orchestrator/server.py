@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 
+from flows.idea_graph import generate_idea_graph_for_video
 from flows.video_pipeline import re_evaluate_videos, retry_failed_jobs, video_pipeline
 
 logging.basicConfig(level=logging.INFO)
@@ -108,11 +109,62 @@ async def retry_failed(body: RetryFailedJobsRequest | None = None):
         )
         return {
             "status": "triggered",
-            "queues": queue_names or ["process_video_for_funnel", "evaluate_class_node", "langgraph_classify"],
+            "queues": queue_names
+            or [
+                "process_video_for_funnel",
+                "evaluate_class_node",
+                "langgraph_classify",
+            ],
             "message": "Retry run started in background",
         }
     except Exception as e:
         logger.exception("Failed to start retry-failed jobs")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class GenerateIdeaGraphRequest(BaseModel):
+    user_id: str
+    video_id: str
+    replace_existing: bool = True
+
+
+@app.post("/idea-graphs/generate")
+async def generate_idea_graph(body: GenerateIdeaGraphRequest):
+    """Generate an idea graph for a user/video pair in the background."""
+    logger.info(
+        "Received idea-graph generation request for user_id=%s video_id=%s",
+        body.user_id,
+        body.video_id,
+    )
+
+    try:
+        # `generate_idea_graph_for_video` is synchronous and can take a while,
+        # so hand it off to the shared thread pool instead of blocking FastAPI's
+        # async event loop. We intentionally do not await this future: the API
+        # returns immediately after the background job has been scheduled.
+
+        # TODO: This will be replaced with more async version
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(
+            _executor,
+            lambda: generate_idea_graph_for_video(
+                user_id=body.user_id,
+                video_id=body.video_id,
+                replace_existing=body.replace_existing,
+            ),
+        )
+        return {
+            "status": "triggered",
+            "user_id": body.user_id,
+            "video_id": body.video_id,
+            "message": "Idea graph generation started in background",
+        }
+    except Exception as e:
+        logger.exception(
+            "Failed to start idea graph generation for user %s video %s",
+            body.user_id,
+            body.video_id,
+        )
         raise HTTPException(status_code=500, detail=str(e))
 
 
