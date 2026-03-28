@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 declare global {
@@ -10,7 +10,9 @@ declare global {
         element: HTMLElement | string,
         options: {
           videoId: string;
+          height?: string | number;
           playerVars?: Record<string, string | number>;
+          width?: string | number;
           events?: {
             onReady?: () => void;
           };
@@ -30,17 +32,9 @@ export interface VideoPlayerHandle {
   seekTo: (seconds: number) => void;
 }
 
-export interface FloatingPlayerRect {
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-}
-
 interface VideoPlayerProps {
+  fillContainer?: boolean;
   videoId: string;
-  floatingRect?: FloatingPlayerRect | null;
-  onHideFloating?: () => void;
 }
 
 function loadYouTubeApi(): Promise<void> {
@@ -72,12 +66,10 @@ function loadYouTubeApi(): Promise<void> {
 }
 
 export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(function VideoPlayer(
-  { videoId, floatingRect = null, onHideFloating },
+  { videoId, fillContainer = false },
   ref
 ) {
-  const rawId = useId();
-  const playerId = useMemo(() => `youtube-player-${rawId.replace(/:/g, '-')}`, [rawId]);
-  const mountRef = useRef<HTMLDivElement | null>(null);
+  const playerHostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<{
     seekTo: (seconds: number, allowSeekAhead?: boolean) => void;
     playVideo: () => void;
@@ -95,16 +87,23 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
     let cancelled = false;
 
     loadYouTubeApi().then(() => {
-      if (cancelled || !mountRef.current || !window.YT?.Player) return;
+      if (cancelled || !playerHostRef.current || !window.YT?.Player) return;
+
+      const host = playerHostRef.current;
+      const mountNode = document.createElement('div');
+      mountNode.className = 'h-full w-full';
+      host.replaceChildren(mountNode);
 
       playerRef.current?.destroy();
-      playerRef.current = new window.YT.Player(playerId, {
+      playerRef.current = new window.YT.Player(mountNode, {
+        height: '100%',
         videoId,
         playerVars: {
           autoplay: 0,
           rel: 0,
           playsinline: 1,
         },
+        width: '100%',
       });
     });
 
@@ -112,39 +111,14 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
       cancelled = true;
       playerRef.current?.destroy();
       playerRef.current = null;
+      playerHostRef.current?.replaceChildren();
     };
-  }, [playerId, videoId]);
+  }, [videoId]);
 
   return (
-    <div className="relative w-full aspect-video">
-      <div
-        className={cn(
-          'bg-black overflow-hidden',
-          floatingRect
-            ? 'fixed z-50 rounded-2xl border border-white/20 shadow-2xl'
-            : 'absolute inset-0 rounded-xl'
-        )}
-        style={
-          floatingRect
-            ? {
-                top: floatingRect.top,
-                left: floatingRect.left,
-                width: floatingRect.width,
-                height: floatingRect.height,
-              }
-            : undefined
-        }
-      >
-        {floatingRect && onHideFloating && (
-          <button
-            type="button"
-            onClick={onHideFloating}
-            className="absolute right-2 top-2 z-10 rounded-full bg-black/70 px-2 py-1 text-[11px] font-medium text-white transition-colors hover:bg-black/85"
-          >
-            Hide
-          </button>
-        )}
-        <div ref={mountRef} id={playerId} className="h-full w-full" />
+    <div className={cn('relative w-full', fillContainer ? 'h-full min-h-0' : 'aspect-video')}>
+      <div className={cn('absolute inset-0 overflow-hidden bg-black', fillContainer ? 'rounded-none' : 'rounded-xl')}>
+        <div ref={playerHostRef} className="h-full w-full" />
       </div>
     </div>
   );

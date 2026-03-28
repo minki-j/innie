@@ -13,6 +13,9 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
+from agents.llm_factory import OpenAIModel
+
+IDEA_GRAPH_LLM_MODEL = OpenAIModel.GPT_5_4.value
 
 NODE_TYPES = (
     "CLAIM",
@@ -46,6 +49,17 @@ Allowed edge types: {edge_types}.
 
 Build a coherent multi-claim graph, not just a tree. Prefer claims and conclusions for high-level ideas, evidence and examples for support, and counterarguments or rebuttals when the speaker presents tension or opposition.
 
+Build the graph incrementally. Work in repeated micro-cycles:
+1. Read the next relevant transcript chunk or chunks.
+2. Create exactly one new node.
+3. Immediately attach transcript source evidence to that node.
+4. If any other node already exists, immediately connect the new node with one or more edges before creating another node.
+5. Create more nodes in this fashion until the opened transcript is all processed.
+6. If there are more transcript chunks to read, repeat the process.
+
+Do not use phase-based behavior such as all nodes first, then all sources, then all edges.
+Each new node should be grounded and integrated into the graph before you move on.
+
 Attach transcript sources with quote plus start/end timestamps whenever possible.
 
 Create enough structure to capture the main ideas of the whole video, including cross-links when useful.
@@ -57,9 +71,14 @@ USER_PROMPT_TEMPLATE = """
 Video title: {video_title}
 Video id: {video_id}
 
-Start by listing transcript chunks and reading all of them once before building the graph.
+Start by listing transcript chunks and reading them as needed.
 
-Then build the complete graph using the tools.
+Build the graph using the tools in a strict incremental order:
+- read relevant chunk(s)
+- create one node
+- attach source(s) to that node
+- add edge(s) that connect that node to the existing graph when possible
+- only then move on to the next node
 
 If current graph state already has nodes, inspect it first and replace it logically with a better complete graph.
 """.strip()
@@ -139,7 +158,9 @@ def _serialize_node(node: IdeaGraphNode) -> dict[str, Any]:
         "x": node.x,
         "y": node.y,
         "collapsed": node.collapsed,
-        "transcriptSources": [_serialize_source(source) for source in node.transcript_sources],
+        "transcriptSources": [
+            _serialize_source(source) for source in node.transcript_sources
+        ],
     }
 
 
@@ -203,7 +224,7 @@ def _chunk_transcript(
         merged_chunks: list[TranscriptChunk] = []
         group_size = max(1, (len(chunks) + max_chunks - 1) // max_chunks)
         for start_idx in range(0, len(chunks), group_size):
-            group = chunks[start_idx:start_idx + group_size]
+            group = chunks[start_idx : start_idx + group_size]
             merged_chunks.append(
                 TranscriptChunk(
                     index=len(merged_chunks),
@@ -242,7 +263,7 @@ def _chunk_transcript(
     merged_chunks: list[TranscriptChunk] = []
     group_size = max(1, (len(chunks) + max_chunks - 1) // max_chunks)
     for start_idx in range(0, len(chunks), group_size):
-        group = chunks[start_idx:start_idx + group_size]
+        group = chunks[start_idx : start_idx + group_size]
         merged_chunks.append(
             TranscriptChunk(
                 index=len(merged_chunks),
@@ -256,10 +277,13 @@ def _chunk_transcript(
 
 class IdeaGraphContext:
     def __init__(self, state: BuildIdeaGraphState, writer):
-        self.graph = IdeaGraphSnapshot.model_validate(deepcopy(state.current_graph.model_dump()))
+        self.graph = IdeaGraphSnapshot.model_validate(
+            deepcopy(state.current_graph.model_dump())
+        )
         self.chunks = _chunk_transcript(state.transcript, state.transcript_segments)
         self.writer = writer
         self.mutation_count = 0
+        self.pending_node_id: str | None = None
 
     def _node_ids(self) -> set[str]:
         return {node.id for node in self.graph.nodes}
@@ -272,6 +296,46 @@ class IdeaGraphContext:
             candidate = f"{prefix}_{uuid4().hex[:10]}"
             if candidate not in existing:
                 return candidate
+
+    def _get_node(self, node_id: str) -> IdeaGraphNode:
+        for node in self.graph.nodes:
+            if node.id == node_id:
+                return node
+        raise ValueError(f"Unknown node id: {node_id}")
+
+    def _incident_edge_count(self, node_id: str) -> int:
+        return sum(
+            1
+            for edge in self.graph.edges
+            if edge.source_node_id == node_id or edge.target_node_id == node_id
+        )
+
+    def _node_is_grounded_and_connected(self, node_id: str) -> bool:
+        node = self._get_node(node_id)
+        has_source = bool(node.transcript_sources)
+        if not has_source:
+            return False
+        if len(self.graph.nodes) == 1:
+            return True
+        return self._incident_edge_count(node_id) > 0
+
+    def _require_pending_node_completed(self) -> None:
+        if self.pending_node_id is None:
+            return
+        if self._node_is_grounded_and_connected(self.pending_node_id):
+            self.pending_node_id = None
+            return
+        raise ValueError(
+            "Finish the most recently added node before creating another node. "
+            "Attach at least one transcript source, and if other nodes already exist, "
+            "connect the new node with at least one edge first."
+        )
+
+    def _maybe_clear_pending_node(self, node_id: str) -> None:
+        if self.pending_node_id != node_id:
+            return
+        if self._node_is_grounded_and_connected(node_id):
+            self.pending_node_id = None
 
     def snapshot_json(self) -> str:
         return json.dumps(self.graph.model_dump(mode="json"), ensure_ascii=True)
@@ -330,6 +394,7 @@ class IdeaGraphContext:
         return json.dumps(chunk.model_dump(mode="json"), ensure_ascii=True)
 
     def add_node(self, node_type: str, title: str, content: str | None = None) -> str:
+        self._require_pending_node_completed()
         if node_type not in NODE_TYPES:
             raise ValueError(f"Unsupported node type: {node_type}")
         node_id = self._make_id("node", self._node_ids())
@@ -340,6 +405,7 @@ class IdeaGraphContext:
             content=content.strip() if content else None,
         )
         self.graph.nodes.append(node)
+        self.pending_node_id = node_id
         self.mutation_count += 1
         self._emit("node_added", {"node": _serialize_node(node)})
         self._emit_snapshot_if_needed()
@@ -353,24 +419,22 @@ class IdeaGraphContext:
         node_type: str | None = None,
         collapsed: bool | None = None,
     ) -> str:
-        for node in self.graph.nodes:
-            if node.id != node_id:
-                continue
-            if node_type is not None:
-                if node_type not in NODE_TYPES:
-                    raise ValueError(f"Unsupported node type: {node_type}")
-                node.type = node_type
-            if title is not None:
-                node.title = title.strip()
-            if content is not None:
-                node.content = content.strip() if content else None
-            if collapsed is not None:
-                node.collapsed = collapsed
-            self.mutation_count += 1
-            self._emit("node_updated", {"node": _serialize_node(node)})
-            self._emit_snapshot_if_needed()
-            return node_id
-        raise ValueError(f"Unknown node id: {node_id}")
+        node = self._get_node(node_id)
+        if node_type is not None:
+            if node_type not in NODE_TYPES:
+                raise ValueError(f"Unsupported node type: {node_type}")
+            node.type = node_type
+        if title is not None:
+            node.title = title.strip()
+        if content is not None:
+            node.content = content.strip() if content else None
+        if collapsed is not None:
+            node.collapsed = collapsed
+        self.mutation_count += 1
+        self._emit("node_updated", {"node": _serialize_node(node)})
+        self._emit_snapshot_if_needed()
+        self._maybe_clear_pending_node(node_id)
+        return node_id
 
     def add_edge(
         self,
@@ -397,6 +461,8 @@ class IdeaGraphContext:
         self.mutation_count += 1
         self._emit("edge_added", {"edge": _serialize_edge(edge)})
         self._emit_snapshot_if_needed()
+        self._maybe_clear_pending_node(source_node_id)
+        self._maybe_clear_pending_node(target_node_id)
         return edge_id
 
     def attach_source(
@@ -407,32 +473,34 @@ class IdeaGraphContext:
         end_sec: float,
         paraphrase: str | None = None,
     ) -> str:
-        for node in self.graph.nodes:
-            if node.id != node_id:
-                continue
-            source_id = self._make_id(
-                "source",
-                {source.id for candidate in self.graph.nodes for source in candidate.transcript_sources},
-            )
-            source = IdeaGraphSource(
-                id=source_id,
-                paraphrase=paraphrase.strip() if paraphrase else None,
-                quote=quote.strip(),
-                start_sec=start_sec,
-                end_sec=end_sec,
-            )
-            node.transcript_sources.append(source)
-            self.mutation_count += 1
-            self._emit(
-                "source_attached",
-                {
-                    "nodeId": node_id,
-                    "source": _serialize_source(source),
-                },
-            )
-            self._emit_snapshot_if_needed()
-            return source_id
-        raise ValueError(f"Unknown node id: {node_id}")
+        node = self._get_node(node_id)
+        source_id = self._make_id(
+            "source",
+            {
+                source.id
+                for candidate in self.graph.nodes
+                for source in candidate.transcript_sources
+            },
+        )
+        source = IdeaGraphSource(
+            id=source_id,
+            paraphrase=paraphrase.strip() if paraphrase else None,
+            quote=quote.strip(),
+            start_sec=start_sec,
+            end_sec=end_sec,
+        )
+        node.transcript_sources.append(source)
+        self.mutation_count += 1
+        self._emit(
+            "source_attached",
+            {
+                "nodeId": node_id,
+                "source": _serialize_source(source),
+            },
+        )
+        self._emit_snapshot_if_needed()
+        self._maybe_clear_pending_node(node_id)
+        return source_id
 
 
 async def generate_idea_graph(state: BuildIdeaGraphState):
@@ -547,7 +615,7 @@ async def generate_idea_graph(state: BuildIdeaGraphState):
         edge_types=", ".join(EDGE_TYPES),
     )
 
-    llm = ChatOpenAI(model="gpt-5.4-pro")
+    llm = ChatOpenAI(model=IDEA_GRAPH_LLM_MODEL)
     agent = create_agent(
         model=llm,
         tools=[

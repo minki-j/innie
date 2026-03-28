@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dagre from '@dagrejs/dagre';
 import {
   BaseEdge,
@@ -61,11 +61,8 @@ interface ApiErrorPayload {
 
 interface IdeaGraphSectionProps {
   videoId: string;
+  videoPanel?: ReactNode;
   onSeekTo: (seconds: number) => void;
-  showFloatingPlayerToggle: boolean;
-  floatingPlayerHidden: boolean;
-  onShowFloatingPlayer: () => void;
-  onFloatingCanvasBoundsChange: (rect: { top: number; left: number; width: number; height: number } | null) => void;
 }
 
 interface IdeaGraphNodeCardData {
@@ -526,11 +523,8 @@ interface PendingChildDraft {
 
 export function IdeaGraphSection({
   videoId,
+  videoPanel,
   onSeekTo,
-  showFloatingPlayerToggle,
-  floatingPlayerHidden,
-  onShowFloatingPlayer,
-  onFloatingCanvasBoundsChange,
 }: IdeaGraphSectionProps) {
   const [graph, setGraph] = useState<IdeaGraphPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -543,8 +537,9 @@ export function IdeaGraphSection({
   const [visibleDepth, setVisibleDepth] = useState<number | null>(null);
   const [pendingChildDraft, setPendingChildDraft] = useState<PendingChildDraft | null>(null);
   const [activeGenerationId, setActiveGenerationId] = useState<string | null>(null);
+  const [videoPanelCollapsed, setVideoPanelCollapsed] = useState(false);
   const autoArrangedRef = useRef(false);
-  const canvasViewportRef = useRef<HTMLDivElement | null>(null);
+  const hasCheckedActiveGenerationRef = useRef(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reactFlowRef = useRef<ReactFlowInstance<Node, Edge> | null>(null);
 
@@ -689,6 +684,10 @@ export function IdeaGraphSection({
   }, [fetchGraph]);
 
   useEffect(() => {
+    hasCheckedActiveGenerationRef.current = false;
+  }, [videoId]);
+
+  useEffect(() => {
     if (graph?.generationStatus !== 'GENERATING') return;
     if (eventSourceRef.current || activeGenerationId) return;
     void (async () => {
@@ -703,39 +702,29 @@ export function IdeaGraphSection({
     })();
   }, [activeGenerationId, connectToGenerationStream, fetchActiveGeneration, graph?.generationStatus]);
 
+  useEffect(() => {
+    if (loading) return;
+    if (eventSourceRef.current || activeGenerationId) return;
+    if (hasCheckedActiveGenerationRef.current) return;
+
+    hasCheckedActiveGenerationRef.current = true;
+    void (async () => {
+      try {
+        const activeGeneration = await fetchActiveGeneration();
+        if (activeGeneration.active && activeGeneration.generationId && activeGeneration.eventsUrl) {
+          connectToGenerationStream(activeGeneration.generationId, activeGeneration.eventsUrl);
+        }
+      } catch (error) {
+        setErrorMessage((current) =>
+          current ?? (error instanceof Error ? error.message : 'Failed to reconnect to live idea graph stream.')
+        );
+      }
+    })();
+  }, [activeGenerationId, connectToGenerationStream, fetchActiveGeneration, loading]);
+
   useEffect(() => () => {
     closeGenerationStream();
   }, [closeGenerationStream]);
-
-  useEffect(() => {
-    const element = canvasViewportRef.current;
-    if (!element) return;
-
-    const updateBounds = () => {
-      const rect = element.getBoundingClientRect();
-      const width = Math.min(360, Math.max(240, rect.width * 0.3));
-      const height = width * 9 / 16;
-      onFloatingCanvasBoundsChange({
-        top: Math.max(16, rect.bottom - height - 16),
-        left: Math.max(16, rect.right - width - 16),
-        width,
-        height,
-      });
-    };
-
-    updateBounds();
-    const resizeObserver = new ResizeObserver(updateBounds);
-    resizeObserver.observe(element);
-    window.addEventListener('scroll', updateBounds, { passive: true });
-    window.addEventListener('resize', updateBounds);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('scroll', updateBounds);
-      window.removeEventListener('resize', updateBounds);
-      onFloatingCanvasBoundsChange(null);
-    };
-  }, [onFloatingCanvasBoundsChange]);
 
   const persistGraph = useCallback(async (
     nextGraph: IdeaGraphPayload,
@@ -901,49 +890,88 @@ export function IdeaGraphSection({
     void persistGraph(laidOut, direction, effectiveVisibleDepth);
   }, [graph, direction, effectiveVisibleDepth, persistGraph]);
 
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(async (replaceExisting = false) => {
     if (isGenerationInProgress) return;
-    let response = await fetch(`/api/videos/${encodeURIComponent(videoId)}/idea-graph/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ replaceExisting: false }),
-    });
 
-    if (response.status === 409) {
+    const shouldReplaceExisting = replaceExisting || Boolean(graph && graph.nodes.length > 0);
+    const previousGraph = graph ? structuredClone(graph) : null;
+    if (shouldReplaceExisting) {
       const confirmed = window.confirm(
-        'Generating a new idea graph will replace the current graph. Continue?'
+        'Regenerating this idea graph will remove the current one. The old one will be lost. Continue?'
       );
       if (!confirmed) return;
-      response = await fetch(`/api/videos/${encodeURIComponent(videoId)}/idea-graph/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ replaceExisting: true }),
-      });
+
+      if (previousGraph) {
+        setGraph({
+          ...previousGraph,
+          generationStatus: 'GENERATING',
+          generationError: null,
+          updatedAt: new Date().toISOString(),
+          nodes: [],
+          edges: [],
+        });
+        setSelectedNodeId(null);
+        setSelectedEdgeId(null);
+        setNodeDraft(null);
+        setEdgeDraft(null);
+        setPendingChildDraft(null);
+      }
     }
 
-    if (response.ok) {
-      const data = (await response.json().catch(() => null)) as StartIdeaGraphGenerationResponse | ApiErrorPayload | null;
-      if (!data || !('generationId' in data) || !data.generationId || !data.eventsUrl) {
-        setErrorMessage('Failed to start idea graph generation.');
-        return;
+    try {
+      let response = await fetch(`/api/videos/${encodeURIComponent(videoId)}/idea-graph/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ replaceExisting: shouldReplaceExisting }),
+      });
+
+      if (response.status === 409 && !shouldReplaceExisting) {
+        const confirmed = window.confirm(
+          'Regenerating this idea graph will remove the current one. The old one will be lost. Continue?'
+        );
+        if (!confirmed) return;
+        response = await fetch(`/api/videos/${encodeURIComponent(videoId)}/idea-graph/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ replaceExisting: true }),
+        });
       }
-      autoArrangedRef.current = false;
-      setErrorMessage(null);
-      setGraph((currentGraph) =>
-        currentGraph
-          ? {
-              ...currentGraph,
-              generationStatus: 'GENERATING',
-              generationError: null,
-            }
-          : currentGraph
-      );
-      connectToGenerationStream(data.generationId, data.eventsUrl);
-    } else {
-      const data = (await response.json().catch(() => null)) as ApiErrorPayload | null;
-      setErrorMessage(data?.error ?? 'Failed to start idea graph generation.');
+
+      if (response.ok) {
+        const data = (await response.json().catch(() => null)) as StartIdeaGraphGenerationResponse | ApiErrorPayload | null;
+        if (!data || !('generationId' in data) || !data.generationId || !data.eventsUrl) {
+          if (previousGraph) {
+            setGraph(previousGraph);
+          }
+          setErrorMessage('Failed to start idea graph generation.');
+          return;
+        }
+        autoArrangedRef.current = false;
+        setErrorMessage(null);
+        setGraph((currentGraph) =>
+          currentGraph
+            ? {
+                ...currentGraph,
+                generationStatus: 'GENERATING',
+                generationError: null,
+              }
+            : currentGraph
+        );
+        connectToGenerationStream(data.generationId, data.eventsUrl);
+      } else {
+        if (previousGraph) {
+          setGraph(previousGraph);
+        }
+        const data = (await response.json().catch(() => null)) as ApiErrorPayload | null;
+        setErrorMessage(data?.error ?? 'Failed to start idea graph generation.');
+      }
+    } catch (error) {
+      if (previousGraph) {
+        setGraph(previousGraph);
+      }
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to start idea graph generation.');
     }
-  }, [connectToGenerationStream, isGenerationInProgress, videoId]);
+  }, [connectToGenerationStream, graph, isGenerationInProgress, videoId]);
 
   const handleAddNode = useCallback(() => {
     if (isGenerationInProgress) return;
@@ -1133,14 +1161,6 @@ export function IdeaGraphSection({
     void persistGraph(nextGraph, direction, effectiveVisibleDepth);
   }, [direction, effectiveVisibleDepth, graph, isGenerationInProgress, persistGraph, selectedEdgeId]);
 
-  if (loading) {
-    return (
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 text-sm text-gray-400 shadow-sm">
-        Loading idea graph...
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -1149,15 +1169,6 @@ export function IdeaGraphSection({
           <p className="mt-1 text-sm text-gray-500">
             Decompose the video into claims, evidence, counterarguments, and cross-links.
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerationInProgress}
-            className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-wait disabled:opacity-60"
-          >
-            {isGenerationInProgress ? 'Generating...' : 'Generate idea graph'}
-          </button>
         </div>
       </div>
 
@@ -1174,10 +1185,18 @@ export function IdeaGraphSection({
       )}
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div
-          ref={canvasViewportRef}
-          className="relative h-[720px] overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm"
-        >
+        <div className="relative h-[720px] overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+          {graph && graph.nodes.length > 0 && (
+            <div className="absolute right-4 top-4 z-10">
+              <button
+                onClick={() => void handleGenerate(true)}
+                disabled={isGenerationInProgress}
+                className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60"
+              >
+                {isGenerationInProgress ? 'Generating...' : 'Regenerate'}
+              </button>
+            </div>
+          )}
           <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
             <button
               onClick={handleArrange}
@@ -1207,7 +1226,14 @@ export function IdeaGraphSection({
             </button>
           </div>
 
-          {graph && graph.nodes.length > 0 ? (
+          {loading ? (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/80">
+              <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-white/90 px-4 py-2 text-sm text-gray-500 shadow-sm">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-200 border-t-gray-500" />
+                Loading idea graph...
+              </div>
+            </div>
+          ) : graph && graph.nodes.length > 0 ? (
             <ReactFlowProvider>
               <ReactFlow
                 onInit={(instance) => {
@@ -1251,24 +1277,23 @@ export function IdeaGraphSection({
               <p className="max-w-md text-sm">
                 Generate a full idea graph from the video transcript, or start from scratch by adding nodes.
               </p>
-              <button
-                onClick={handleAddNode}
-                disabled={isGenerationInProgress}
-                className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Add root node
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => void handleGenerate()}
+                  disabled={isGenerationInProgress}
+                  className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {isGenerationInProgress ? 'Generating...' : 'Generate idea graph'}
+                </button>
+                <button
+                  onClick={handleAddNode}
+                  disabled={isGenerationInProgress}
+                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Add root node
+                </button>
+              </div>
             </div>
-          )}
-
-          {showFloatingPlayerToggle && floatingPlayerHidden && (
-            <button
-              type="button"
-              onClick={onShowFloatingPlayer}
-              className="absolute bottom-4 right-4 z-20 rounded-full border border-gray-200 bg-white/95 px-3 py-2 text-sm font-medium text-gray-700 shadow-lg backdrop-blur transition-colors hover:bg-gray-50"
-            >
-              Show video
-            </button>
           )}
 
           {graph && graph.nodes.length > 0 && (
@@ -1369,271 +1394,316 @@ export function IdeaGraphSection({
           )}
         </div>
 
-        <div className="h-[720px] overflow-y-auto rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-gray-900">Inspector</h3>
-            <span className="text-xs text-gray-400">
-              {isGenerationInProgress ? 'Live generation in progress' : saving ? 'Saving...' : 'Saved automatically'}
-            </span>
-          </div>
+        <div className="flex h-[720px] min-h-0 flex-col gap-3">
+          <div
+            className={cn(
+              'min-h-0 overflow-y-auto rounded-3xl border border-gray-200 bg-white p-5 shadow-sm',
+              videoPanelCollapsed ? 'flex-1' : 'flex-[1.1]'
+            )}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-gray-900">Inspector</h3>
+              <span className="text-xs text-gray-400">
+                {isGenerationInProgress ? 'Live generation in progress' : saving ? 'Saving...' : 'Saved automatically'}
+              </span>
+            </div>
 
-          {nodeDraft && (
-            <div className="mt-4 space-y-4">
-              <fieldset disabled={isGenerationInProgress} className="contents">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Node type</label>
-                <select
-                  value={nodeDraft.type}
-                  onChange={(e) =>
-                    setNodeDraft((current) =>
-                      current ? { ...current, type: e.target.value as IdeaGraphNodeType } : current
-                    )
-                  }
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                >
-                  {Object.entries(NODE_TYPE_META).map(([type, meta]) => (
-                    <option key={type} value={type}>
-                      {meta.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Title</label>
-                <input
-                  value={nodeDraft.title}
-                  onChange={(e) =>
-                    setNodeDraft((current) => (current ? { ...current, title: e.target.value } : current))
-                  }
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Content</label>
-                <textarea
-                  value={nodeDraft.content ?? ''}
-                  onChange={(e) =>
-                    setNodeDraft((current) =>
-                      current ? { ...current, content: e.target.value || null } : current
-                    )
-                  }
-                  rows={5}
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Transcript sources</label>
-                  <button
-                    onClick={() =>
+            {nodeDraft && (
+              <div className="mt-4 space-y-4">
+                <fieldset disabled={isGenerationInProgress} className="contents">
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Node type</label>
+                  <select
+                    value={nodeDraft.type}
+                    onChange={(e) =>
                       setNodeDraft((current) =>
-                        current
-                          ? {
-                            ...current,
-                            transcriptSources: [
-                              ...current.transcriptSources,
-                              {
-                                id: generateClientId('source'),
-                                paraphrase: '',
-                                quote: '',
-                                startSec: 0,
-                                endSec: 0,
-                              },
-                            ],
-                          }
-                          : current
+                        current ? { ...current, type: e.target.value as IdeaGraphNodeType } : current
                       )
                     }
-                    className="text-xs font-medium text-blue-600 hover:text-blue-700"
+                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
                   >
-                    Add source
-                  </button>
+                    {Object.entries(NODE_TYPE_META).map(([type, meta]) => (
+                      <option key={type} value={type}>
+                        {meta.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                {nodeDraft.transcriptSources.map((source, index) => (
-                  <div key={source.id} className="rounded-2xl border border-gray-200 p-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-medium text-gray-500">Source {index + 1}</p>
-                      <button
-                        onClick={() =>
-                          setNodeDraft((current) =>
-                            current
-                              ? {
-                                ...current,
-                                transcriptSources: current.transcriptSources.filter(
-                                  (candidate) => candidate.id !== source.id
-                                ),
-                              }
-                              : current
-                          )
-                        }
-                        className="text-xs text-red-500 hover:text-red-600"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                    <textarea
-                      value={source.paraphrase ?? ''}
-                      onChange={(e) =>
-                        setNodeDraft((current) =>
-                          current
-                            ? {
-                              ...current,
-                              transcriptSources: current.transcriptSources.map((candidate) =>
-                                candidate.id === source.id
-                                  ? { ...candidate, paraphrase: e.target.value || null }
-                                  : candidate
-                              ),
-                            }
-                            : current
-                        )
-                      }
-                      rows={2}
-                      placeholder="Paraphrase"
-                      className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                    />
-                    <textarea
-                      value={source.quote}
-                      onChange={(e) =>
-                        setNodeDraft((current) =>
-                          current
-                            ? {
-                              ...current,
-                              transcriptSources: current.transcriptSources.map((candidate) =>
-                                candidate.id === source.id ? { ...candidate, quote: e.target.value } : candidate
-                              ),
-                            }
-                            : current
-                        )
-                      }
-                      rows={3}
-                      placeholder="Quote"
-                      className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                    />
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      <input
-                        type="number"
-                        value={source.startSec}
-                        onChange={(e) =>
-                          setNodeDraft((current) =>
-                            current
-                              ? {
-                                ...current,
-                                transcriptSources: current.transcriptSources.map((candidate) =>
-                                  candidate.id === source.id
-                                    ? { ...candidate, startSec: Number(e.target.value) }
-                                    : candidate
-                                ),
-                              }
-                              : current
-                          )
-                        }
-                        className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                      />
-                      <input
-                        type="number"
-                        value={source.endSec}
-                        onChange={(e) =>
-                          setNodeDraft((current) =>
-                            current
-                              ? {
-                                ...current,
-                                transcriptSources: current.transcriptSources.map((candidate) =>
-                                  candidate.id === source.id
-                                    ? { ...candidate, endSec: Number(e.target.value) }
-                                    : candidate
-                                ),
-                              }
-                              : current
-                          )
-                        }
-                        className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                      />
-                    </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Title</label>
+                  <input
+                    value={nodeDraft.title}
+                    onChange={(e) =>
+                      setNodeDraft((current) => (current ? { ...current, title: e.target.value } : current))
+                    }
+                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Content</label>
+                  <textarea
+                    value={nodeDraft.content ?? ''}
+                    onChange={(e) =>
+                      setNodeDraft((current) =>
+                        current ? { ...current, content: e.target.value || null } : current
+                      )
+                    }
+                    rows={5}
+                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Transcript sources</label>
                     <button
-                      onClick={() => onSeekTo(source.startSec)}
-                      className="mt-2 text-xs font-medium text-blue-600 hover:text-blue-700"
+                      onClick={() =>
+                        setNodeDraft((current) =>
+                          current
+                            ? {
+                              ...current,
+                              transcriptSources: [
+                                ...current.transcriptSources,
+                                {
+                                  id: generateClientId('source'),
+                                  paraphrase: '',
+                                  quote: '',
+                                  startSec: 0,
+                                  endSec: 0,
+                                },
+                              ],
+                            }
+                            : current
+                        )
+                      }
+                      className="text-xs font-medium text-blue-600 hover:text-blue-700"
                     >
-                      Seek video to {source.startSec.toFixed(1)}s
+                      Add source
                     </button>
                   </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveNode}
-                  disabled={isGenerationInProgress}
-                  className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Save node
-                </button>
-                <button
-                  onClick={handleDeleteNode}
-                  disabled={isGenerationInProgress}
-                  className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Delete
-                </button>
-              </div>
-              </fieldset>
-            </div>
-          )}
-
-          {!nodeDraft && edgeDraft && (
-            <div className="mt-4 space-y-4">
-              <fieldset disabled={isGenerationInProgress} className="contents">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Edge type</label>
-                <select
-                  value={edgeDraft.type}
-                  onChange={(e) =>
-                    setEdgeDraft((current) =>
-                      current ? { ...current, type: e.target.value as IdeaGraphEdgeType } : current
-                    )
-                  }
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                >
-                  {Object.entries(EDGE_TYPE_LABELS).map(([type, label]) => (
-                    <option key={type} value={type}>
-                      {label}
-                    </option>
+                  {nodeDraft.transcriptSources.map((source, index) => (
+                    <div key={source.id} className="rounded-2xl border border-gray-200 p-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-gray-500">Source {index + 1}</p>
+                        <button
+                          onClick={() =>
+                            setNodeDraft((current) =>
+                              current
+                                ? {
+                                  ...current,
+                                  transcriptSources: current.transcriptSources.filter(
+                                    (candidate) => candidate.id !== source.id
+                                  ),
+                                }
+                                : current
+                            )
+                          }
+                          className="text-xs text-red-500 hover:text-red-600"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <textarea
+                        value={source.paraphrase ?? ''}
+                        onChange={(e) =>
+                          setNodeDraft((current) =>
+                            current
+                              ? {
+                                ...current,
+                                transcriptSources: current.transcriptSources.map((candidate) =>
+                                  candidate.id === source.id
+                                    ? { ...candidate, paraphrase: e.target.value || null }
+                                    : candidate
+                                ),
+                              }
+                              : current
+                          )
+                        }
+                        rows={2}
+                        placeholder="Paraphrase"
+                        className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                      />
+                      <textarea
+                        value={source.quote}
+                        onChange={(e) =>
+                          setNodeDraft((current) =>
+                            current
+                              ? {
+                                ...current,
+                                transcriptSources: current.transcriptSources.map((candidate) =>
+                                  candidate.id === source.id ? { ...candidate, quote: e.target.value } : candidate
+                                ),
+                              }
+                              : current
+                          )
+                        }
+                        rows={3}
+                        placeholder="Quote"
+                        className="mt-2 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                      />
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <input
+                          type="number"
+                          value={source.startSec}
+                          onChange={(e) =>
+                            setNodeDraft((current) =>
+                              current
+                                ? {
+                                  ...current,
+                                  transcriptSources: current.transcriptSources.map((candidate) =>
+                                    candidate.id === source.id
+                                      ? { ...candidate, startSec: Number(e.target.value) }
+                                      : candidate
+                                  ),
+                                }
+                                : current
+                            )
+                          }
+                          className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                        />
+                        <input
+                          type="number"
+                          value={source.endSec}
+                          onChange={(e) =>
+                            setNodeDraft((current) =>
+                              current
+                                ? {
+                                  ...current,
+                                  transcriptSources: current.transcriptSources.map((candidate) =>
+                                    candidate.id === source.id
+                                      ? { ...candidate, endSec: Number(e.target.value) }
+                                      : candidate
+                                  ),
+                                }
+                                : current
+                            )
+                          }
+                          className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                        />
+                      </div>
+                      <button
+                        onClick={() => onSeekTo(source.startSec)}
+                        className="mt-2 text-xs font-medium text-blue-600 hover:text-blue-700"
+                      >
+                        Seek video to {source.startSec.toFixed(1)}s
+                      </button>
+                    </div>
                   ))}
-                </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveNode}
+                    disabled={isGenerationInProgress}
+                    className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Save node
+                  </button>
+                  <button
+                    onClick={handleDeleteNode}
+                    disabled={isGenerationInProgress}
+                    className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Delete
+                  </button>
+                </div>
+                </fieldset>
               </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Label</label>
-                <input
-                  value={edgeDraft.label ?? ''}
-                  onChange={(e) =>
-                    setEdgeDraft((current) => (current ? { ...current, label: e.target.value || null } : current))
-                  }
-                  className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveEdge}
-                  disabled={isGenerationInProgress}
-                  className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Save edge
-                </button>
-                <button
-                  onClick={handleDeleteEdge}
-                  disabled={isGenerationInProgress}
-                  className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Delete
-                </button>
-              </div>
-              </fieldset>
-            </div>
-          )}
+            )}
 
-          {!nodeDraft && !edgeDraft && (
-            <div className="mt-8 rounded-2xl border border-dashed border-gray-200 p-5 text-sm text-gray-400">
-              Select a node or edge to inspect and edit it.
+            {!nodeDraft && edgeDraft && (
+              <div className="mt-4 space-y-4">
+                <fieldset disabled={isGenerationInProgress} className="contents">
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Edge type</label>
+                  <select
+                    value={edgeDraft.type}
+                    onChange={(e) =>
+                      setEdgeDraft((current) =>
+                        current ? { ...current, type: e.target.value as IdeaGraphEdgeType } : current
+                      )
+                    }
+                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                  >
+                    {Object.entries(EDGE_TYPE_LABELS).map(([type, label]) => (
+                      <option key={type} value={type}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-400">Label</label>
+                  <input
+                    value={edgeDraft.label ?? ''}
+                    onChange={(e) =>
+                      setEdgeDraft((current) => (current ? { ...current, label: e.target.value || null } : current))
+                    }
+                    className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveEdge}
+                    disabled={isGenerationInProgress}
+                    className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Save edge
+                  </button>
+                  <button
+                    onClick={handleDeleteEdge}
+                    disabled={isGenerationInProgress}
+                    className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Delete
+                  </button>
+                </div>
+                </fieldset>
+              </div>
+            )}
+
+            {!nodeDraft && !edgeDraft && (
+              <div className="mt-8 rounded-2xl border border-dashed border-gray-200 p-5 text-sm text-gray-400">
+                Select a node or edge to inspect and edit it.
+              </div>
+            )}
+          </div>
+
+          <div
+            className={cn(
+              'flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm',
+              videoPanelCollapsed ? 'flex-none' : 'min-h-0 flex-[0.9]'
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => setVideoPanelCollapsed((value) => !value)}
+              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+              aria-expanded={!videoPanelCollapsed}
+            >
+              <h3 className="text-sm font-semibold text-gray-900">Video</h3>
+              <svg
+                className={cn('h-4 w-4 text-gray-400 transition-transform', videoPanelCollapsed ? 'rotate-180' : '')}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+
+            <div
+              aria-hidden={videoPanelCollapsed}
+              className={cn(
+                'min-h-0 border-t border-gray-100 overflow-hidden',
+                videoPanelCollapsed ? 'h-0 border-t-0' : 'flex flex-1'
+              )}
+            >
+              {videoPanel ?? (
+                <div className="m-4 flex flex-1 items-center justify-center rounded-2xl border border-dashed border-gray-200 p-4 text-center text-sm text-gray-400">
+                  Video is unavailable for this graph view.
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

@@ -151,6 +151,7 @@ def generate_idea_graph_for_video(
         )
         stream_error: list[Exception] = []
         stop_stream = threading.Event()
+        stream_thread: threading.Thread | None = None
 
         def _consume_stream() -> None:
             try:
@@ -176,29 +177,33 @@ def generate_idea_graph_for_video(
                 if not stop_stream.is_set():
                     stream_error.append(exc)
 
-        stream_thread = threading.Thread(
-            target=_consume_stream,
-            name=f"idea-graph-stream-{generation_id}",
-            daemon=True,
-        )
-        stream_thread.start()
+        try:
+            stream_thread = threading.Thread(
+                target=_consume_stream,
+                name=f"idea-graph-stream-{generation_id}",
+                daemon=True,
+            )
+            stream_thread.start()
 
-        result_graph = None
-        deadline = time.time() + 600
-        while time.time() < deadline:
-            if stream_error:
-                raise stream_error[0]
-            state = client.threads.get_state(thread_id=thread["thread_id"])
-            result_graph = state["values"].get("result_graph")
-            if result_graph:
-                break
-            time.sleep(1)
-
-        stop_stream.set()
-        close_stream = getattr(stream_iterator, "close", None)
-        if callable(close_stream):
-            close_stream()
-        stream_thread.join(timeout=2)
+            result_graph = None
+            deadline = time.time() + 600
+            while time.time() < deadline:
+                if stream_error:
+                    raise stream_error[0]
+                state = client.threads.get_state(thread_id=thread["thread_id"])
+                result_graph = state["values"].get("result_graph")
+                if result_graph:
+                    break
+                time.sleep(1)
+        finally:
+            stop_stream.set()
+            if stream_thread is not None:
+                stream_thread.join(timeout=2)
+                if stream_thread.is_alive():
+                    logger.warning(
+                        "Idea graph stream thread still draining after completion for generation=%s",
+                        generation_id,
+                    )
 
         if not result_graph:
             raise TimeoutError("LangGraph run did not produce result_graph before timeout")
