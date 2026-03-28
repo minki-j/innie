@@ -3,6 +3,8 @@ alwaysApply: true
 ---
 
 This is a mono repo that contains the following directories:
+- agents
+    A Langgraph agent server that hosts complex LLM workflows
 - application
     A nextJS application
 - lab

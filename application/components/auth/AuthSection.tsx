@@ -20,10 +20,10 @@ export function AuthSection() {
     return (
       <>
         <Link
-          href="/settings/classTree"
+          href="/settings/funnels"
           className="px-4 py-2 rounded-md hover:bg-gray-100 transition-colors text-sm font-semibold text-gray-600 hover:text-gray-900"
         >
-          Topics
+          Funnels
         </Link>
         <UserMenu />
       </>

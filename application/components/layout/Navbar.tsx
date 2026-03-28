@@ -3,7 +3,7 @@ import { AuthSection } from '../auth/AuthSection';
 
 export function Navbar() {
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <nav className="sticky top-0 z-50 bg-white/95 shadow-[0_0px_9px_rgba(148,163,184,0.22)] backdrop-blur">
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <Link

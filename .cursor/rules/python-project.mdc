@@ -1,7 +1,0 @@
----
-alwaysApply: true
----
-
-- We are using uv for package management.
-- Always use uv to run python scripts.
-- We are using python 3.13

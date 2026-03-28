@@ -1,4 +1,6 @@
-import Link from "next/link";
+'use client';
+
+import { signIn } from 'next-auth/react';
 
 const steps = [
   {
@@ -41,8 +43,8 @@ export function WelcomeHero() {
           actually watch — no algorithm games, no guessing.
         </p>
 
-        <Link
-          href="/signin"
+        <button
+          onClick={() => signIn('google')}
           className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-semibold px-6 py-3 rounded-full hover:bg-gray-700 transition-colors"
         >
           Get started with Google
@@ -59,7 +61,7 @@ export function WelcomeHero() {
               d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
             />
           </svg>
-        </Link>
+        </button>
       </div>
 
       <div className="max-w-3xl w-full mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8">

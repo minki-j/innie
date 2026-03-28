@@ -30,7 +30,7 @@ export function SignInButton() {
   return (
     <button
       onClick={() => signIn('google')}
-      className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors border border-blue-200"
+      className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 transition-colors"
     >
       Sign In
     </button>

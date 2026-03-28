@@ -5,6 +5,8 @@ __pycache__/
 *$py.class
 
 .env
+.env.local
+.env.prod
 .venv 
 
 temp.*
