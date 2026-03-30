@@ -20,8 +20,21 @@ export const ideaGraphInclude = {
   },
 } satisfies Prisma.IdeaGraphInclude;
 
+export const ideaGraphVersionSelect = {
+  id: true,
+  generationStatus: true,
+  generationError: true,
+  generatedAt: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.IdeaGraphSelect;
+
 export type IdeaGraphWithRelations = Prisma.IdeaGraphGetPayload<{
   include: typeof ideaGraphInclude;
+}>;
+
+export type IdeaGraphVersionRecord = Prisma.IdeaGraphGetPayload<{
+  select: typeof ideaGraphVersionSelect;
 }>;
 
 export interface IdeaGraphSourcePayload {
@@ -64,6 +77,20 @@ export interface IdeaGraphPayload {
   updatedAt: string;
   nodes: IdeaGraphNodePayload[];
   edges: IdeaGraphEdgePayload[];
+}
+
+export interface IdeaGraphVersionPayload {
+  id: string;
+  generationStatus: IdeaGraphGenerationStatus;
+  generationError: string | null;
+  generatedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IdeaGraphWithVersionsPayload {
+  graph: IdeaGraphPayload | null;
+  versions: IdeaGraphVersionPayload[];
 }
 
 export interface IdeaGraphSourceInput {
@@ -128,5 +155,16 @@ export function serializeIdeaGraph(graph: IdeaGraphWithRelations): IdeaGraphPayl
       type: edge.type,
       label: edge.label,
     })),
+  };
+}
+
+export function serializeIdeaGraphVersion(graph: IdeaGraphVersionRecord): IdeaGraphVersionPayload {
+  return {
+    id: graph.id,
+    generationStatus: graph.generationStatus,
+    generationError: graph.generationError,
+    generatedAt: graph.generatedAt?.toISOString() ?? null,
+    createdAt: graph.createdAt.toISOString(),
+    updatedAt: graph.updatedAt.toISOString(),
   };
 }

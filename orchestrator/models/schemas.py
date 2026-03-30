@@ -173,6 +173,7 @@ IdeaGraphAgentEventType = Literal[
     "edge_added",
     "source_attached",
     "snapshot",
+    "task_completed",
 ]
 
 IdeaGraphStreamEventType = Literal[
@@ -206,10 +207,10 @@ class IdeaGraphStreamEvent(BaseModel):
 
 class IdeaGraphGenerationMetadata(BaseModel):
     generation_id: str
+    graph_id: str
     user_id: str
     video_id: str
     status: IdeaGraphGenerationStatus
-    replace_existing: bool = True
     started_at: datetime
     updated_at: datetime
     completed_at: datetime | None = None
@@ -221,6 +222,7 @@ class IdeaGraphGenerationMetadata(BaseModel):
 
 class IdeaGraphGenerationStartResponse(BaseModel):
     generation_id: str
+    graph_id: str
     user_id: str
     video_id: str
     status: IdeaGraphGenerationStatus

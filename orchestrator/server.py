@@ -19,7 +19,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from config import IDEA_GRAPH_STREAM_POLL_INTERVAL_MS
-from flows.idea_graph import generate_idea_graph_for_video
+from flows.idea_graph import (
+    IdeaGraphGenerationFailure,
+    generate_idea_graph_for_video,
+)
 from flows.video_pipeline import re_evaluate_videos, retry_failed_jobs, video_pipeline
 from models.schemas import (
     ActiveIdeaGraphGenerationResponse,
@@ -46,6 +49,30 @@ app.add_middleware(
 _executor = ThreadPoolExecutor(max_workers=2)
 
 
+def _submit_background(
+    loop: asyncio.AbstractEventLoop,
+    *,
+    description: str,
+    fn,
+) -> asyncio.Future:
+    future = loop.run_in_executor(_executor, fn)
+
+    # Fire-and-forget jobs still need their exception observed, otherwise
+    # asyncio logs "Future exception was never retrieved" after failures.
+    def _log_background_result(completed_future: asyncio.Future) -> None:
+        try:
+            completed_future.result()
+        except asyncio.CancelledError:
+            logger.info("Background job cancelled: %s", description)
+        except IdeaGraphGenerationFailure as exc:
+            logger.warning("Background job failed: %s: %s", description, exc)
+        except Exception:
+            logger.exception("Background job failed: %s", description)
+
+    future.add_done_callback(_log_background_result)
+    return future
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
@@ -56,10 +83,11 @@ async def trigger_pipeline(funnel_id: str):
     """Trigger the video pipeline for a specific funnel."""
     logger.info("Received trigger request for funnel_id=%s", funnel_id)
     try:
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(
-            _executor,
-            lambda: video_pipeline(funnel_id=funnel_id),
+        loop = asyncio.get_running_loop()
+        _submit_background(
+            loop,
+            description=f"video pipeline funnel={funnel_id}",
+            fn=lambda: video_pipeline(funnel_id=funnel_id),
         )
         return {
             "status": "triggered",
@@ -87,10 +115,14 @@ async def re_evaluate(funnel_id: str, body: ReEvaluateRequest):
         raise HTTPException(status_code=400, detail="video_ids must not be empty")
 
     try:
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(
-            _executor,
-            lambda: re_evaluate_videos(funnel_id=funnel_id, video_ids=body.video_ids),
+        loop = asyncio.get_running_loop()
+        _submit_background(
+            loop,
+            description=f"re-evaluate funnel={funnel_id} video_count={len(body.video_ids)}",
+            fn=lambda: re_evaluate_videos(
+                funnel_id=funnel_id,
+                video_ids=body.video_ids,
+            ),
         )
         return {
             "status": "triggered",
@@ -113,10 +145,11 @@ async def retry_failed(body: RetryFailedJobsRequest | None = None):
     queue_names = (body.queue_names if body else None) or None
     logger.info("Received retry-failed request (queues=%s)", queue_names)
     try:
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(
-            _executor,
-            lambda: retry_failed_jobs(queue_names=queue_names),
+        loop = asyncio.get_running_loop()
+        _submit_background(
+            loop,
+            description=f"retry failed queues={queue_names or 'default'}",
+            fn=lambda: retry_failed_jobs(queue_names=queue_names),
         )
         return {
             "status": "triggered",
@@ -134,9 +167,9 @@ async def retry_failed(body: RetryFailedJobsRequest | None = None):
 
 
 class GenerateIdeaGraphRequest(BaseModel):
+    graph_id: str
     user_id: str
     video_id: str
-    replace_existing: bool = True
 
 
 def _format_sse(event: IdeaGraphStreamEvent) -> str:
@@ -165,6 +198,7 @@ async def generate_idea_graph(body: GenerateIdeaGraphRequest):
         if active_generation is not None:
             return IdeaGraphGenerationStartResponse(
                 generation_id=active_generation.generation_id,
+                graph_id=active_generation.graph_id,
                 user_id=active_generation.user_id,
                 video_id=active_generation.video_id,
                 status=active_generation.status,
@@ -173,23 +207,25 @@ async def generate_idea_graph(body: GenerateIdeaGraphRequest):
         generation_id = uuid4().hex
         metadata = event_store.create_generation(
             generation_id=generation_id,
+            graph_id=body.graph_id,
             user_id=body.user_id,
             video_id=body.video_id,
-            replace_existing=body.replace_existing,
         )
 
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(
-            _executor,
-            lambda: generate_idea_graph_for_video(
+        loop = asyncio.get_running_loop()
+        _submit_background(
+            loop,
+            description=f"idea graph generation id={generation_id} video={body.video_id}",
+            fn=lambda: generate_idea_graph_for_video(
                 generation_id=generation_id,
+                graph_id=body.graph_id,
                 user_id=body.user_id,
                 video_id=body.video_id,
-                replace_existing=body.replace_existing,
             ),
         )
         return IdeaGraphGenerationStartResponse(
             generation_id=generation_id,
+            graph_id=metadata.graph_id,
             user_id=metadata.user_id,
             video_id=metadata.video_id,
             status=metadata.status,
@@ -230,7 +266,9 @@ async def stream_idea_graph_generation_events(
         raise HTTPException(status_code=404, detail="Idea graph generation not found")
 
     header_event_id = request.headers.get("last-event-id")
-    cursor = after_event_id if after_event_id is not None else int(header_event_id or "0")
+    cursor = (
+        after_event_id if after_event_id is not None else int(header_event_id or "0")
+    )
     poll_interval = max(0.1, IDEA_GRAPH_STREAM_POLL_INTERVAL_MS / 1000)
 
     async def event_stream():

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Innie",
+  title: "innie",
   description: "Train your AI innie who learns your preferences",
 };
 

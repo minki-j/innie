@@ -181,6 +181,10 @@ def _serialize_snapshot(snapshot: IdeaGraphSnapshot) -> dict[str, Any]:
     }
 
 
+def _log(message: str) -> None:
+    print(f"[idea_graph] {message}")
+
+
 def _chunk_transcript(
     transcript: str,
     transcript_segments: list[TranscriptSegment],
@@ -284,6 +288,13 @@ class IdeaGraphContext:
         self.writer = writer
         self.mutation_count = 0
         self.pending_node_id: str | None = None
+        _log(
+            "context initialized "
+            f"video_id={state.video_id} "
+            f"chunks={len(self.chunks)} "
+            f"existing_nodes={len(self.graph.nodes)} "
+            f"existing_edges={len(self.graph.edges)}"
+        )
 
     def _node_ids(self) -> set[str]:
         return {node.id for node in self.graph.nodes}
@@ -382,6 +393,10 @@ class IdeaGraphContext:
         if index < 0 or index >= len(self.chunks):
             raise ValueError(f"Chunk index {index} is out of range")
         chunk = self.chunks[index]
+        _log(
+            f"read_chunk index={chunk.index} "
+            f"start_sec={chunk.start_sec} end_sec={chunk.end_sec}"
+        )
         self._emit(
             "chunk_read",
             {
@@ -407,6 +422,10 @@ class IdeaGraphContext:
         self.graph.nodes.append(node)
         self.pending_node_id = node_id
         self.mutation_count += 1
+        _log(
+            f"add_node id={node_id} type={node.type} "
+            f"title={node.title!r} total_nodes={len(self.graph.nodes)}"
+        )
         self._emit("node_added", {"node": _serialize_node(node)})
         self._emit_snapshot_if_needed()
         return node_id
@@ -431,6 +450,10 @@ class IdeaGraphContext:
         if collapsed is not None:
             node.collapsed = collapsed
         self.mutation_count += 1
+        _log(
+            f"update_node id={node_id} type={node.type} "
+            f"title={node.title!r} collapsed={node.collapsed}"
+        )
         self._emit("node_updated", {"node": _serialize_node(node)})
         self._emit_snapshot_if_needed()
         self._maybe_clear_pending_node(node_id)
@@ -459,6 +482,11 @@ class IdeaGraphContext:
         )
         self.graph.edges.append(edge)
         self.mutation_count += 1
+        _log(
+            f"add_edge id={edge_id} type={edge.type} "
+            f"source={source_node_id} target={target_node_id} "
+            f"total_edges={len(self.graph.edges)}"
+        )
         self._emit("edge_added", {"edge": _serialize_edge(edge)})
         self._emit_snapshot_if_needed()
         self._maybe_clear_pending_node(source_node_id)
@@ -491,6 +519,11 @@ class IdeaGraphContext:
         )
         node.transcript_sources.append(source)
         self.mutation_count += 1
+        _log(
+            f"attach_source node_id={node_id} source_id={source_id} "
+            f"start_sec={start_sec} end_sec={end_sec} "
+            f"source_count={len(node.transcript_sources)}"
+        )
         self._emit(
             "source_attached",
             {
@@ -504,9 +537,14 @@ class IdeaGraphContext:
 
 
 async def generate_idea_graph(state: BuildIdeaGraphState):
+    _log(
+        "generate_idea_graph started "
+        f"video_id={state.video_id} title={state.video_title!r}"
+    )
     writer = get_stream_writer()
     ctx = IdeaGraphContext(state, writer)
     ctx._emit("chunk_index_ready", ctx.chunk_index_payload())
+    _log(f"chunk index emitted count={len(ctx.chunks)}")
 
     @tool
     def read_graph_state() -> str:
@@ -644,6 +682,11 @@ async def generate_idea_graph(state: BuildIdeaGraphState):
     )
 
     ctx._emit_snapshot_if_needed(force=True)
+    ctx._emit("task_completed", {"result_graph": _serialize_snapshot(ctx.graph)})
+    _log(
+        "generate_idea_graph completed "
+        f"result_nodes={len(ctx.graph.nodes)} result_edges={len(ctx.graph.edges)}"
+    )
     return {"result_graph": ctx.graph}
 
 

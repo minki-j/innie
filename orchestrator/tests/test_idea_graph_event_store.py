@@ -14,16 +14,16 @@ class IdeaGraphEventStoreTests(unittest.TestCase):
         self.store = IdeaGraphEventStore(self.redis)
         self.metadata = self.store.create_generation(
             generation_id="gen_123",
+            graph_id="graph_123",
             user_id="user_123",
             video_id="video_123",
-            replace_existing=True,
         )
 
     def test_append_and_replay_events_in_order(self) -> None:
         first = self.store.append_event(
             "gen_123",
             event_type="generation_started",
-            payload={"initial_graph": {"nodes": [], "edges": []}},
+            payload={},
         )
         second = self.store.append_event(
             "gen_123",
@@ -43,6 +43,7 @@ class IdeaGraphEventStoreTests(unittest.TestCase):
         active = self.store.get_active_generation(user_id="user_123", video_id="video_123")
         self.assertIsNotNone(active)
         self.assertEqual(active.generation_id, self.metadata.generation_id)
+        self.assertEqual(active.graph_id, "graph_123")
 
         completed = self.store.mark_completed("gen_123", payload={"node_count": 1, "edge_count": 0})
         self.assertEqual(completed.type, "completed")

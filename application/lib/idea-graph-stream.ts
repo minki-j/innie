@@ -25,6 +25,7 @@ export interface IdeaGraphStreamEvent {
 export interface StartIdeaGraphGenerationResponse {
   success: boolean;
   generationId: string;
+  graphId: string;
   status: string;
   eventsUrl: string;
 }
@@ -32,6 +33,7 @@ export interface StartIdeaGraphGenerationResponse {
 export interface ActiveIdeaGraphGenerationResponse {
   active: boolean;
   generationId: string | null;
+  graphId: string | null;
   status: string | null;
   eventsUrl: string | null;
 }
@@ -97,8 +99,7 @@ export function applyIdeaGraphStreamEvent(
 
   switch (event.type) {
     case "generation_started": {
-      const snapshot = event.payload.initial_graph as IdeaGraphSnapshotPayload | undefined;
-      return applySnapshot(base, snapshot ?? { nodes: [], edges: [] });
+      return applySnapshot(base, { nodes: [], edges: [] });
     }
     case "snapshot": {
       const snapshot = event.payload.graph as IdeaGraphSnapshotPayload | undefined;

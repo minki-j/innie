@@ -9,12 +9,9 @@ interface RouteParams {
   params: Promise<{ videoId: string }>;
 }
 
-interface GenerateIdeaGraphBody {
-  replaceExisting?: boolean;
-}
-
 interface OrchestratorGenerationResponse {
   generation_id: string;
+  graph_id: string;
   user_id: string;
   video_id: string;
   status: string;
@@ -28,11 +25,17 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
     }
 
     if (!ORCHESTRATOR_URL) {
-      return NextResponse.json({ error: "ORCHESTRATOR_URL is not configured" }, { status: 500 });
+      return NextResponse.json(
+        { error: "ORCHESTRATOR_URL is not configured" },
+        { status: 500 },
+      );
     }
 
     const { videoId } = await params;
@@ -41,49 +44,67 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Failed to fetch active idea graph generation:", errorText);
-      return NextResponse.json({ error: "Failed to fetch active generation" }, { status: 502 });
+      return NextResponse.json(
+        { error: "Failed to fetch active generation" },
+        { status: 502 },
+      );
     }
 
-    const result = (await response.json().catch(() => null)) as
-      | { active?: boolean; generation?: OrchestratorGenerationResponse | null }
-      | null;
+    const result = (await response.json().catch(() => null)) as {
+      active?: boolean;
+      generation?: OrchestratorGenerationResponse | null;
+    } | null;
 
     if (!result?.active || !result.generation?.generation_id) {
-      return NextResponse.json({ active: false, generationId: null, eventsUrl: null, status: null });
+      return NextResponse.json({
+        active: false,
+        generationId: null,
+        graphId: null,
+        eventsUrl: null,
+        status: null,
+      });
     }
 
     return NextResponse.json({
       active: true,
       generationId: result.generation.generation_id,
+      graphId: result.generation.graph_id,
       status: result.generation.status,
       eventsUrl: buildEventsUrl(result.generation.generation_id),
     });
   } catch (error) {
     console.error("Error fetching active idea graph generation:", error);
-    return NextResponse.json({ error: "Failed to fetch active generation" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch active generation" },
+      { status: 500 },
+    );
   }
 }
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(_request: NextRequest, { params }: RouteParams) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
     }
 
     if (!ORCHESTRATOR_URL) {
-      return NextResponse.json({ error: "ORCHESTRATOR_URL is not configured" }, { status: 500 });
+      return NextResponse.json(
+        { error: "ORCHESTRATOR_URL is not configured" },
+        { status: 500 },
+      );
     }
 
     const { videoId } = await params;
-    const body = (await request.json().catch(() => ({}))) as GenerateIdeaGraphBody;
-    const replaceExisting = body.replaceExisting === true;
 
     const video = await prisma.video.findUnique({
       where: { id: videoId },
@@ -95,16 +116,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     if (!video.transcript) {
-      return NextResponse.json({ error: "No transcript available for this video" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No transcript available for this video" },
+        { status: 400 },
+      );
     }
 
-    const existingGraph = await prisma.ideaGraph.findUnique({
+    const existingGraph = await prisma.ideaGraph.findFirst({
       where: {
-        userId_videoId: {
-          userId: session.user.id,
-          videoId,
-        },
+        userId: session.user.id,
+        videoId,
       },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       select: {
         id: true,
         generationStatus: true,
@@ -114,29 +137,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     });
 
-    const hasExistingGraph = !!existingGraph && (existingGraph._count.nodes > 0 || existingGraph._count.edges > 0);
-    if (hasExistingGraph && !replaceExisting) {
+    if (
+      existingGraph?.generationStatus === IdeaGraphGenerationStatus.GENERATING
+    ) {
       return NextResponse.json(
         {
-          error: "Graph already exists and would be replaced",
-          requiresConfirmation: true,
+          error:
+            "A generation is already in progress. Please wait for it to complete.",
         },
         { status: 409 },
       );
     }
 
-    await prisma.ideaGraph.upsert({
-      where: {
-        userId_videoId: {
-          userId: session.user.id,
-          videoId,
-        },
-      },
-      update: {
-        generationStatus: IdeaGraphGenerationStatus.GENERATING,
-        generationError: null,
-      },
-      create: {
+    const createdGraph = await prisma.ideaGraph.create({
+      data: {
         userId: session.user.id,
         videoId,
         generationStatus: IdeaGraphGenerationStatus.GENERATING,
@@ -147,9 +161,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        graph_id: createdGraph.id,
         user_id: session.user.id,
         video_id: videoId,
-        replace_existing: replaceExisting,
       }),
     });
 
@@ -158,34 +172,48 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       console.error("Orchestrator idea graph generation failed:", errorText);
 
       await prisma.ideaGraph.update({
-        where: {
-          userId_videoId: {
-            userId: session.user.id,
-            videoId,
-          },
-        },
+        where: { id: createdGraph.id },
         data: {
           generationStatus: IdeaGraphGenerationStatus.FAILED,
           generationError: "Failed to start idea graph generation",
         },
       });
 
-      return NextResponse.json({ error: "Failed to start idea graph generation" }, { status: 502 });
+      return NextResponse.json(
+        { error: "Failed to start idea graph generation" },
+        { status: 502 },
+      );
     }
 
-    const result = (await response.json().catch(() => null)) as OrchestratorGenerationResponse | null;
+    const result = (await response
+      .json()
+      .catch(() => null)) as OrchestratorGenerationResponse | null;
     if (!result?.generation_id) {
-      return NextResponse.json({ error: "Invalid orchestrator response" }, { status: 502 });
+      await prisma.ideaGraph.update({
+        where: { id: createdGraph.id },
+        data: {
+          generationStatus: IdeaGraphGenerationStatus.FAILED,
+          generationError: "Invalid orchestrator response",
+        },
+      });
+      return NextResponse.json(
+        { error: "Invalid orchestrator response" },
+        { status: 502 },
+      );
     }
 
     return NextResponse.json({
       success: true,
       generationId: result.generation_id,
+      graphId: result.graph_id,
       status: result.status,
       eventsUrl: buildEventsUrl(result.generation_id),
     });
   } catch (error) {
     console.error("Error triggering idea graph generation:", error);
-    return NextResponse.json({ error: "Failed to start idea graph generation" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to start idea graph generation" },
+      { status: 500 },
+    );
   }
 }

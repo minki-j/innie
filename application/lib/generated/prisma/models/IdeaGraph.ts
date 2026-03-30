@@ -281,7 +281,6 @@ export type IdeaGraphOrderByWithRelationInput = {
 
 export type IdeaGraphWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  userId_videoId?: Prisma.IdeaGraphUserIdVideoIdCompoundUniqueInput
   AND?: Prisma.IdeaGraphWhereInput | Prisma.IdeaGraphWhereInput[]
   OR?: Prisma.IdeaGraphWhereInput[]
   NOT?: Prisma.IdeaGraphWhereInput | Prisma.IdeaGraphWhereInput[]
@@ -298,7 +297,7 @@ export type IdeaGraphWhereUniqueInput = Prisma.AtLeast<{
   video?: Prisma.XOR<Prisma.VideoScalarRelationFilter, Prisma.VideoWhereInput>
   nodes?: Prisma.IdeaGraphNodeListRelationFilter
   edges?: Prisma.IdeaGraphEdgeListRelationFilter
-}, "id" | "userId_videoId">
+}, "id">
 
 export type IdeaGraphOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -439,11 +438,6 @@ export type IdeaGraphListRelationFilter = {
 
 export type IdeaGraphOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type IdeaGraphUserIdVideoIdCompoundUniqueInput = {
-  userId: string
-  videoId: string
 }
 
 export type IdeaGraphCountOrderByAggregateInput = {

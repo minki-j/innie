@@ -190,9 +190,9 @@ model IdeaGraph {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, videoId])
   @@index([userId])
   @@index([videoId])
+  @@index([userId, videoId, createdAt])
 }
 
 model IdeaGraphNode {

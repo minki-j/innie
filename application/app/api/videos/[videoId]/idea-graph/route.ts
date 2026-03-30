@@ -8,9 +8,12 @@ import {
 } from "@/lib/generated/prisma/client";
 import {
   ideaGraphInclude,
+  ideaGraphVersionSelect,
+  type IdeaGraphWithVersionsPayload,
   type IdeaGraphEdgeInput,
   type IdeaGraphNodeInput,
   serializeIdeaGraph,
+  serializeIdeaGraphVersion,
 } from "@/lib/idea-graph";
 import { prisma } from "@/lib/prisma";
 
@@ -96,9 +99,32 @@ function validateEdge(edge: IdeaGraphEdgeInput, nodeIds: Set<string>): string | 
 }
 
 async function getGraphForUser(userId: string, videoId: string) {
-  return prisma.ideaGraph.findUnique({
+  return prisma.ideaGraph.findFirst({
     where: {
-      userId_videoId: { userId, videoId },
+      userId,
+      videoId,
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    include: ideaGraphInclude,
+  });
+}
+
+async function getGraphVersionsForUser(userId: string, videoId: string) {
+  const versions = await prisma.ideaGraph.findMany({
+    where: { userId, videoId },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    select: ideaGraphVersionSelect,
+  });
+
+  return versions.map(serializeIdeaGraphVersion);
+}
+
+async function getGraphByIdForUser(userId: string, videoId: string, graphId: string) {
+  return prisma.ideaGraph.findFirst({
+    where: {
+      id: graphId,
+      userId,
+      videoId,
     },
     include: ideaGraphInclude,
   });
@@ -112,7 +138,24 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     }
 
     const { videoId } = await params;
-    const graph = await getGraphForUser(session.user.id, videoId);
+    const graphId = _request.nextUrl.searchParams.get("graphId");
+    const includeVersions = _request.nextUrl.searchParams.get("includeVersions") === "true";
+    const graph = graphId
+      ? await getGraphByIdForUser(session.user.id, videoId, graphId)
+      : await getGraphForUser(session.user.id, videoId);
+
+    if (graphId && !graph) {
+      return NextResponse.json({ error: "Idea graph version not found" }, { status: 404 });
+    }
+
+    if (includeVersions) {
+      const payload: IdeaGraphWithVersionsPayload = {
+        graph: graph ? serializeIdeaGraph(graph) : null,
+        versions: await getGraphVersionsForUser(session.user.id, videoId),
+      };
+
+      return NextResponse.json(payload);
+    }
 
     if (!graph) {
       return NextResponse.json(null);
@@ -133,6 +176,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const { videoId } = await params;
+    const graphId = request.nextUrl.searchParams.get("graphId");
     const body = (await request.json()) as SaveIdeaGraphBody;
 
     if (!Array.isArray(body.nodes) || !Array.isArray(body.edges)) {
@@ -173,30 +217,36 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       edgeIds.add(edge.id);
     }
 
+    const existingGraph = graphId
+      ? await getGraphByIdForUser(session.user.id, videoId, graphId)
+      : await getGraphForUser(session.user.id, videoId);
+
+    if (graphId && !existingGraph) {
+      return NextResponse.json({ error: "Idea graph version not found" }, { status: 404 });
+    }
+
     const graph = await prisma.$transaction(async (tx) => {
-      const current = await tx.ideaGraph.upsert({
-        where: {
-          userId_videoId: {
-            userId: session.user.id,
-            videoId,
-          },
-        },
-        update: {
+      const current = existingGraph
+        ? await tx.ideaGraph.update({
+          where: { id: existingGraph.id },
+          data: {
           generationStatus: IdeaGraphGenerationStatus.COMPLETED,
           generationError: null,
           generatedAt: new Date(),
           ...(body.layoutDirection !== undefined && { layoutDirection: body.layoutDirection }),
           ...(body.visibleDepth !== undefined && { visibleDepth: body.visibleDepth }),
-        },
-        create: {
+          },
+        })
+        : await tx.ideaGraph.create({
+          data: {
           userId: session.user.id,
           videoId,
           generationStatus: IdeaGraphGenerationStatus.COMPLETED,
           generatedAt: new Date(),
           layoutDirection: body.layoutDirection ?? IdeaGraphLayoutDirection.LR,
           visibleDepth: body.visibleDepth ?? null,
-        },
-      });
+          },
+        });
 
       await tx.ideaGraphEdge.deleteMany({ where: { graphId: current.id } });
       await tx.ideaGraphNode.deleteMany({ where: { graphId: current.id } });
@@ -269,6 +319,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const { videoId } = await params;
+    const graphId = request.nextUrl.searchParams.get("graphId");
     const body = (await request.json()) as UpdateIdeaGraphSettingsBody;
 
     if (body.layoutDirection !== undefined && !isIdeaGraphLayoutDirection(body.layoutDirection)) {
@@ -282,18 +333,25 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "visibleDepth must be a non-negative integer or null" }, { status: 400 });
     }
 
-    const graph = await prisma.ideaGraph.upsert({
-      where: {
-        userId_videoId: {
-          userId: session.user.id,
-          videoId,
-        },
-      },
-      update: {
+    const existingGraph = graphId
+      ? await getGraphByIdForUser(session.user.id, videoId, graphId)
+      : await getGraphForUser(session.user.id, videoId);
+
+    if (graphId && !existingGraph) {
+      return NextResponse.json({ error: "Idea graph version not found" }, { status: 404 });
+    }
+
+    const graph = existingGraph
+      ? await prisma.ideaGraph.update({
+      where: { id: existingGraph.id },
+      data: {
         ...(body.layoutDirection !== undefined && { layoutDirection: body.layoutDirection }),
         ...(body.visibleDepth !== undefined && { visibleDepth: body.visibleDepth }),
       },
-      create: {
+      include: ideaGraphInclude,
+    })
+      : await prisma.ideaGraph.create({
+      data: {
         userId: session.user.id,
         videoId,
         layoutDirection: body.layoutDirection ?? IdeaGraphLayoutDirection.LR,

@@ -862,6 +862,7 @@ def get_idea_graph_snapshot(user_id: str, video_id: str) -> IdeaGraphSnapshot:
                 SELECT id
                 FROM "IdeaGraph"
                 WHERE "userId" = %s AND "videoId" = %s
+                ORDER BY "createdAt" DESC, id DESC
                 LIMIT 1
                 """,
                 (user_id, video_id),
@@ -946,12 +947,11 @@ def get_idea_graph_snapshot(user_id: str, video_id: str) -> IdeaGraphSnapshot:
 
 
 def set_idea_graph_generation_status(
-    user_id: str,
-    video_id: str,
+    graph_id: str,
     status: IdeaGraphGenerationStatus,
     error: str | None = None,
 ) -> None:
-    """Upsert generation status for an idea graph."""
+    """Update generation status for a specific idea graph version."""
     now = datetime.now(timezone.utc)
     generated_at = now if status == IdeaGraphGenerationStatus.COMPLETED else None
 
@@ -959,62 +959,48 @@ def set_idea_graph_generation_status(
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO "IdeaGraph" (
-                    id, "userId", "videoId", "generationStatus", "generationError",
-                    "generatedAt", "createdAt", "updatedAt"
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT ("userId", "videoId") DO UPDATE SET
-                    "generationStatus" = EXCLUDED."generationStatus",
-                    "generationError" = EXCLUDED."generationError",
-                    "generatedAt" = EXCLUDED."generatedAt",
-                    "updatedAt" = EXCLUDED."updatedAt"
+                UPDATE "IdeaGraph"
+                SET
+                    "generationStatus" = %s,
+                    "generationError" = %s,
+                    "generatedAt" = %s,
+                    "updatedAt" = %s
+                WHERE id = %s
                 """,
                 (
-                    _generate_cuid(),
-                    user_id,
-                    video_id,
                     status.value,
                     error,
                     generated_at,
                     now,
-                    now,
+                    graph_id,
                 ),
             )
             conn.commit()
 
 
-def replace_idea_graph(user_id: str, video_id: str, snapshot: IdeaGraphSnapshot) -> None:
-    """Replace an idea graph atomically for a user/video pair."""
+def replace_idea_graph(graph_id: str, snapshot: IdeaGraphSnapshot) -> None:
+    """Replace an idea graph atomically for a specific graph version."""
     now = datetime.now(timezone.utc)
 
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO "IdeaGraph" (
-                    id, "userId", "videoId", "generationStatus", "generatedAt",
-                    "createdAt", "updatedAt"
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT ("userId", "videoId") DO UPDATE SET
-                    "generationStatus" = EXCLUDED."generationStatus",
+                UPDATE "IdeaGraph"
+                SET
+                    "generationStatus" = %s,
                     "generationError" = NULL,
-                    "generatedAt" = EXCLUDED."generatedAt",
-                    "updatedAt" = EXCLUDED."updatedAt"
-                RETURNING id
+                    "generatedAt" = %s,
+                    "updatedAt" = %s
+                WHERE id = %s
                 """,
                 (
-                    _generate_cuid(),
-                    user_id,
-                    video_id,
                     IdeaGraphGenerationStatus.COMPLETED.value,
                     now,
                     now,
-                    now,
+                    graph_id,
                 ),
             )
-            graph_id = cur.fetchone()[0]
 
             cur.execute("""DELETE FROM "IdeaGraphEdge" WHERE "graphId" = %s""", (graph_id,))
             cur.execute("""DELETE FROM "IdeaGraphNode" WHERE "graphId" = %s""", (graph_id,))

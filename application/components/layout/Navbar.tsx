@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { AuthSection } from '../auth/AuthSection';
 
@@ -8,9 +9,20 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16 gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2 flex-shrink-0"
+            className="group flex items-center gap-2 flex-shrink-0"
           >
-            <span className="text-xl font-semibold hidden sm:inline text-black">Innie</span>
+            <span className="relative hidden h-6 min-w-12 sm:block">
+              <span className="absolute inset-0 text-xl font-semibold text-black transition-opacity duration-150 group-hover:opacity-0">
+                innie
+              </span>
+              <Image
+                src="/favicon.ico"
+                alt="innie logo"
+                width={24}
+                height={24}
+                className="absolute inset-0 m-auto opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+              />
+            </span>
           </Link>
 
           <div className="flex items-center gap-3 flex-shrink-0">

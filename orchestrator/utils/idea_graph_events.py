@@ -53,18 +53,18 @@ class IdeaGraphEventStore:
         self,
         *,
         generation_id: str,
+        graph_id: str,
         user_id: str,
         video_id: str,
-        replace_existing: bool,
         started_at: datetime | None = None,
     ) -> IdeaGraphGenerationMetadata:
         timestamp = started_at or _utcnow()
         metadata = IdeaGraphGenerationMetadata(
             generation_id=generation_id,
+            graph_id=graph_id,
             user_id=user_id,
             video_id=video_id,
             status=IdeaGraphGenerationStatus.GENERATING,
-            replace_existing=replace_existing,
             started_at=timestamp,
             updated_at=timestamp,
         )
@@ -259,10 +259,10 @@ class IdeaGraphEventStore:
         decoded = {self._decode(key): self._decode(value) for key, value in raw.items()}
         return IdeaGraphGenerationMetadata(
             generation_id=decoded["generation_id"],
+            graph_id=decoded["graph_id"],
             user_id=decoded["user_id"],
             video_id=decoded["video_id"],
             status=IdeaGraphGenerationStatus(decoded["status"]),
-            replace_existing=self._parse_bool(decoded.get("replace_existing", "true")),
             started_at=datetime.fromisoformat(decoded["started_at"]),
             updated_at=datetime.fromisoformat(decoded["updated_at"]),
             completed_at=(
@@ -280,17 +280,6 @@ class IdeaGraphEventStore:
         if isinstance(value, bytes):
             return value.decode("utf-8")
         return str(value)
-
-    def _parse_bool(self, value: str) -> bool:
-        if value in ("true", "True", "1"):
-            return True
-        if value in ("false", "False", "0"):
-            return False
-        try:
-            return bool(json.loads(value))
-        except Exception:
-            return False
-
 
 @lru_cache(maxsize=1)
 def get_idea_graph_event_store() -> IdeaGraphEventStore:
