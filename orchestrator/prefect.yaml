@@ -9,6 +9,9 @@ pull:
       id: clone
       repository: https://github.com/minki-j/innie.git
       branch: main
+      access_token: "{{ prefect.blocks.secret.github-access-token }}"
+      directories:
+        - orchestrator
   - prefect.deployments.steps.set_working_directory:
       directory: "{{ clone.directory }}/orchestrator"
 
