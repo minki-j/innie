@@ -70,6 +70,7 @@ The pipeline loads env vars from (in order, later overrides earlier):
 | `OPENAI_API_KEY` | — | OpenAI API key (required for default gpt-4o) |
 | `ANTHROPIC_API_KEY` | — | Anthropic API key (for Claude models) |
 | `GOOGLE_API_KEY` | — | Google API key (for Gemini models) |
+| `YOUTUBE_API_KEY` | `GOOGLE_API_KEY` | API key with YouTube Data API v3 enabled for date-bounded keyword search |
 | `DEFAULT_LLM_MODEL` | `gpt-4o` | LLM model for criterion evaluation |
 | `MAX_VIDEOS_PER_KEYWORD` | `20` | Max videos fetched per keyword search |
 | `MAX_VIDEOS_PER_CREATOR` | `30` | Max videos fetched per creator channel |

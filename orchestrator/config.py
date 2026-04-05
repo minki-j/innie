@@ -46,6 +46,9 @@ CLASSIFY_MAJORITY_THRESHOLD: float = float(
 
 # ── YouTube Scraping ─────────────────────────────────────────
 
+YOUTUBE_API_KEY: str | None = os.environ.get("YOUTUBE_API_KEY") or os.environ.get(
+    "GOOGLE_API_KEY"
+)
 MAX_VIDEOS_PER_KEYWORD: int = int(os.environ["MAX_VIDEOS_PER_KEYWORD"])
 MAX_VIDEOS_PER_CREATOR: int = int(os.environ["MAX_VIDEOS_PER_CREATOR"])
 

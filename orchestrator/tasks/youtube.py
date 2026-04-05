@@ -9,13 +9,15 @@ from __future__ import annotations
 import logging
 import re
 from datetime import datetime, timezone, timedelta
-from typing import Any
 from html import unescape
+from typing import Any
+
+import httpx
 
 from prefect import task
 from prefect.states import State
 
-from config import MAX_VIDEOS_PER_CREATOR, MAX_VIDEOS_PER_KEYWORD
+from config import MAX_VIDEOS_PER_CREATOR, MAX_VIDEOS_PER_KEYWORD, YOUTUBE_API_KEY
 from models.schemas import VideoData
 from utils.rate_limiter import get_rate_limiter
 
@@ -58,27 +60,91 @@ def _parse_upload_date(date_str: str | None) -> datetime | None:
         return None
 
 
-# ── Keyword search ────────────────────────────────────────────
+def _to_rfc3339(dt: datetime | None) -> str | None:
+    """Format a datetime for the YouTube Data API."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
-@task(
-    name="search_videos_by_keyword",
-    retries=3,
-    retry_delay_seconds=[10, 30, 90],
-    retry_jitter_factor=0.2,
-    retry_condition_fn=_should_retry_youtube,
-)
-def search_videos_by_keyword(
+def _search_videos_by_keyword_google_api(
     keyword: str,
-    max_results: int | None = None,
+    max_results: int,
+    published_after: datetime | None = None,
+    published_before: datetime | None = None,
 ) -> list[str]:
     """
-    Search YouTube for videos matching a keyword using yt-dlp.
-    Returns a list of video IDs.
-    """
-    if max_results is None:
-        max_results = MAX_VIDEOS_PER_KEYWORD
+    Search YouTube via the Google YouTube Data API.
 
+    This path supports true server-side filtering by publication timestamp.
+    """
+    video_ids: list[str] = []
+    seen_ids: set[str] = set()
+    next_page_token: str | None = None
+
+    with httpx.Client(timeout=30.0) as client:
+        while len(video_ids) < max_results:
+            get_rate_limiter("youtube").acquire()
+
+            params = {
+                "part": "snippet",
+                "type": "video",
+                "q": keyword,
+                "maxResults": min(50, max_results - len(video_ids)),
+                "order": "date",
+                "key": YOUTUBE_API_KEY,
+            }
+            if next_page_token:
+                params["pageToken"] = next_page_token
+            if published_after:
+                params["publishedAfter"] = _to_rfc3339(published_after)
+            if published_before:
+                params["publishedBefore"] = _to_rfc3339(published_before)
+
+            response = client.get(
+                "https://www.googleapis.com/youtube/v3/search",
+                params=params,
+            )
+            response.raise_for_status()
+            payload = response.json()
+
+            items = payload.get("items") or []
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                item_id = item.get("id") or {}
+                if not isinstance(item_id, dict):
+                    continue
+                video_id = item_id.get("videoId")
+                if not video_id or video_id in seen_ids:
+                    continue
+                seen_ids.add(video_id)
+                video_ids.append(str(video_id))
+                if len(video_ids) >= max_results:
+                    break
+
+            next_page_token = payload.get("nextPageToken")
+            if not next_page_token or not items:
+                break
+
+    return video_ids
+
+
+def _search_videos_by_keyword_yt_dlp(
+    keyword: str,
+    max_results: int,
+) -> list[str]:
+    """
+    Search YouTube via yt-dlp's keyword search.
+
+    Note: reliable date-range filtering is not supported on this path.
+    yt-dlp's keyword search returns a limited slice of YouTube search results,
+    and its date-related options do not make YouTube apply an exact server-side
+    published-after / published-before filter for arbitrary ranges.
+    To get reliable date-range filtering, use the Google YouTube Data API instead.
+    """
     get_rate_limiter("youtube").acquire()
     yt_dlp = _get_yt_dlp()
     search_url = f"ytsearch{max_results}:{keyword}"
@@ -87,26 +153,100 @@ def search_videos_by_keyword(
         "skip_download": True,
         "quiet": True,
         "no_warnings": True,
-        "extract_flat": "in_playlist",
+        "extract_flat": True,
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(search_url, download=False)
     except Exception:
-        logger.exception("Failed to search YouTube for keyword: %s", keyword)
+        logger.exception(
+            "Failed to search YouTube with yt-dlp for keyword: %s", keyword
+        )
         return []
 
     entries = info.get("entries") or [] if info else []
     video_ids: list[str] = []
     for entry in entries:
-        if isinstance(entry, dict):
-            vid_id = entry.get("id") or entry.get("url") or ""
-            if vid_id:
-                video_ids.append(str(vid_id))
+        if not isinstance(entry, dict):
+            continue
+        vid_id = entry.get("id") or entry.get("url") or ""
+        if vid_id:
+            video_ids.append(str(vid_id))
 
-    logger.info("Keyword '%s': found %d videos", keyword, len(video_ids))
+    logger.info("Keyword '%s': found %d videos via yt-dlp", keyword, len(video_ids))
     return video_ids
+
+
+# ── Keyword search ────────────────────────────────────────────
+
+
+@task(
+    name="search_videos_by_keyword_google_or_yt_dlp",
+    retries=3,
+    retry_delay_seconds=[10, 30, 90],
+    retry_jitter_factor=0.2,
+    retry_condition_fn=_should_retry_youtube,
+)
+def search_videos_by_keyword_google_or_yt_dlp(
+    keyword: str,
+    max_results: int | None = None,
+    published_after: datetime | None = None,
+    published_before: datetime | None = None,
+) -> list[str]:
+    """
+    Search YouTube for videos matching a keyword.
+    Returns a list of video IDs.
+
+    Args:
+        published_after: Filter videos published on or after this timestamp.
+        published_before: Filter videos published on or before this timestamp.
+
+    When a date window is provided, the Google YouTube Data API is used so
+    filtering happens server-side. Otherwise, yt-dlp is used as the fast
+    default path.
+    """
+    if max_results is None:
+        max_results = MAX_VIDEOS_PER_KEYWORD
+
+    if published_after or published_before:
+        if not YOUTUBE_API_KEY:
+            raise RuntimeError(
+                "Date-bounded keyword search requires YOUTUBE_API_KEY "
+                "(or GOOGLE_API_KEY) with YouTube Data API enabled"
+            )
+        try:
+            video_ids = _search_videos_by_keyword_google_api(
+                keyword,
+                max_results,
+                published_after=published_after,
+                published_before=published_before,
+            )
+            logger.info(
+                "Keyword '%s': found %d videos via YouTube Data API",
+                keyword,
+                len(video_ids),
+            )
+            return video_ids
+        except httpx.HTTPStatusError as exc:
+            logger.exception(
+                "YouTube Data API search failed for keyword: %s",
+                keyword,
+            )
+            raise RuntimeError(
+                "Date-bounded keyword search failed. Ensure YOUTUBE_API_KEY is valid "
+                "and has YouTube Data API v3 enabled."
+            ) from exc
+        except httpx.HTTPError as exc:
+            logger.exception(
+                "YouTube Data API search failed for keyword: %s",
+                keyword,
+            )
+            raise RuntimeError(
+                "Date-bounded keyword search failed due to a YouTube Data API request error."
+            ) from exc
+
+    return _search_videos_by_keyword_yt_dlp(keyword, max_results)
 
 
 # ── Creator / Channel video fetch ─────────────────────────────

@@ -384,8 +384,8 @@ def get_videos_for_funnel(funnel_id: str) -> list[VideoData]:
                        v."publishedAt", v."viewCount", v."likeCount", v."commentCount",
                        v."durationSeconds", v.tags, v.transcript, v.summary
                 FROM "Video" v
-                JOIN "_FunnelToVideo" fv ON fv."B" = v.id
-                WHERE fv."A" = %s
+                JOIN "FunnelVideo" fv ON fv."videoId" = v.id
+                WHERE fv."funnelId" = %s
                 """,
                 (funnel_id,),
             )
@@ -409,6 +409,68 @@ def get_videos_for_funnel(funnel_id: str) -> list[VideoData]:
                 for row in rows
             ]
             logger.info("Fetched %d video(s) for funnel %s", len(videos), funnel_id)
+            return videos
+
+
+@task(name="get_unclassified_videos_for_funnel", retries=2, retry_delay_seconds=5)
+def get_unclassified_videos_for_funnel(
+    funnel_id: str,
+    class_node_ids: list[str],
+    limit: int,
+) -> list[VideoData]:
+    """Fetch videos linked to a funnel that are missing a ClassNodeResult for at least
+    one of the given class nodes. Results are ordered by FunnelVideo.createdAt ASC
+    (oldest added first) and capped at *limit*.
+    """
+    if not class_node_ids:
+        return []
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            # "Unclassified" means the video has no result for any node yet.
+            cur.execute(
+                """
+                SELECT v.id, v.title, v.description, v."channelTitle", v."channelId",
+                       v."publishedAt", v."viewCount", v."likeCount", v."commentCount",
+                       v."durationSeconds", v.tags, v.transcript, v.summary
+                FROM "Video" v
+                JOIN "FunnelVideo" fv ON fv."videoId" = v.id
+                WHERE fv."funnelId" = %s
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM "ClassNodeResult" cnr
+                      WHERE cnr."videoId" = v.id
+                        AND cnr."classNodeId" = ANY(%s::text[])
+                  )
+                ORDER BY fv."createdAt" ASC
+                LIMIT %s
+                """,
+                (funnel_id, class_node_ids, limit),
+            )
+            rows = cur.fetchall()
+            videos = [
+                VideoData(
+                    video_id=row["id"],
+                    title=row["title"] or "",
+                    description=row["description"] or "",
+                    channel_title=row["channelTitle"] or "",
+                    channel_id=row["channelId"] or "",
+                    published_at=row["publishedAt"],
+                    view_count=row["viewCount"] or 0,
+                    like_count=row["likeCount"] or 0,
+                    comment_count=row["commentCount"] or 0,
+                    duration_seconds=row["durationSeconds"] or 0,
+                    tags=row["tags"] or [],
+                    transcript=row["transcript"],
+                    summary=row["summary"],
+                )
+                for row in rows
+            ]
+            logger.info(
+                "Fetched %d unclassified video(s) for funnel %s (limit=%d)",
+                len(videos),
+                funnel_id,
+                limit,
+            )
             return videos
 
 
@@ -674,15 +736,19 @@ def bulk_check_existing_class_node_results(
     """Return the subset of (video_id, class_node_id) pairs that already exist in the DB."""
     if not pairs:
         return set()
+    video_ids = [p[0] for p in pairs]
+    class_node_ids = [p[1] for p in pairs]
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
                 SELECT "videoId", "classNodeId"
                 FROM "ClassNodeResult"
-                WHERE ("videoId", "classNodeId") = ANY(%s)
+                WHERE ("videoId", "classNodeId") IN (
+                    SELECT * FROM unnest(%s::text[], %s::text[])
+                )
                 """,
-                (list(pairs),),
+                (video_ids, class_node_ids),
             )
             existing = {(row[0], row[1]) for row in cur.fetchall()}
     logger.info(
@@ -740,7 +806,10 @@ def bulk_save_class_node_results(
             )
             conn.commit()
     result_id_map = {(row[1], row[2]): row[0] for row in returned}
-    logger.info("bulk_save_class_node_results: upserted %d ClassNodeResult rows", len(result_id_map))
+    logger.info(
+        "bulk_save_class_node_results: upserted %d ClassNodeResult rows",
+        len(result_id_map),
+    )
     return result_id_map
 
 
@@ -1002,8 +1071,12 @@ def replace_idea_graph(graph_id: str, snapshot: IdeaGraphSnapshot) -> None:
                 ),
             )
 
-            cur.execute("""DELETE FROM "IdeaGraphEdge" WHERE "graphId" = %s""", (graph_id,))
-            cur.execute("""DELETE FROM "IdeaGraphNode" WHERE "graphId" = %s""", (graph_id,))
+            cur.execute(
+                """DELETE FROM "IdeaGraphEdge" WHERE "graphId" = %s""", (graph_id,)
+            )
+            cur.execute(
+                """DELETE FROM "IdeaGraphNode" WHERE "graphId" = %s""", (graph_id,)
+            )
 
             if snapshot.nodes:
                 psycopg2.extras.execute_values(

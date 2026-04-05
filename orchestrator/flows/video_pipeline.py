@@ -21,7 +21,8 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
-from prefect import flow, get_run_logger
+from prefect import flow, get_run_logger, task
+from prefect.task_runners import ThreadPoolTaskRunner
 
 from config import (
     CLASSIFY_MAJORITY_THRESHOLD,
@@ -47,7 +48,7 @@ from tasks.db import (
     get_funnel_by_id,
     get_funnel_video_ids,
     get_video_data,
-    get_videos_for_funnel,
+    get_unclassified_videos_for_funnel,
     link_video_to_funnel,
     save_class_node_model_verdicts,
     save_video,
@@ -59,12 +60,14 @@ from tasks.youtube import (
     fetch_creator_videos,
     fetch_transcript,
     fetch_video_metadata,
-    search_videos_by_keyword,
+    search_videos_by_keyword_google_or_yt_dlp,
 )
 from utils.failed_queue import get_failed_queue
 from utils.rate_limiter import get_rate_limiter
 
 logging.basicConfig(level=logging.INFO)
+
+_VIDEO_PROCESSING_MAX_WORKERS = 4
 
 
 # ── on_failure hooks ──────────────────────────────────────────
@@ -147,9 +150,7 @@ def _save_all_results(
     """
     # ── 1. Ensure LLM rows exist (one call for all videos) ────────
     all_llm_ids = {
-        v["model"]
-        for data in classification_map.values()
-        for v in data["verdicts"]
+        v["model"] for data in classification_map.values() for v in data["verdicts"]
     }
     if all_llm_ids:
         ensure_llms_exist(list(all_llm_ids))
@@ -181,9 +182,7 @@ def _save_all_results(
         for node_id in fail_node_ids:
             node_verdicts = [v for v in data["verdicts"] if v["node_id"] == node_id]
             pass_votes = sum(1 for v in node_verdicts if v["verdict"])
-            confidence_score = (
-                pass_votes / len(node_verdicts) if node_verdicts else 0.0
-            )
+            confidence_score = pass_votes / len(node_verdicts) if node_verdicts else 0.0
             verdict_index[(video_id, node_id)] = node_verdicts
             all_results.append(
                 ClassNodeResultCreate(
@@ -231,6 +230,8 @@ def _save_all_results(
 
     if all_verdicts:
         save_class_node_model_verdicts(all_verdicts)
+    else:
+        logger.info("skipped save_class_node_model_verdicts: no verdicts to save")
 
 
 def _classify_videos_via_langgraph(
@@ -383,14 +384,42 @@ def _classify_videos_via_langgraph(
 @flow(name="discover_videos", log_prints=True)
 def discover_videos(funnel: FunnelWithRelations) -> list[str]:
     """
-    Video discovery using keyword search and creator fetch (yt-dlp).
+    Video discovery using keyword search and creator fetch.
+
+    Keyword search is bounded by the last pipeline run timestamp and the current
+    time so only newly published videos are returned on incremental runs. On the
+    first run (no last_pipeline_run_at), no keyword date filter is applied.
     """
     logger = get_run_logger()
     discovered: set[str] = set()
 
+    now = datetime.now(timezone.utc)
+    published_after: datetime | None = None
+    published_before: datetime | None = None
+
+    if funnel.last_pipeline_run_at:
+        last_run = funnel.last_pipeline_run_at
+        if last_run.tzinfo is None:
+            last_run = last_run.replace(tzinfo=timezone.utc)
+        published_after = last_run
+        published_before = now
+        logger.info(
+            "Keyword search time range: %s -> %s",
+            published_after.isoformat(),
+            published_before.isoformat(),
+        )
+    else:
+        logger.info(
+            "First run for funnel '%s' - no keyword date filter applied",
+            funnel.name,
+        )
+
     for kw in funnel.keywords:
-        video_ids = search_videos_by_keyword(
-            kw.keyword, max_results=funnel.max_videos_per_keyword
+        video_ids = search_videos_by_keyword_google_or_yt_dlp(
+            kw.keyword,
+            max_results=funnel.max_videos_per_keyword,
+            published_after=published_after,
+            published_before=published_before,
         )
         discovered.update(video_ids)
         logger.info("Keyword '%s': found %d videos", kw.keyword, len(video_ids))
@@ -459,6 +488,19 @@ def process_video_for_funnel(
     return video_data
 
 
+@task(name="submit_process_video_for_funnel")
+def _submit_process_video_for_funnel(
+    video_id: str,
+    funnel: FunnelWithRelations,
+    model_name: str | None = None,
+) -> VideoData | None:
+    return process_video_for_funnel(
+        video_id=video_id,
+        funnel=funnel,
+        model_name=model_name,
+    )
+
+
 # ── Main flow ─────────────────────────────────────────────────
 
 
@@ -506,13 +548,17 @@ def _process_funnel(
     # ── 2. Save + link to funnel ──────────────────────────────
     t0 = time.perf_counter()
     saved_videos: list[VideoData] = []
-    for video_id in new_ids:
+    submitted_video_runs = {
+        video_id: _submit_process_video_for_funnel.submit(
+            video_id=video_id,
+            funnel=funnel,
+            model_name=model_name,
+        )
+        for video_id in new_ids
+    }
+    for video_id, future in submitted_video_runs.items():
         try:
-            video_data = process_video_for_funnel(
-                video_id=video_id,
-                funnel=funnel,
-                model_name=model_name,
-            )
+            video_data = future.result()
             if video_data:
                 saved_videos.append(video_data)
         except Exception:
@@ -535,15 +581,39 @@ def _process_funnel(
         return
 
     # ── 3. Call classify_items LangGraph agent ────────────────
-    # Classify ALL videos in funnel (not just new ones) to handle re-runs cleanly
-    all_funnel_videos = get_videos_for_funnel(funnel.id)
+    _MAX_CLASSIFICATION_VIDEOS = 100
+    class_node_ids = [cn.id for cn in funnel.class_nodes]
+
+    # Oldest-first unclassified videos, capped at the max
+    unclassified_videos = get_unclassified_videos_for_funnel(
+        funnel_id=funnel.id,
+        class_node_ids=class_node_ids,
+        limit=_MAX_CLASSIFICATION_VIDEOS - len(saved_videos),
+    )
+
+    # Newly saved videos must always be processed — add any that weren't in the
+    # oldest-first batch (they'd be at the tail and could have been cut by LIMIT)
+    unclassified_ids = {v.video_id for v in unclassified_videos}
+    extra_saved = [v for v in saved_videos if v.video_id not in unclassified_ids]
+    if extra_saved:
+        slots = max(0, _MAX_CLASSIFICATION_VIDEOS - len(extra_saved))
+        videos_to_classify = unclassified_videos[:slots] + extra_saved
+    else:
+        videos_to_classify = unclassified_videos
+
+    logger.info(
+        "Step 3 candidates: %d unclassified (oldest-first) + %d forced-new = %d total",
+        len(unclassified_videos) - len(extra_saved),
+        len(extra_saved),
+        len(videos_to_classify),
+    )
 
     t0 = time.perf_counter()
     try:
         classification_map = _classify_videos_via_langgraph(
             funnel=funnel,
             class_nodes=funnel.class_nodes,
-            videos=all_funnel_videos,
+            videos=videos_to_classify,
             logger=logger,
         )
         logger.info(
@@ -577,6 +647,7 @@ def _process_funnel(
     name="video_pipeline",
     log_prints=True,
     on_failure=[_on_langgraph_classify_failure],
+    task_runner=ThreadPoolTaskRunner(max_workers=_VIDEO_PROCESSING_MAX_WORKERS),
 )
 def video_pipeline(
     model_name: str | None = None,
@@ -677,7 +748,11 @@ def retry_failed_jobs(queue_names: list[str] | None = None) -> None:
     """
     logger = get_run_logger()
 
-    all_queues = ["process_video_for_funnel", "evaluate_class_node", "langgraph_classify"]
+    all_queues = [
+        "process_video_for_funnel",
+        "evaluate_class_node",
+        "langgraph_classify",
+    ]
     targets = queue_names or all_queues
 
     for qname in targets:
@@ -703,7 +778,9 @@ def retry_failed_jobs(queue_names: list[str] | None = None) -> None:
                         "Funnel %s not found, skipping video %s", funnel_id, video_id
                     )
                     continue
-                logger.info("Re-processing video %s for funnel '%s'", video_id, funnel.name)
+                logger.info(
+                    "Re-processing video %s for funnel '%s'", video_id, funnel.name
+                )
                 process_video_for_funnel(
                     video_id=video_id, funnel=funnel, model_name=model_name
                 )

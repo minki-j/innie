@@ -4,4 +4,10 @@ import uvicorn
 
 
 def main() -> None:
-    uvicorn.run("server:app", host="127.0.0.1", port=8200, reload=True)
+    uvicorn.run(
+        "server:app",
+        host="127.0.0.1",
+        port=8200,
+        reload=True,
+        reload_excludes=["**/__pycache__/**", "**/*.pyc"],
+    )

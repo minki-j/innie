@@ -323,4 +323,10 @@ async def stream_idea_graph_generation_events(
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8200)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        reload=True,
+        port=8200,
+        exclude=["**/__pycache__/**", "**/*.pyc"],
+    )
