@@ -9,7 +9,6 @@ pull:
       id: clone
       repository: https://github.com/minki-j/innie.git
       branch: main
-      access_token: "{{ prefect.blocks.secret.github-access-token }}"
       directories:
         - orchestrator
   - prefect.deployments.steps.set_working_directory:
@@ -21,6 +20,6 @@ deployments:
     work_pool:
       name: main # prefect managed work pool
       # job_variables (pip_packages + env) are synced via: uv run sync-prefect
-    # schedules:
-    #   - cron: "0 * * * *"  # every hour; topics self-regulate via pipelineIntervalHours
-    #     timezone: "UTC"
+    schedules:
+      - cron: "0 * * * *"  # every hour
+        timezone: "UTC"

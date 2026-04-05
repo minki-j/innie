@@ -27,7 +27,7 @@ SKIP_ENV_KEYS = {"PREFECT_API_KEY", "PREFECT_API_URL"}
 
 def load_env() -> dict[str, str]:
     """Load env vars from orchestrator/.env only."""
-    path = ORCHESTRATOR_DIR / ".env"
+    path = ORCHESTRATOR_DIR / ".env.prod"
     return {k: v for k, v in dotenv_values(path).items() if v is not None}
 
 
@@ -81,7 +81,9 @@ async def _main() -> None:
         )
         resp.raise_for_status()
 
-    print(f"Done — {len(pip_packages)} pip packages, {len(sync_env)} env vars pushed to work pool '{WORK_POOL_NAME}'.")
+    print(
+        f"Done — {len(pip_packages)} pip packages, {len(sync_env)} env vars pushed to work pool '{WORK_POOL_NAME}'."
+    )
 
 
 def main() -> None:

@@ -18,7 +18,7 @@ ORCHESTRATOR_DIR = Path(__file__).resolve().parent.parent
 def main() -> None:
     print("Deploying flows...")
     result = subprocess.run(
-        ["uv", "run", "prefect", "deploy", "--all"],
+        [sys.executable, "-m", "prefect", "deploy", "--all"],
         cwd=ORCHESTRATOR_DIR,
     )
     if result.returncode != 0:

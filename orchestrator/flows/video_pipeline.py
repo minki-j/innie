@@ -546,6 +546,7 @@ def _process_funnel(
     )
 
     # ── 2. Save + link to funnel ──────────────────────────────
+    # Use a thread pool -- .submit() from prefect -- to process videos in parallel.
     t0 = time.perf_counter()
     saved_videos: list[VideoData] = []
     submitted_video_runs = {
