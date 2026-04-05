@@ -213,7 +213,7 @@ export function ClassNodeDetailPanel({
                     <p className="text-xs text-gray-400 mt-0.5">{v.channelTitle}</p>
                     {v.confidence !== null && (
                       <span className="text-[11px] text-green-600 mt-1 inline-block">
-                        {v.confidence}% confidence
+                        {Math.round(v.confidence * 100)}% confidence
                       </span>
                     )}
                   </div>

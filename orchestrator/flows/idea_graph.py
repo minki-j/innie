@@ -23,6 +23,10 @@ from tasks.youtube import fetch_transcript_segments
 from utils.idea_graph_events import get_idea_graph_event_store
 from utils.rate_limiter import get_rate_limiter
 
+from prefect_github.repository import GitHubRepository
+
+github_repository_block = GitHubRepository.load("innie-github-repo-read-access")
+
 logger = logging.getLogger(__name__)
 
 STREAM_INACTIVITY_TIMEOUT_SECONDS = 15.0

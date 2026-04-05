@@ -65,6 +65,10 @@ from tasks.youtube import (
 from utils.failed_queue import get_failed_queue
 from utils.rate_limiter import get_rate_limiter
 
+from prefect_github.repository import GitHubRepository
+
+github_repository_block = GitHubRepository.load("innie-github-repo-read-access")
+
 logging.basicConfig(level=logging.INFO)
 
 _VIDEO_PROCESSING_MAX_WORKERS = 4
