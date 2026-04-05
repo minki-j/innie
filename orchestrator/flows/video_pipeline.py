@@ -28,7 +28,6 @@ from config import (
     CLASSIFY_MAJORITY_THRESHOLD,
     CLASSIFY_MODELS,
     CLASSIFY_TOTAL_INVOCATIONS,
-    DISCOVERY_OVERFETCH_MULTIPLIER,
     LANGGRAPH_API_KEY,
     LANGGRAPH_API_URL,
     MIN_VIDEO_LIKE_COUNT,
@@ -421,7 +420,7 @@ def discover_videos(funnel: FunnelWithRelations) -> list[str]:
     for kw in funnel.keywords:
         video_ids = search_videos_by_keyword_google_or_yt_dlp(
             kw.keyword,
-            max_results=funnel.max_videos_per_keyword * DISCOVERY_OVERFETCH_MULTIPLIER,
+            max_results=funnel.max_videos_per_keyword,
             published_after=published_after,
             published_before=published_before,
         )
@@ -433,7 +432,7 @@ def discover_videos(funnel: FunnelWithRelations) -> list[str]:
             channel_id=creator.channel_id,
             channel_url=creator.channel_url,
             months_back=creator.scrape_months_back,
-            max_results=funnel.max_videos_per_creator * DISCOVERY_OVERFETCH_MULTIPLIER,
+            max_results=funnel.max_videos_per_creator,
         )
         discovered.update(video_ids)
         logger.info(

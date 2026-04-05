@@ -53,9 +53,6 @@ MAX_VIDEOS_PER_KEYWORD: int = int(os.environ["MAX_VIDEOS_PER_KEYWORD"])
 MAX_VIDEOS_PER_CREATOR: int = int(os.environ["MAX_VIDEOS_PER_CREATOR"])
 MIN_VIDEO_VIEW_COUNT: int = int(os.environ.get("MIN_VIDEO_VIEW_COUNT", "1000"))
 MIN_VIDEO_LIKE_COUNT: int = int(os.environ.get("MIN_VIDEO_LIKE_COUNT", "100"))
-DISCOVERY_OVERFETCH_MULTIPLIER: int = int(
-    os.environ.get("DISCOVERY_OVERFETCH_MULTIPLIER", "10")
-)
 
 # ── Transcript ────────────────────────────────────────────────
 

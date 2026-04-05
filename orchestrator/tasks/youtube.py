@@ -242,7 +242,7 @@ def _search_videos_by_keyword_google_api(
                 "type": "video",
                 "q": keyword,
                 "maxResults": min(_YOUTUBE_BATCH_SIZE, max_results - len(video_ids)),
-                "order": "date",
+                "order": "viewCount",
             }
             if next_page_token:
                 params["pageToken"] = next_page_token
