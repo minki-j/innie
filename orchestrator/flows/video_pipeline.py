@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from prefect import flow, get_run_logger, task
@@ -404,7 +404,8 @@ def discover_videos(funnel: FunnelWithRelations) -> list[str]:
         last_run = funnel.last_pipeline_run_at
         if last_run.tzinfo is None:
             last_run = last_run.replace(tzinfo=timezone.utc)
-        published_after = last_run
+        min_window = timedelta(days=1)
+        published_after = min(last_run, now - min_window)
         published_before = now
         logger.info(
             "Keyword search time range: %s -> %s",
