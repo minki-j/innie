@@ -30,6 +30,8 @@ from config import (
     CLASSIFY_TOTAL_INVOCATIONS,
     LANGGRAPH_API_KEY,
     LANGGRAPH_API_URL,
+    MAX_VIDEO_DURATION_SECONDS,
+    MIN_VIDEO_DURATION_SECONDS,
     MIN_VIDEO_LIKE_COUNT,
     MIN_VIDEO_VIEW_COUNT,
 )
@@ -529,23 +531,45 @@ def _passes_engagement_threshold(video: VideoData) -> bool:
     )
 
 
-def _filter_prefetched_videos_by_engagement(
+def _is_valid_duration(video: VideoData) -> bool:
+    if video.duration_seconds < MIN_VIDEO_DURATION_SECONDS:
+        return False
+    if MAX_VIDEO_DURATION_SECONDS > 0 and video.duration_seconds > MAX_VIDEO_DURATION_SECONDS:
+        return False
+    return True
+
+
+def _filter_prefetched_videos(
     video_map: dict[str, VideoData],
     logger: Any,
 ) -> dict[str, VideoData]:
     if not video_map:
         return {}
 
-    filtered = {
-        video_id: video
-        for video_id, video in video_map.items()
-        if _passes_engagement_threshold(video)
-    }
-    skipped = len(video_map) - len(filtered)
-    if skipped:
+    filtered: dict[str, VideoData] = {}
+    skipped_engagement = 0
+    skipped_duration = 0
+
+    for video_id, video in video_map.items():
+        if not _is_valid_duration(video):
+            skipped_duration += 1
+            continue
+        if not _passes_engagement_threshold(video):
+            skipped_engagement += 1
+            continue
+        filtered[video_id] = video
+
+    if skipped_duration:
         logger.info(
-            "Filtered out %d low-engagement video(s) using thresholds: min_view_count=%d, min_like_count=%d",
-            skipped,
+            "Filtered out %d video(s) by duration (min=%ds, max=%s): likely Shorts or static content",
+            skipped_duration,
+            MIN_VIDEO_DURATION_SECONDS,
+            f"{MAX_VIDEO_DURATION_SECONDS}s" if MAX_VIDEO_DURATION_SECONDS > 0 else "unlimited",
+        )
+    if skipped_engagement:
+        logger.info(
+            "Filtered out %d low-engagement video(s) (min_views=%d, min_likes=%d)",
+            skipped_engagement,
             MIN_VIDEO_VIEW_COUNT,
             MIN_VIDEO_LIKE_COUNT,
         )
@@ -599,7 +623,7 @@ def _process_funnel(
     t0 = time.perf_counter()
     saved_videos: list[VideoData] = []
     prefetched_video_map = fetch_video_metadata_batch(new_ids) if new_ids else {}
-    prefetched_video_map = _filter_prefetched_videos_by_engagement(
+    prefetched_video_map = _filter_prefetched_videos(
         prefetched_video_map,
         logger,
     )
