@@ -14,7 +14,7 @@ from typing import Any, Generator
 
 import psycopg2
 import psycopg2.extras
-from prefect import task
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from config import DATABASE_URL
 from models.schemas import (
@@ -31,6 +31,12 @@ from models.schemas import (
 )
 
 logger = logging.getLogger(__name__)
+
+_db_retry = retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(5),
+    retry=retry_if_exception_type((psycopg2.OperationalError, psycopg2.InterfaceError)),
+)
 
 
 # ── Connection helper ─────────────────────────────────────────
@@ -219,10 +225,10 @@ def _load_funnel_relations(cur: Any, funnel_id: str) -> dict[str, Any]:
     return dict(keywords=keywords, creators=creators, class_nodes=class_nodes)
 
 
-# ── Read tasks ────────────────────────────────────────────────
+# ── Read helpers ──────────────────────────────────────────────
 
 
-@task(name="get_funnels_due_for_pipeline", retries=2, retry_delay_seconds=5)
+@_db_retry
 def get_funnels_due_for_pipeline() -> list[FunnelWithRelations]:
     """
     Active funnels whose pipeline interval has elapsed (or never ran), using
@@ -256,7 +262,7 @@ def get_funnels_due_for_pipeline() -> list[FunnelWithRelations]:
             return funnels
 
 
-@task(name="get_funnel_by_id", retries=2, retry_delay_seconds=5)
+@_db_retry
 def get_funnel_by_id(funnel_id: str) -> FunnelWithRelations | None:
     """
     Fetch a single funnel by ID with all its relations.
@@ -285,7 +291,7 @@ def get_funnel_by_id(funnel_id: str) -> FunnelWithRelations | None:
             return funnel
 
 
-@task(name="get_funnel_video_ids", retries=2, retry_delay_seconds=5)
+@_db_retry
 def get_funnel_video_ids(funnel_id: str) -> set[str]:
     """Get all video IDs already linked to a funnel."""
     with get_connection() as conn:
@@ -299,7 +305,6 @@ def get_funnel_video_ids(funnel_id: str) -> set[str]:
             return ids
 
 
-@task(name="video_exists")
 def video_exists(video_id: str) -> bool:
     """Check if a video already exists in the DB."""
     with get_connection() as conn:
@@ -313,7 +318,6 @@ def video_exists(video_id: str) -> bool:
             return exists
 
 
-@task(name="class_node_result_exists")
 def class_node_result_exists(video_id: str, class_node_id: str) -> bool:
     """Check if a ClassNodeResult already exists for this video+class_node pair."""
     with get_connection() as conn:
@@ -335,7 +339,7 @@ def class_node_result_exists(video_id: str, class_node_id: str) -> bool:
             return exists
 
 
-@task(name="get_video_data", retries=2, retry_delay_seconds=5)
+@_db_retry
 def get_video_data(video_id: str) -> VideoData | None:
     """Fetch a VideoData from the DB (metadata + transcript) for re-evaluation."""
     with get_connection() as conn:
@@ -373,7 +377,7 @@ def get_video_data(video_id: str) -> VideoData | None:
             return video
 
 
-@task(name="get_videos_for_funnel", retries=2, retry_delay_seconds=5)
+@_db_retry
 def get_videos_for_funnel(funnel_id: str) -> list[VideoData]:
     """Fetch all VideoData for videos linked to a specific funnel."""
     with get_connection() as conn:
@@ -412,7 +416,7 @@ def get_videos_for_funnel(funnel_id: str) -> list[VideoData]:
             return videos
 
 
-@task(name="get_unclassified_videos_for_funnel", retries=2, retry_delay_seconds=5)
+@_db_retry
 def get_unclassified_videos_for_funnel(
     funnel_id: str,
     class_node_ids: list[str],
@@ -474,7 +478,7 @@ def get_unclassified_videos_for_funnel(
             return videos
 
 
-@task(name="get_gold_standard_video_data", retries=2, retry_delay_seconds=5)
+@_db_retry
 def get_gold_standard_video_data(
     class_node_id: str,
     funnel_id: str,
@@ -551,7 +555,7 @@ def get_gold_standard_video_data(
             return results
 
 
-@task(name="get_class_node_video_ids", retries=2, retry_delay_seconds=5)
+@_db_retry
 def get_class_node_video_ids(class_node_id: str) -> set[str]:
     """Get all video IDs that have a ClassNodeResult for a given ClassNode."""
     with get_connection() as conn:
@@ -567,7 +571,7 @@ def get_class_node_video_ids(class_node_id: str) -> set[str]:
             return ids
 
 
-@task(name="delete_stale_class_node_results", retries=2, retry_delay_seconds=5)
+@_db_retry
 def delete_stale_class_node_results(video_ids: list[str], funnel_id: str) -> int:
     """Delete ClassNodeResult rows where the ClassNode no longer belongs to the funnel."""
     if not video_ids:
@@ -596,7 +600,7 @@ def delete_stale_class_node_results(video_ids: list[str], funnel_id: str) -> int
     return deleted
 
 
-# ── Write tasks ───────────────────────────────────────────────
+# ── Write helpers ─────────────────────────────────────────────
 
 
 def _generate_cuid() -> str:
@@ -609,7 +613,7 @@ def _generate_cuid() -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:25]
 
 
-@task(name="save_video", retries=2, retry_delay_seconds=5)
+@_db_retry
 def save_video(video: VideoData) -> None:
     """Upsert a video and its channel into the DB."""
     now = datetime.now(timezone.utc)
@@ -668,7 +672,7 @@ def save_video(video: VideoData) -> None:
     logger.info("Saved video %s: %s", video.video_id, video.title)
 
 
-@task(name="link_video_to_funnel", retries=2, retry_delay_seconds=5)
+@_db_retry
 def link_video_to_funnel(video_id: str, funnel_id: str) -> None:
     """Link a video to a funnel and mark it as COMPLETED in FunnelVideo."""
     with get_connection() as conn:
@@ -686,7 +690,7 @@ def link_video_to_funnel(video_id: str, funnel_id: str) -> None:
     logger.info("Linked video %s to funnel %s", video_id, funnel_id)
 
 
-@task(name="save_class_node_result", retries=2, retry_delay_seconds=5)
+@_db_retry
 def save_class_node_result(result: ClassNodeResultCreate) -> str:
     """Insert or update a ClassNodeResult. Returns the row id."""
     now = datetime.now(timezone.utc)
@@ -729,7 +733,7 @@ def save_class_node_result(result: ClassNodeResultCreate) -> str:
     return returned_id
 
 
-@task(name="bulk_check_existing_class_node_results", retries=2, retry_delay_seconds=5)
+@_db_retry
 def bulk_check_existing_class_node_results(
     pairs: list[tuple[str, str]],
 ) -> set[tuple[str, str]]:
@@ -759,7 +763,7 @@ def bulk_check_existing_class_node_results(
     return existing
 
 
-@task(name="bulk_save_class_node_results", retries=2, retry_delay_seconds=5)
+@_db_retry
 def bulk_save_class_node_results(
     results: list[ClassNodeResultCreate],
 ) -> dict[tuple[str, str], str]:
@@ -813,7 +817,7 @@ def bulk_save_class_node_results(
     return result_id_map
 
 
-@task(name="ensure_llms_exist", retries=2, retry_delay_seconds=5)
+@_db_retry
 def ensure_llms_exist(llm_ids: list[str]) -> None:
     """Upsert LLM rows for all model IDs, deriving provider from the model name."""
     if not llm_ids:
@@ -843,7 +847,7 @@ def ensure_llms_exist(llm_ids: list[str]) -> None:
     logger.info("Ensured %d LLM row(s): %s", len(llm_ids), llm_ids)
 
 
-@task(name="save_class_node_model_verdicts", retries=2, retry_delay_seconds=5)
+@_db_retry
 def save_class_node_model_verdicts(verdicts: list[ClassNodeModelVerdictCreate]) -> None:
     """Batch-insert ClassNodeModelVerdict rows."""
     if not verdicts:
@@ -883,7 +887,7 @@ def save_class_node_model_verdicts(verdicts: list[ClassNodeModelVerdictCreate]) 
     logger.info("Saved %d ClassNodeModelVerdict rows", len(verdicts))
 
 
-@task(name="update_funnel_last_run", retries=2, retry_delay_seconds=5)
+@_db_retry
 def update_funnel_last_run(funnel_id: str) -> None:
     """Set lastPipelineRunAt to now for a funnel."""
     now = datetime.now(timezone.utc)

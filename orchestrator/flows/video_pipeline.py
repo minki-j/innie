@@ -30,6 +30,8 @@ from config import (
     CLASSIFY_TOTAL_INVOCATIONS,
     LANGGRAPH_API_KEY,
     LANGGRAPH_API_URL,
+    MIN_VIDEO_LIKE_COUNT,
+    MIN_VIDEO_VIEW_COUNT,
 )
 from models.schemas import (
     ClassNodeModelVerdictCreate,
@@ -511,6 +513,44 @@ def _submit_process_video_for_funnel(
 # ── Main flow ─────────────────────────────────────────────────
 
 
+_STEP_SEP = "─" * 60
+
+
+def _step_log(logger: Any, msg: str, *args: Any) -> None:
+    formatted = msg % args if args else msg
+    logger.info("\n%s\n  %s\n%s", _STEP_SEP, formatted, _STEP_SEP)
+
+
+def _passes_engagement_threshold(video: VideoData) -> bool:
+    return (
+        video.view_count >= MIN_VIDEO_VIEW_COUNT
+        and video.like_count >= MIN_VIDEO_LIKE_COUNT
+    )
+
+
+def _filter_prefetched_videos_by_engagement(
+    video_map: dict[str, VideoData],
+    logger: Any,
+) -> dict[str, VideoData]:
+    if not video_map:
+        return {}
+
+    filtered = {
+        video_id: video
+        for video_id, video in video_map.items()
+        if _passes_engagement_threshold(video)
+    }
+    skipped = len(video_map) - len(filtered)
+    if skipped:
+        logger.info(
+            "Filtered out %d low-engagement video(s) using thresholds: min_view_count=%d, min_like_count=%d",
+            skipped,
+            MIN_VIDEO_VIEW_COUNT,
+            MIN_VIDEO_LIKE_COUNT,
+        )
+    return filtered
+
+
 def _process_funnel(
     funnel: FunnelWithRelations,
     model_name: str | None,
@@ -545,7 +585,8 @@ def _process_funnel(
     existing_funnel_video_ids = get_funnel_video_ids(funnel.id)
     discovered_ids = discover_videos(funnel)
     new_ids = [vid for vid in discovered_ids if vid not in existing_funnel_video_ids]
-    logger.info(
+    _step_log(
+        logger,
         "Step 1 (discover videos) took %.2fs — %d discovered, %d new",
         time.perf_counter() - t0,
         len(discovered_ids),
@@ -557,6 +598,11 @@ def _process_funnel(
     t0 = time.perf_counter()
     saved_videos: list[VideoData] = []
     prefetched_video_map = fetch_video_metadata_batch(new_ids) if new_ids else {}
+    prefetched_video_map = _filter_prefetched_videos_by_engagement(
+        prefetched_video_map,
+        logger,
+    )
+    eligible_new_ids = [video_id for video_id in new_ids if video_id in prefetched_video_map]
     submitted_video_runs = {
         video_id: _submit_process_video_for_funnel.submit(
             video_id=video_id,
@@ -564,7 +610,7 @@ def _process_funnel(
             model_name=model_name,
             prefetched_video_data=prefetched_video_map.get(video_id),
         )
-        for video_id in new_ids
+        for video_id in eligible_new_ids
     }
     for video_id, future in submitted_video_runs.items():
         try:
@@ -575,7 +621,8 @@ def _process_funnel(
             logger.exception(
                 "Failed to process video %s for funnel '%s'", video_id, funnel.name
             )
-    logger.info(
+    _step_log(
+        logger,
         "Step 2 (save + link videos) took %.2fs — %d saved",
         time.perf_counter() - t0,
         len(saved_videos),
@@ -611,7 +658,8 @@ def _process_funnel(
     else:
         videos_to_classify = unclassified_videos
 
-    logger.info(
+    _step_log(
+        logger,
         "Step 3 candidates: %d unclassified (oldest-first) + %d forced-new = %d total",
         len(unclassified_videos) - len(extra_saved),
         len(extra_saved),
@@ -626,7 +674,8 @@ def _process_funnel(
             videos=videos_to_classify,
             logger=logger,
         )
-        logger.info(
+        _step_log(
+            logger,
             "Step 3 (LangGraph classification) took %.2fs — %d videos classified",
             time.perf_counter() - t0,
             len(classification_map),
@@ -643,14 +692,16 @@ def _process_funnel(
     # ── 4. Save ClassNodeResults and per-model verdicts ───────
     t0 = time.perf_counter()
     _save_all_results(classification_map, logger, skip_existing=True)
-    logger.info("Step 4 (save results) took %.2fs", time.perf_counter() - t0)
+    _step_log(logger, "Step 4 (save results) took %.2fs", time.perf_counter() - t0)
 
     # ── 5. Update lastPipelineRunAt ───────────────────────────
     if update_last_run:
         t0 = time.perf_counter()
         update_funnel_last_run(funnel.id)
-        logger.info("Step 5 (update last run) took %.2fs", time.perf_counter() - t0)
-    logger.info("Completed processing for funnel '%s'", funnel.name)
+        _step_log(
+            logger, "Step 5 (update last run) took %.2fs", time.perf_counter() - t0
+        )
+    _step_log(logger, "Completed processing for funnel '%s'", funnel.name)
 
 
 @flow(

@@ -4,7 +4,10 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from flows.video_pipeline import process_video_for_funnel
+from flows.video_pipeline import (
+    _filter_prefetched_videos_by_engagement,
+    process_video_for_funnel,
+)
 from models.schemas import FunnelWithRelations, VideoData
 from tasks.youtube import (
     _fetch_video_metadata_map_google_api,
@@ -115,6 +118,21 @@ class YouTubeApiTaskTests(unittest.TestCase):
 
 
 class VideoPipelinePrefetchTests(unittest.TestCase):
+    @patch("flows.video_pipeline.MIN_VIDEO_LIKE_COUNT", 10)
+    @patch("flows.video_pipeline.MIN_VIDEO_VIEW_COUNT", 1000)
+    def test_filter_prefetched_videos_by_engagement(self) -> None:
+        logger = MagicMock()
+        low = VideoData(video_id="low", title="Low", view_count=50, like_count=2)
+        high = VideoData(video_id="high", title="High", view_count=5000, like_count=300)
+
+        filtered = _filter_prefetched_videos_by_engagement(
+            {"low": low, "high": high},
+            logger,
+        )
+
+        self.assertEqual(list(filtered.keys()), ["high"])
+        logger.info.assert_called_once()
+
     @patch("flows.video_pipeline.get_run_logger")
     @patch("flows.video_pipeline.link_video_to_funnel")
     @patch("flows.video_pipeline.save_video")

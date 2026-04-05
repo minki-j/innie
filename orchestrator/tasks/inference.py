@@ -12,14 +12,12 @@ import os
 from typing import Any
 
 import httpx
-from prefect import task
 
 logger = logging.getLogger(__name__)
 
 LAB_SERVER_URL = os.environ.get("LAB_SERVER_URL")
 
 
-@task(name="generate_innie_review", retries=2, retry_delay_seconds=10)
 def generate_innie_review(
     *,
     transcript: str,
@@ -71,7 +69,6 @@ def generate_innie_review(
         return None
 
 
-@task(name="check_innie_model_available")
 def check_innie_model_available(funnel_id: str, method: str = "SFT") -> bool:
     """Check if an active innie model exists for a funnel."""
     try:

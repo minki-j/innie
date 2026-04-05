@@ -51,6 +51,8 @@ YOUTUBE_API_KEY: str | None = os.environ.get("YOUTUBE_API_KEY") or os.environ.ge
 )
 MAX_VIDEOS_PER_KEYWORD: int = int(os.environ["MAX_VIDEOS_PER_KEYWORD"])
 MAX_VIDEOS_PER_CREATOR: int = int(os.environ["MAX_VIDEOS_PER_CREATOR"])
+MIN_VIDEO_VIEW_COUNT: int = int(os.environ.get("MIN_VIDEO_VIEW_COUNT", "1000"))
+MIN_VIDEO_LIKE_COUNT: int = int(os.environ.get("MIN_VIDEO_LIKE_COUNT", "100"))
 
 # ── Transcript ────────────────────────────────────────────────
 
@@ -75,11 +77,19 @@ YOUTUBE_RATE_LIMIT_WINDOW: int = int(os.environ.get("YOUTUBE_RATE_LIMIT_WINDOW",
 OPENAI_RATE_LIMIT_CALLS: int = int(os.environ.get("OPENAI_RATE_LIMIT_CALLS", "60"))
 OPENAI_RATE_LIMIT_WINDOW: int = int(os.environ.get("OPENAI_RATE_LIMIT_WINDOW", "60"))
 
-ANTHROPIC_RATE_LIMIT_CALLS: int = int(os.environ.get("ANTHROPIC_RATE_LIMIT_CALLS", "50"))
-ANTHROPIC_RATE_LIMIT_WINDOW: int = int(os.environ.get("ANTHROPIC_RATE_LIMIT_WINDOW", "60"))
+ANTHROPIC_RATE_LIMIT_CALLS: int = int(
+    os.environ.get("ANTHROPIC_RATE_LIMIT_CALLS", "50")
+)
+ANTHROPIC_RATE_LIMIT_WINDOW: int = int(
+    os.environ.get("ANTHROPIC_RATE_LIMIT_WINDOW", "60")
+)
 
 GOOGLE_RATE_LIMIT_CALLS: int = int(os.environ.get("GOOGLE_RATE_LIMIT_CALLS", "60"))
 GOOGLE_RATE_LIMIT_WINDOW: int = int(os.environ.get("GOOGLE_RATE_LIMIT_WINDOW", "60"))
 
-LANGGRAPH_RATE_LIMIT_CALLS: int = int(os.environ.get("LANGGRAPH_RATE_LIMIT_CALLS", "10"))
-LANGGRAPH_RATE_LIMIT_WINDOW: int = int(os.environ.get("LANGGRAPH_RATE_LIMIT_WINDOW", "60"))
+LANGGRAPH_RATE_LIMIT_CALLS: int = int(
+    os.environ.get("LANGGRAPH_RATE_LIMIT_CALLS", "10")
+)
+LANGGRAPH_RATE_LIMIT_WINDOW: int = int(
+    os.environ.get("LANGGRAPH_RATE_LIMIT_WINDOW", "60")
+)
