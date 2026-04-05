@@ -60,6 +60,7 @@ from tasks.youtube import (
     fetch_creator_videos,
     fetch_transcript,
     fetch_video_metadata,
+    fetch_video_metadata_batch,
     search_videos_by_keyword_google_or_yt_dlp,
 )
 from utils.failed_queue import get_failed_queue
@@ -453,6 +454,7 @@ def process_video_for_funnel(
     video_id: str,
     funnel: FunnelWithRelations,
     model_name: str | None = None,
+    prefetched_video_data: VideoData | None = None,
 ) -> VideoData | None:
     """
     Fetch / save a single video and link it to the funnel.
@@ -470,9 +472,12 @@ def process_video_for_funnel(
         )
         video_data = existing_video
     else:
-        video_data = fetch_video_metadata(video_id)
+        video_data = prefetched_video_data or fetch_video_metadata(video_id)
         if video_data is None:
-            logger.warning("Could not fetch metadata for video %s, skipping", video_id)
+            logger.warning(
+                "Could not fetch metadata for video %s from YouTube API, skipping",
+                video_id,
+            )
             return None
 
         transcript_text, transcript_status = fetch_transcript(video_id)
@@ -493,11 +498,13 @@ def _submit_process_video_for_funnel(
     video_id: str,
     funnel: FunnelWithRelations,
     model_name: str | None = None,
+    prefetched_video_data: VideoData | None = None,
 ) -> VideoData | None:
     return process_video_for_funnel(
         video_id=video_id,
         funnel=funnel,
         model_name=model_name,
+        prefetched_video_data=prefetched_video_data,
     )
 
 
@@ -549,11 +556,13 @@ def _process_funnel(
     # Use a thread pool -- .submit() from prefect -- to process videos in parallel.
     t0 = time.perf_counter()
     saved_videos: list[VideoData] = []
+    prefetched_video_map = fetch_video_metadata_batch(new_ids) if new_ids else {}
     submitted_video_runs = {
         video_id: _submit_process_video_for_funnel.submit(
             video_id=video_id,
             funnel=funnel,
             model_name=model_name,
+            prefetched_video_data=prefetched_video_map.get(video_id),
         )
         for video_id in new_ids
     }

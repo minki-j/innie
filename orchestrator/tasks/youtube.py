@@ -1,16 +1,18 @@
 """
-YouTube scraping tasks using yt-dlp and youtube-transcript-api.
+YouTube discovery and metadata tasks.
 
-Patterns adapted from lab/datasets/ai_dot_engineer/ scripts.
+Discovery and metadata use the official YouTube Data API. Transcript fetching
+uses youtube-transcript-api first and yt-dlp as a fallback.
 """
 
 from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from html import unescape
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 
@@ -23,15 +25,28 @@ from utils.rate_limiter import get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
+_YOUTUBE_API_BASE_URL = "https://www.googleapis.com/youtube/v3"
+_YOUTUBE_API_TIMEOUT_SECONDS = 30.0
+_YOUTUBE_BATCH_SIZE = 50
+_CHANNEL_ID_RE = re.compile(r"^/channel/(?P<channel_id>[^/?#]+)")
+_CHANNEL_HANDLE_RE = re.compile(r"^/@(?P<handle>[^/?#]+)")
+_ISO8601_DURATION_RE = re.compile(
+    r"^P(?:(?P<days>\d+)D)?(?:T(?:(?P<hours>\d+)H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?)?$"
+)
+
 
 def _should_retry_youtube(task, task_run, state: State) -> bool:
-    """Retry only on transient network/download errors, not permanent failures."""
+    """Retry only on transient YouTube request/download errors."""
     exc = state.result(raise_on_failure=False)
     transient = (
         ConnectionError,
         TimeoutError,
         OSError,
     )
+    if isinstance(exc, httpx.TimeoutException | httpx.NetworkError):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code in {408, 409, 425, 429, 500, 502, 503, 504}
     try:
         import yt_dlp  # type: ignore
 
@@ -41,7 +56,7 @@ def _should_retry_youtube(task, task_run, state: State) -> bool:
     return isinstance(exc, transient)
 
 
-# ── yt-dlp helpers ────────────────────────────────────────────
+# ── Shared helpers ────────────────────────────────────────────
 
 
 def _get_yt_dlp():
@@ -50,7 +65,7 @@ def _get_yt_dlp():
     return yt_dlp
 
 
-def _parse_upload_date(date_str: str | None) -> datetime | None:
+def _parse_yt_dlp_upload_date(date_str: str | None) -> datetime | None:
     """Parse YYYYMMDD date string from yt-dlp into a datetime."""
     if not date_str or len(date_str) < 8:
         return None
@@ -69,6 +84,142 @@ def _to_rfc3339(dt: datetime | None) -> str | None:
     return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def _parse_rfc3339(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(
+            timezone.utc
+        )
+    except ValueError:
+        return None
+
+
+def _parse_iso8601_duration(value: str | None) -> int:
+    if not value:
+        return 0
+    match = _ISO8601_DURATION_RE.fullmatch(value)
+    if not match:
+        return 0
+    days = int(match.group("days") or 0)
+    hours = int(match.group("hours") or 0)
+    minutes = int(match.group("minutes") or 0)
+    seconds = int(match.group("seconds") or 0)
+    return days * 86400 + hours * 3600 + minutes * 60 + seconds
+
+
+def _chunked(items: list[str], size: int) -> list[list[str]]:
+    return [items[i : i + size] for i in range(0, len(items), size)]
+
+
+def _parse_int(value: Any) -> int:
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _normalize_tags(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [str(tag) for tag in value if isinstance(tag, str)]
+
+
+def _require_youtube_api_key() -> str:
+    if not YOUTUBE_API_KEY:
+        raise RuntimeError(
+            "YOUTUBE_API_KEY (or GOOGLE_API_KEY) with YouTube Data API v3 enabled is required"
+        )
+    return YOUTUBE_API_KEY
+
+
+def _youtube_api_get(
+    client: httpx.Client,
+    resource: str,
+    params: dict[str, Any],
+) -> dict[str, Any]:
+    api_key = _require_youtube_api_key()
+    get_rate_limiter("youtube").acquire()
+    response = client.get(
+        f"{_YOUTUBE_API_BASE_URL}/{resource}",
+        params={**params, "key": api_key},
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"YouTube Data API returned malformed payload for {resource}")
+    return payload
+
+
+def _video_data_from_api_item(item: dict[str, Any]) -> VideoData | None:
+    video_id = item.get("id")
+    if not isinstance(video_id, str) or not video_id:
+        return None
+
+    snippet = item.get("snippet")
+    content_details = item.get("contentDetails")
+    statistics = item.get("statistics")
+    if not isinstance(snippet, dict):
+        snippet = {}
+    if not isinstance(content_details, dict):
+        content_details = {}
+    if not isinstance(statistics, dict):
+        statistics = {}
+
+    return VideoData(
+        video_id=video_id,
+        title=str(snippet.get("title") or ""),
+        description=str(snippet.get("description") or ""),
+        channel_title=str(snippet.get("channelTitle") or ""),
+        channel_id=str(snippet.get("channelId") or ""),
+        published_at=_parse_rfc3339(snippet.get("publishedAt")),
+        view_count=_parse_int(statistics.get("viewCount")),
+        like_count=_parse_int(statistics.get("likeCount")),
+        comment_count=_parse_int(statistics.get("commentCount")),
+        duration_seconds=_parse_iso8601_duration(content_details.get("duration")),
+        tags=_normalize_tags(snippet.get("tags")),
+    )
+
+
+def _fetch_video_metadata_map_google_api(
+    video_ids: list[str],
+) -> dict[str, VideoData]:
+    unique_video_ids = list(dict.fromkeys(video_id for video_id in video_ids if video_id))
+    if not unique_video_ids:
+        return {}
+
+    videos: dict[str, VideoData] = {}
+    with httpx.Client(timeout=_YOUTUBE_API_TIMEOUT_SECONDS) as client:
+        for chunk in _chunked(unique_video_ids, _YOUTUBE_BATCH_SIZE):
+            payload = _youtube_api_get(
+                client,
+                "videos",
+                {
+                    "part": "snippet,contentDetails,statistics",
+                    "id": ",".join(chunk),
+                    "maxResults": len(chunk),
+                },
+            )
+            items = payload.get("items")
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                video = _video_data_from_api_item(item)
+                if video is not None:
+                    videos[video.video_id] = video
+
+    missing_video_ids = [video_id for video_id in unique_video_ids if video_id not in videos]
+    if missing_video_ids:
+        logger.warning(
+            "YouTube Data API returned no metadata for %d video(s): %s",
+            len(missing_video_ids),
+            ", ".join(missing_video_ids[:10]),
+        )
+    return videos
+
+
 def _search_videos_by_keyword_google_api(
     keyword: str,
     max_results: int,
@@ -84,17 +235,14 @@ def _search_videos_by_keyword_google_api(
     seen_ids: set[str] = set()
     next_page_token: str | None = None
 
-    with httpx.Client(timeout=30.0) as client:
+    with httpx.Client(timeout=_YOUTUBE_API_TIMEOUT_SECONDS) as client:
         while len(video_ids) < max_results:
-            get_rate_limiter("youtube").acquire()
-
             params = {
                 "part": "snippet",
                 "type": "video",
                 "q": keyword,
-                "maxResults": min(50, max_results - len(video_ids)),
+                "maxResults": min(_YOUTUBE_BATCH_SIZE, max_results - len(video_ids)),
                 "order": "date",
-                "key": YOUTUBE_API_KEY,
             }
             if next_page_token:
                 params["pageToken"] = next_page_token
@@ -103,13 +251,7 @@ def _search_videos_by_keyword_google_api(
             if published_before:
                 params["publishedBefore"] = _to_rfc3339(published_before)
 
-            response = client.get(
-                "https://www.googleapis.com/youtube/v3/search",
-                params=params,
-            )
-            response.raise_for_status()
-            payload = response.json()
-
+            payload = _youtube_api_get(client, "search", params)
             items = payload.get("items") or []
             for item in items:
                 if not isinstance(item, dict):
@@ -129,52 +271,6 @@ def _search_videos_by_keyword_google_api(
             if not next_page_token or not items:
                 break
 
-    return video_ids
-
-
-def _search_videos_by_keyword_yt_dlp(
-    keyword: str,
-    max_results: int,
-) -> list[str]:
-    """
-    Search YouTube via yt-dlp's keyword search.
-
-    Note: reliable date-range filtering is not supported on this path.
-    yt-dlp's keyword search returns a limited slice of YouTube search results,
-    and its date-related options do not make YouTube apply an exact server-side
-    published-after / published-before filter for arbitrary ranges.
-    To get reliable date-range filtering, use the Google YouTube Data API instead.
-    """
-    get_rate_limiter("youtube").acquire()
-    yt_dlp = _get_yt_dlp()
-    search_url = f"ytsearch{max_results}:{keyword}"
-
-    ydl_opts: dict[str, Any] = {
-        "skip_download": True,
-        "quiet": True,
-        "no_warnings": True,
-        "extract_flat": True,
-    }
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(search_url, download=False)
-    except Exception:
-        logger.exception(
-            "Failed to search YouTube with yt-dlp for keyword: %s", keyword
-        )
-        return []
-
-    entries = info.get("entries") or [] if info else []
-    video_ids: list[str] = []
-    for entry in entries:
-        if not isinstance(entry, dict):
-            continue
-        vid_id = entry.get("id") or entry.get("url") or ""
-        if vid_id:
-            video_ids.append(str(vid_id))
-
-    logger.info("Keyword '%s': found %d videos via yt-dlp", keyword, len(video_ids))
     return video_ids
 
 
@@ -202,62 +298,181 @@ def search_videos_by_keyword_google_or_yt_dlp(
         published_after: Filter videos published on or after this timestamp.
         published_before: Filter videos published on or before this timestamp.
 
-    When a date window is provided, the Google YouTube Data API is used so
-    filtering happens server-side. Otherwise, yt-dlp is used as the fast
-    default path.
+    Discovery now always uses the official YouTube Data API. When a date window
+    is provided, filtering happens server-side.
     """
     if max_results is None:
         max_results = MAX_VIDEOS_PER_KEYWORD
 
-    if published_after or published_before:
-        if not YOUTUBE_API_KEY:
-            raise RuntimeError(
-                "Date-bounded keyword search requires YOUTUBE_API_KEY "
-                "(or GOOGLE_API_KEY) with YouTube Data API enabled"
-            )
-        try:
-            video_ids = _search_videos_by_keyword_google_api(
-                keyword,
-                max_results,
-                published_after=published_after,
-                published_before=published_before,
-            )
-            logger.info(
-                "Keyword '%s': found %d videos via YouTube Data API",
-                keyword,
-                len(video_ids),
-            )
-            return video_ids
-        except httpx.HTTPStatusError as exc:
-            logger.exception(
-                "YouTube Data API search failed for keyword: %s",
-                keyword,
-            )
-            raise RuntimeError(
-                "Date-bounded keyword search failed. Ensure YOUTUBE_API_KEY is valid "
-                "and has YouTube Data API v3 enabled."
-            ) from exc
-        except httpx.HTTPError as exc:
-            logger.exception(
-                "YouTube Data API search failed for keyword: %s",
-                keyword,
-            )
-            raise RuntimeError(
-                "Date-bounded keyword search failed due to a YouTube Data API request error."
-            ) from exc
-
-    return _search_videos_by_keyword_yt_dlp(keyword, max_results)
+    try:
+        video_ids = _search_videos_by_keyword_google_api(
+            keyword,
+            max_results,
+            published_after=published_after,
+            published_before=published_before,
+        )
+        logger.info(
+            "Keyword '%s': found %d videos via YouTube Data API",
+            keyword,
+            len(video_ids),
+        )
+        return video_ids
+    except httpx.HTTPStatusError as exc:
+        logger.exception(
+            "YouTube Data API search failed for keyword: %s",
+            keyword,
+        )
+        raise RuntimeError(
+            "Keyword search failed. Ensure YOUTUBE_API_KEY is valid and has "
+            "YouTube Data API v3 enabled."
+        ) from exc
+    except httpx.HTTPError as exc:
+        logger.exception(
+            "YouTube Data API search failed for keyword: %s",
+            keyword,
+        )
+        raise RuntimeError(
+            "Keyword search failed due to a YouTube Data API request error."
+        ) from exc
 
 
 # ── Creator / Channel video fetch ─────────────────────────────
 
 
-def _channel_videos_url(channel_url: str) -> str:
-    """Ensure URL points to /videos tab."""
-    url = channel_url.rstrip("/")
-    if url.endswith("/videos"):
-        return url
-    return f"{url}/videos"
+def _extract_channel_id_from_url(channel_url: str) -> str | None:
+    parsed = urlparse(channel_url)
+    match = _CHANNEL_ID_RE.match(parsed.path)
+    if match is None:
+        return None
+    return match.group("channel_id")
+
+
+def _extract_channel_handle(channel_url: str) -> str | None:
+    parsed = urlparse(channel_url)
+    match = _CHANNEL_HANDLE_RE.match(parsed.path)
+    if match is None:
+        return None
+    return match.group("handle")
+
+
+def _resolve_channel_id_from_url(
+    client: httpx.Client,
+    channel_url: str,
+) -> str | None:
+    if channel_url.startswith("@"):
+        handle = channel_url[1:]
+    else:
+        handle = _extract_channel_handle(channel_url)
+    if handle:
+        payload = _youtube_api_get(
+            client,
+            "channels",
+            {"part": "id", "forHandle": handle},
+        )
+        items = payload.get("items")
+        if isinstance(items, list) and items:
+            item = items[0]
+            if isinstance(item, dict) and isinstance(item.get("id"), str):
+                return item["id"]
+        logger.warning("No YouTube channel found for handle '%s'", handle)
+        return None
+
+    channel_id = _extract_channel_id_from_url(channel_url)
+    if channel_id:
+        return channel_id
+
+    logger.warning(
+        "Unsupported channel_url format '%s'. Only @handle or /channel/<id> URLs are supported.",
+        channel_url,
+    )
+    return None
+
+
+def _resolve_channel_id(
+    client: httpx.Client,
+    channel_id: str | None,
+    channel_url: str | None,
+) -> str | None:
+    if channel_id:
+        return channel_id
+    if not channel_url:
+        return None
+    return _resolve_channel_id_from_url(client, channel_url)
+
+
+def _fetch_uploads_playlist_id(client: httpx.Client, channel_id: str) -> str | None:
+    payload = _youtube_api_get(
+        client,
+        "channels",
+        {"part": "contentDetails", "id": channel_id, "maxResults": 1},
+    )
+    items = payload.get("items")
+    if not isinstance(items, list) or not items:
+        logger.warning("No channel found for channel_id=%s", channel_id)
+        return None
+    item = items[0]
+    if not isinstance(item, dict):
+        return None
+    content_details = item.get("contentDetails")
+    if not isinstance(content_details, dict):
+        return None
+    related_playlists = content_details.get("relatedPlaylists")
+    if not isinstance(related_playlists, dict):
+        return None
+    uploads_playlist_id = related_playlists.get("uploads")
+    if not isinstance(uploads_playlist_id, str) or not uploads_playlist_id:
+        logger.warning("Channel %s has no uploads playlist", channel_id)
+        return None
+    return uploads_playlist_id
+
+
+def _fetch_playlist_video_ids(
+    client: httpx.Client,
+    playlist_id: str,
+    max_results: int,
+    cutoff: datetime | None = None,
+) -> list[str]:
+    video_ids: list[str] = []
+    next_page_token: str | None = None
+
+    while len(video_ids) < max_results:
+        payload = _youtube_api_get(
+            client,
+            "playlistItems",
+            {
+                "part": "contentDetails,snippet",
+                "playlistId": playlist_id,
+                "maxResults": min(_YOUTUBE_BATCH_SIZE, max_results - len(video_ids)),
+                **({"pageToken": next_page_token} if next_page_token else {}),
+            },
+        )
+        items = payload.get("items")
+        if not isinstance(items, list) or not items:
+            break
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            content_details = item.get("contentDetails")
+            snippet = item.get("snippet")
+            if not isinstance(content_details, dict):
+                content_details = {}
+            if not isinstance(snippet, dict):
+                snippet = {}
+            published_at = _parse_rfc3339(
+                content_details.get("videoPublishedAt") or snippet.get("publishedAt")
+            )
+            if cutoff and published_at and published_at < cutoff:
+                continue
+            video_id = content_details.get("videoId")
+            if isinstance(video_id, str) and video_id:
+                video_ids.append(video_id)
+                if len(video_ids) >= max_results:
+                    break
+        next_page_token = payload.get("nextPageToken")
+        if not next_page_token:
+            break
+
+    return video_ids
 
 
 @task(
@@ -280,54 +495,46 @@ def fetch_creator_videos(
     if max_results is None:
         max_results = MAX_VIDEOS_PER_CREATOR
 
-    get_rate_limiter("youtube").acquire()
-    yt_dlp = _get_yt_dlp()
-
-    # Build the channel URL
-    if channel_url:
-        url = _channel_videos_url(channel_url)
-    elif channel_id:
-        url = f"https://www.youtube.com/channel/{channel_id}/videos"
-    else:
+    if not channel_id and not channel_url:
         logger.warning("No channel_id or channel_url provided")
         return []
 
-    ydl_opts: dict[str, Any] = {
-        "skip_download": True,
-        "quiet": True,
-        "no_warnings": True,
-        "extract_flat": "in_playlist",
-        "playlistend": max_results,
-    }
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-    except Exception:
-        logger.exception("Failed to fetch videos from channel: %s", url)
-        return []
-
-    entries = info.get("entries") or [] if info else []
     cutoff = datetime.now(timezone.utc) - timedelta(days=months_back * 30)
+    with httpx.Client(timeout=_YOUTUBE_API_TIMEOUT_SECONDS) as client:
+        resolved_channel_id = _resolve_channel_id(client, channel_id, channel_url)
+        if not resolved_channel_id:
+            return []
+        uploads_playlist_id = _fetch_uploads_playlist_id(client, resolved_channel_id)
+        if not uploads_playlist_id:
+            return []
+        video_ids = _fetch_playlist_video_ids(
+            client,
+            uploads_playlist_id,
+            max_results=max_results,
+            cutoff=cutoff,
+        )
 
-    video_ids: list[str] = []
-    for entry in entries:
-        if not isinstance(entry, dict):
-            continue
-        vid_id = entry.get("id") or entry.get("url") or ""
-        if not vid_id:
-            continue
-        # If upload date available, filter by cutoff
-        upload_date = _parse_upload_date(entry.get("upload_date"))
-        if upload_date and upload_date < cutoff:
-            continue
-        video_ids.append(str(vid_id))
-
-    logger.info("Channel %s: found %d recent videos", url, len(video_ids))
+    logger.info(
+        "Channel %s: found %d recent videos via YouTube Data API",
+        channel_url or resolved_channel_id,
+        len(video_ids),
+    )
     return video_ids
 
 
 # ── Video metadata extraction ─────────────────────────────────
+
+
+@task(
+    name="fetch_video_metadata_batch",
+    retries=3,
+    retry_delay_seconds=[10, 30, 90],
+    retry_jitter_factor=0.2,
+    retry_condition_fn=_should_retry_youtube,
+)
+def fetch_video_metadata_batch(video_ids: list[str]) -> dict[str, VideoData]:
+    """Fetch video metadata in batches using the YouTube Data API."""
+    return _fetch_video_metadata_map_google_api(video_ids)
 
 
 @task(
@@ -339,42 +546,15 @@ def fetch_creator_videos(
 )
 def fetch_video_metadata(video_id: str) -> VideoData | None:
     """
-    Fetch full video metadata using yt-dlp.
+    Fetch full video metadata using the YouTube Data API.
     Returns a VideoData model or None on failure.
     """
-    get_rate_limiter("youtube").acquire()
-    yt_dlp = _get_yt_dlp()
-    url = f"https://www.youtube.com/watch?v={video_id}"
-
-    ydl_opts: dict[str, Any] = {
-        "skip_download": True,
-        "quiet": True,
-        "no_warnings": True,
-    }
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-    except Exception:
-        logger.exception("Failed to fetch metadata for video: %s", video_id)
+    video = _fetch_video_metadata_map_google_api([video_id]).get(video_id)
+    if video is None:
+        logger.warning(
+            "Could not fetch metadata for video %s via YouTube Data API", video_id
+        )
         return None
-
-    if not isinstance(info, dict):
-        return None
-
-    video = VideoData(
-        video_id=str(info.get("id") or video_id),
-        title=info.get("title") or "",
-        description=info.get("description") or "",
-        channel_title=info.get("channel") or info.get("uploader") or "",
-        channel_id=info.get("channel_id") or "",
-        published_at=_parse_upload_date(info.get("upload_date")),
-        view_count=int(info.get("view_count") or 0),
-        like_count=int(info.get("like_count") or 0),
-        comment_count=int(info.get("comment_count") or 0),
-        duration_seconds=int(info.get("duration") or 0),
-        tags=info.get("tags") or [],
-    )
     logger.info(
         "Fetched metadata for video %s: '%s' by %s",
         video_id,
