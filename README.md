@@ -1,11 +1,5 @@
 # Innie — training a personal AI that watches YouTube the way you would
 
-| | |
-|---|---|
-| **Date** | May 2026 |
-| **Github** | _(add link)_ |
-| **Try it now!** | _(add link)_ |
-
 ## Problem statement
 
 Every content recommendation system I use is optimizing for something that isn't me.
@@ -158,13 +152,3 @@ A few challenges that don't get their own chapter but shaped the project:
 - **Cost and latency.** Multi-model voting on every video is expensive; the hierarchy prunes the search, and a small trained model is meant to eventually replace frontier-model polling for the personalization layer.
 - **Orchestrating four heterogeneous services.** Next.js, LangGraph, Prefect, and a Tinker training server have to agree on a schema. I generate the Python models from the Prisma schema so the contract can't silently drift.
 - **The model of the domain kept evolving.** "Topics" became "funnels" with an explicit `ClassNode` tree; the data model was refactored more than once as I understood the problem better. That churn is a feature of building toward something you don't fully understand yet — but it has a real cost, and naming things early-and-wrong slowed me down.
-
----
-
-## Where it's going
-
-The pieces are all in place: discovery, a transparent classification swarm, a human-in-the-loop review surface, and a personal model that learns your taste from your feedback. The next milestone is closing the loop end-to-end — using the trained innie's score to **rank the live feed**, so the promise on the landing page ("your innie scores your feed") is fully real rather than partly aspirational.
-
-The bigger bet underneath all of this: recommendation shouldn't be a black box optimizing someone else's objective. It can be a transparent, steerable, *personal* model that you teach and own. Building Innie has mostly convinced me that the hard part isn't the ranking — it's capturing tacit preference, keeping judgment legible, and choosing the right tool (a prompt or a weight update) for each layer.
-
-Thanks for reading this far. As always, everything's a work in progress and I'd love questions, pushback, or ideas — don't hesitate to reach out.
